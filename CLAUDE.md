@@ -19,6 +19,7 @@ Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pe
 - `src/sim/customers.js`: pelanggan masuk kedai bertema "kedai" (Meney) dari kaki lima ke kaunter. Mod Data contoh; nanti boleh dicetus oleh jualan POS.
 - `src/sim/life.js`: pekerja tak sibuk sekali-sekala bangun ke pantri/sofa/whiteboard/rakan dan kembali. Hiasan visual sahaja, tidak ubah status.
 - `api/`: backend (Vercel Functions). `_lib.js` (Upstash REST, semak kunci), `status.js` (POST agent hantar status dengan `Authorization: Bearer MARKAS_AGENT_KEY`; GET dashboard baca dengan `x-markas-code`), `log.js` (50 aktiviti terakhir), `decision.js` (tanda keputusan selesai), `health.js` (semakan tanpa rahsia + cadangan kunci rawak). Data Redis: `markas:status:<id>` (JSON) dan `markas:log:<id>` (senarai, maks 50).
+- `agents/bina/`: agent Bina (Google Apps Script). `Code.gs` (baca tracker MY + Global, kira ringkasan, hantar ke `/api/status`; tetapan dalam Script Properties: `MARKAS_URL`, `MARKAS_AGENT_KEY`, `SHEET_MY`, `SHEET_GLOBAL`), `appsscript.json` (zon waktu KL, skop baca sahaja), `CARA-PASANG.md` (panduan BM). ID Sheet TIDAK dalam repo.
 - Rahsia di Vercel sahaja (lihat `.env.example`): `MARKAS_AGENT_KEY`, `MARKAS_VIEW_CODE`; `KV_REST_API_URL`/`KV_REST_API_TOKEN` diisi oleh Upstash.
 - Tambah `?debug` pada URL untuk dedah `window.__markas` (renderer + agent) semasa ujian.
 - `logos/`: logo BinaLab dan Meney (SVG/PNG). `-dark` untuk latar gelap. Logo dibaca terus dari fail SVG.
@@ -75,5 +76,5 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 3: backend Vercel Functions + Upstash (diuji tempatan dengan Redis tiruan; ujian sebenar perlu Danial buka /api/health)
 - [x] Peringkat 4: dashboard baca status + suis Data contoh / Hidup + kod akses (diuji dengan API tiruan; 12/12 lulus)
 - [x] Peringkat 5: report terakhir + aktiviti terkini dalam panel detail (mod Hidup dari `/api/log`; mod contoh dari log simulasi `a.sampleLog`)
-- [ ] Peringkat 6: hidupkan Bina (Apps Script)
+- [~] Peringkat 6: skrip Bina siap + diuji dengan data rekaan; menunggu Danial pasang di script.google.com (ikut `agents/bina/CARA-PASANG.md`)
 - [ ] Peringkat 7: README BM
