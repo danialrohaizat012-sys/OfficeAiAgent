@@ -80,7 +80,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 6: Bina hidup di Apps Script akaun Danial (ujiBina berjaya ke server sebenar 13 Nov 2026; jadual harian 8:00 pagi dipasang)
 - [x] Peringkat 7: README BM (`README.md`)
 
-- [~] Peringkat 8: agent Meney (Lina + Faris) siap + diuji dengan data rekaan (11/11); menunggu Danial pasang (`agents/meney/CARA-PASANG.md`)
+- [x] Peringkat 8: agent Meney (Lina + Faris) dipasang di Apps Script "Meney – Markas" akaun Danial; ujiMeney berjaya ke server sebenar 13 Nov 2026. Perlu Danial sahkan angka jualan sepadan dengan POS.
 
 ## Cadangan seterusnya (belum dipersetujui)
 - Tukar repo ke Private; tukar kunci yang pernah terdedah dalam chat.
