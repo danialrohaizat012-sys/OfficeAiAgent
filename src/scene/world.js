@@ -15,8 +15,8 @@ const logoSvg = file => LOGO_FILES["../../logos/" + file];
 
 // Bina seluruh dunia 3D: tapak, bangunan Command, bangunan pejabat dan pekerja.
 export function buildWorld(scene, offices, agents) {
-  const officeGroups = {}, pickables = [], bobbers = [], bridges = [];
-  buildSite(scene, offices);
+  const officeGroups = {}, pickables = [], bobbers = [], nightLights = [];
+  const site = buildSite(scene, offices);
 
   for (const [key, o] of Object.entries(offices)) {
     const grp = o.kind === "hub" ? hub(o, bobbers) : office(o);
@@ -47,7 +47,13 @@ export function buildWorld(scene, offices, agents) {
     a.ph = Math.random() * 6;
   }
 
-  return { officeGroups, pickables, bobbers, bridges };
+  // lampu dalam bangunan (menyala waktu malam)
+  for (const [key, o] of Object.entries(offices)) {
+    const lamp = new THREE.PointLight(o.kind === "hub" ? 0xb8c4ff : 0xffe2b0, 0, o.kind === "hub" ? 8 : 11, 1.2);
+    lamp.position.set(0, 2.4, o.kind === "hub" ? 0 : o.platformShift);
+    officeGroups[key].add(lamp); nightLights.push(lamp);
+  }
+  return { officeGroups, pickables, bobbers, nightLights, site };
 }
 
 // Bangunan Command: pavilion kaca berbentuk oktagon, bahagian depan terbuka

@@ -14,13 +14,20 @@
 <canvas id="stage" aria-label="Pemandangan 3D markas agent"></canvas>
 <div id="bubbles"></div>
 <div class="loading" id="loading">Menyusun markas…</div>
+<div class="toast" id="toast" role="status"></div>
 
 <header>
   <div>
     <h1>Markas Agent</h1>
     <p></p>
   </div>
-  <span class="sample" title="Status ini simulasi. Sambung ke agent sebenar untuk data hidup.">Data contoh</span>
+  <div class="hud">
+    <span class="sample" title="Status ini simulasi. Sambung ke agent sebenar untuk data hidup.">Data contoh</span>
+    <div class="hud-row">
+      <span class="chipx" id="clock" title="Waktu Malaysia">☀️ --:--</span>
+      <button class="chipx" id="quality" title="Tukar kualiti grafik">✨ Cantik</button>
+    </div>
+  </div>
 </header>
 
 <div class="dock" id="dock">
@@ -33,6 +40,11 @@
     <div class="av" id="sAv"></div>
     <div><h2 id="sName"></h2><p class="role" id="sRole"></p></div>
     <button class="close" id="sClose">Tutup</button>
+  </div>
+  <div class="decide" id="sDecide" hidden>
+    <h3>⚠ Perlu keputusan Danial</h3>
+    <p id="sDecideText"></p>
+    <button id="sDecideDone">✓ Tandakan selesai</button>
   </div>
   <h3>Sedang buat</h3>
   <p class="now" id="sNow"></p>

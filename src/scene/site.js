@@ -6,6 +6,12 @@ import { bakeStatic } from "./decor.js";
 // Semua bangunan duduk atas tanah (tiada lagi platform terapung).
 
 export const GROUND_Y = -0.25;
+
+// Tandakan bahan yang menyala lebih terang waktu malam (lampu jalan, lampu kereta)
+export function glow(mat, nightIntensity) {
+  mat.userData.nightGlow = nightIntensity;
+  return mat;
+}
 const PI = Math.PI;
 const at = (m, x, y, z) => { m.position.set(x, y, z); return m; };
 const matCache = new Map();
@@ -91,6 +97,7 @@ export function buildSite(scene, offices) {
   }
 
   scene.add(bakeStatic(site));
+  return { roadZ, roadW, minX, maxX, minZ, maxZ };
 }
 
 function tree(x, z, s, i) {
@@ -107,7 +114,7 @@ function streetLamp(x, z) {
   const metal = std(0x3a3f4d, { metalness: 0.5, roughness: 0.4 });
   g.add(at(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 2.6, 8), metal), 0, 1.3, 0));
   g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.6), metal), 0, 2.58, 0.27));
-  g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.08, 0.32), std(0xfff1d0, { emissive: 0xffe2a8, emissiveIntensity: 0.9 })), 0, 2.52, 0.5));
+  g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.08, 0.32), glow(std(0xfff1d0, { emissive: 0xffe2a8, emissiveIntensity: 0.9 }), 1.4)), 0, 2.52, 0.5));
   return g;
 }
 
@@ -120,6 +127,6 @@ function car(x, z, ry, color) {
     const w = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.12, 12), std(0x15171d));
     w.rotation.x = PI / 2; w.position.set(wx, 0.17, wz); g.add(w);
   }
-  g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.6), std(0xfff6d8, { emissive: 0xfff0c0, emissiveIntensity: 0.8 })), 0.96, 0.4, 0));
+  g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.6), glow(std(0xfff6d8, { emissive: 0xfff0c0, emissiveIntensity: 0.8 }), 1.2)), 0.96, 0.4, 0));
   return g;
 }

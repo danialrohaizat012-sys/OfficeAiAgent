@@ -85,7 +85,7 @@ function hair(style, color, accent) {
 const HIP_STAND = 0.62;
 
 export function person(opts) {
-  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt } = opts;
+  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt, npc = false } = opts;
   const g = new THREE.Group();
   const body = new THREE.Group(); g.add(body);           // dinaik/turunkan bila duduk
   const skinM = std(skin), shirtM = std(shirt), pantsM = std(pants);
@@ -133,15 +133,29 @@ export function person(opts) {
   // --- penunjuk status terapung (hijau = sedia, kuning berkelip = sibuk)
   const dot = mesh(new THREE.OctahedronGeometry(0.06, 0), new THREE.MeshBasicMaterial({ color: 0x46D37A }), 0, torsoY + 0.85, 0);
   body.add(dot);
+  dot.visible = !npc;
+
+  // tanda "perlu keputusan": papan merah dengan "!" yang melantun di atas kepala
+  const flag = new THREE.Group(); flag.position.set(0, torsoY + 0.95, 0); flag.visible = false;
+  const red = new THREE.MeshBasicMaterial({ color: 0xe5484d }), white = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  flag.add(mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.06, 20), red, 0, 0, 0));
+  flag.children[0].rotation.x = Math.PI / 2;
+  flag.add(mesh(new THREE.BoxGeometry(0.05, 0.15, 0.02), white, 0, 0.03, 0.035));
+  flag.add(mesh(new THREE.BoxGeometry(0.05, 0.05, 0.02), white, 0, -0.09, 0.035));
+  flag.add(mesh(new THREE.ConeGeometry(0.06, 0.12, 4), red, 0, -0.2, 0));
+  flag.children[3].rotation.x = Math.PI;
+  body.add(flag);
 
   // gabung bahagian yang tak bergerak sesama sendiri (kurangkan objek dilukis)
-  const joints = [...legs.flatMap(l => [l.hip, l.knee]), ...arms, head, dot];
+  const joints = [...legs.flatMap(l => [l.hip, l.knee]), ...arms, head, dot, flag];
   joints.forEach(j => { j.userData.dynamic = true; });
   bakeStatic(body);
   joints.forEach(j => { if (j.isGroup) { j.userData.dynamic = false; bakeStatic(j); j.userData.dynamic = true; } });
 
   g.userData.animate = (t, st) => {
-    const { busy = false, ph = 0, sit = 0, seatY = 0.5, walk = null, typing = false, look = 0 } = st;
+    const { busy = false, ph = 0, sit = 0, seatY = 0.5, walk = null, typing = false, look = 0, decision = false } = st;
+    flag.visible = decision; dot.visible = !npc && !decision;
+    if (decision) { flag.position.y = torsoY + 0.95 + Math.abs(Math.sin(t * 4 + ph)) * 0.12; flag.rotation.y = Math.sin(t * 1.5) * 0.5; }
     body.position.y = -(HIP_STAND - seatY) * sit;
     const swing = walk == null ? 0 : Math.sin(walk);
     legs.forEach((l, i) => {

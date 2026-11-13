@@ -107,3 +107,27 @@ button:focus-visible{outline:2px solid #8E9BFF;outline-offset:2px}
   header h1{font-size:24px}
   .roster{justify-content:center;flex-wrap:wrap}
 }
+
+/* ---- HUD kanan atas: data contoh, jam, kualiti ---- */
+.hud{display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none}
+.hud-row{display:flex;gap:6px}
+.chipx{pointer-events:auto;font:inherit;font-size:11px;color:#E6ECF5;border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;padding:5px 10px;background:rgba(6,9,19,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+button.chipx{cursor:pointer}
+header h1,header p{text-shadow:0 1px 3px rgba(0,0,0,.65),0 2px 14px rgba(0,0,0,.5)}
+
+/* ---- agent perlu keputusan ---- */
+.agent.decide{outline:2px solid #e5484d;outline-offset:-1px}
+.agent.decide .av::before{content:"!";position:absolute;left:-4px;top:-4px;width:16px;height:16px;border-radius:50%;
+  background:#e5484d;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid var(--space)}
+.sheet .decide{margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(229,72,77,.12);border:1px solid rgba(229,72,77,.45)}
+.sheet .decide h3{margin:0 0 4px;color:#e5484d}
+.sheet .decide p{margin:0 0 8px;font-size:13.5px;line-height:1.4}
+.sheet .decide button{font:inherit;font-size:12.5px;font-weight:600;border:0;border-radius:999px;padding:7px 12px;background:#e5484d;color:#fff;cursor:pointer}
+
+/* ---- notis ringkas ---- */
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 78px);transform:translate(-50%,-8px);opacity:0;
+  background:var(--glass);color:var(--ink);border:1px solid var(--glass-line);border-radius:999px;padding:8px 14px;
+  font-size:12.5px;transition:opacity .3s,transform .3s;pointer-events:none;z-index:8;max-width:86vw;text-align:center;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}

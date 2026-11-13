@@ -44,6 +44,7 @@ function mesh(geo, mat, x = 0, y = 0, z = 0) {
 function grp(x = 0, y = 0, z = 0, ry = 0) {
   const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; return g;
 }
+const nightGlow = (m, v) => { m.userData.nightGlow = v; return m; };
 const hexStr = c => "#" + c.toString(16).padStart(6, "0");
 
 // ==================== LANTAI ====================
@@ -347,7 +348,7 @@ export function loungeZone(a, color, theme) {
     const lamp = grp(-0.1, 0, -1.15);
     lamp.add(mesh(cyl(0.15, 0.17, 0.03, 16), M.dark(), 0, 0.015, 0));
     lamp.add(mesh(cyl(0.015, 0.015, 1.4, 6), M.metal(), 0, 0.7, 0));
-    lamp.add(mesh(cyl(0.12, 0.2, 0.25, 16, 1, true), std(0xfff1d6, { emissive: 0xffd9a0, emissiveIntensity: 0.6, side: THREE.DoubleSide }), 0, 1.45, 0));
+    lamp.add(mesh(cyl(0.12, 0.2, 0.25, 16, 1, true), nightGlow(std(0xfff1d6, { emissive: 0xffd9a0, emissiveIntensity: 0.6, side: THREE.DoubleSide }), 1.3), 0, 1.45, 0));
     g.add(lamp);
   }
   return g;

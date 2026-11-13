@@ -40,6 +40,7 @@ export function loadConfig() {
       id: a.id, name: a.nama, office: a.pejabat, role: a.peranan || "",
       color: a.warna || "#cccccc",
       tasks: a.tugas && a.tugas.length ? a.tugas : ["Menunggu tugasan"],
+      sampleDecisions: a.contohKeputusan || [],
       look: { rambut: a.rambut || "pendek", warnaRambut: a.warnaRambut || "#3B2618", kulit: a.kulit || "#F6C944", seluar: a.seluar || "#2B3550" },
     });
   }

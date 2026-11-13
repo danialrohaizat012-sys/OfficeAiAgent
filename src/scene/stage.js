@@ -4,7 +4,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 // Prototaip asal guna three.js r128 (pencahayaan "legacy", tanpa pengurusan warna).
 // Tetapan di bawah kekalkan rupa yang sama pada three.js moden.
 THREE.ColorManagement.enabled = false;
-const LEGACY_LIGHT = Math.PI;
+export const LEGACY_LIGHT = Math.PI;
 const BG = 0x0F1B2D; // navy jenama
 
 export function createStage(canvas, reduceMotion) {
@@ -31,7 +31,8 @@ export function createStage(canvas, reduceMotion) {
   controls.autoRotateSpeed = 0.35;
 
   // Pencahayaan pejabat: cahaya langit lembut + matahari hangat yang buat bayang-bayang
-  scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x1a2236, 0.6 * LEGACY_LIGHT));
+  const hemi = new THREE.HemisphereLight(0xdfe8ff, 0x1a2236, 0.6 * LEGACY_LIGHT);
+  scene.add(hemi);
   const key = new THREE.DirectionalLight(0xfff1dc, 0.85 * LEGACY_LIGHT);
   key.position.set(10, 22, 13);
   key.castShadow = true;
@@ -39,9 +40,9 @@ export function createStage(canvas, reduceMotion) {
   key.shadow.mapSize.set(size, size);
   Object.assign(key.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 1, far: 80 });
   key.shadow.bias = -0.0005; key.shadow.normalBias = 0.02;
-  scene.add(key);
+  scene.add(key, key.target);
 
-  return { renderer, scene, camera, controls };
+  return { renderer, scene, camera, controls, hemi, key };
 }
 
 // Hidupkan bayang-bayang untuk semua objek pepejal (bukan kaca, cahaya atau hologram)
