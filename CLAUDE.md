@@ -17,6 +17,8 @@ Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pe
 - `src/sim/sample.js`: mod "Data contoh" (status simulasi, report ke Nadi, contoh "perlu keputusan" dari `contohKeputusan` dalam config).
 - `src/sim/customers.js`: pelanggan masuk kedai bertema "kedai" (Meney) dari kaki lima ke kaunter. Mod Data contoh; nanti boleh dicetus oleh jualan POS.
 - `src/sim/life.js`: pekerja tak sibuk sekali-sekala bangun ke pantri/sofa/whiteboard/rakan dan kembali. Hiasan visual sahaja, tidak ubah status.
+- `api/`: backend (Vercel Functions). `_lib.js` (Upstash REST, semak kunci), `status.js` (POST agent hantar status dengan `Authorization: Bearer MARKAS_AGENT_KEY`; GET dashboard baca dengan `x-markas-code`), `log.js` (50 aktiviti terakhir), `decision.js` (tanda keputusan selesai), `health.js` (semakan tanpa rahsia + cadangan kunci rawak). Data Redis: `markas:status:<id>` (JSON) dan `markas:log:<id>` (senarai, maks 50).
+- Rahsia di Vercel sahaja (lihat `.env.example`): `MARKAS_AGENT_KEY`, `MARKAS_VIEW_CODE`; `KV_REST_API_URL`/`KV_REST_API_TOKEN` diisi oleh Upstash.
 - Tambah `?debug` pada URL untuk dedah `window.__markas` (renderer + agent) semasa ujian.
 - `logos/`: logo BinaLab dan Meney (SVG/PNG). `-dark` untuk latar gelap. Logo dibaca terus dari fail SVG.
 - `prototaip/markas-binalab.html`: prototaip asal satu fail. Rujukan rupa sahaja, jangan ubah.
@@ -49,16 +51,16 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 6. README dalam Bahasa Melayu: cara jalankan, tambah agent, dan hantar status.
 
 ## Keputusan yang dah dipersetujui (13 Nov 2026)
-- Backend: **Supabase** (jadual status + log aktiviti, Edge Function `/status` dilindungi API key).
+- Backend (ditukar 13 Nov 2026, dipersetujui Danial): **Vercel Functions + Upstash Redis** (bukan Supabase lagi). Semua kod API dalam `api/` repo ini, deploy automatik bersama dashboard. Upstash disambung melalui Vercel Marketplace (pelan percuma).
 - Hosting dashboard: **Vercel**.
-- Agent Bina: **Google Apps Script berasingan** milik Danial. Ia baca tracker prospek dalam Google Sheet, kira ringkasan, dan hantar **ringkasan sahaja** ke Supabase. Data prospek mentah kekal dalam Google.
+- Agent Bina: **Google Apps Script berasingan** milik Danial. Ia baca tracker prospek dalam Google Sheet, kira ringkasan, dan hantar **ringkasan sahaja** ke `/api/status`. Data prospek mentah kekal dalam Google.
 - Sumber data Bina: tracker prospek Malaysia (milik Fakhri, aktif) dan tracker BinaLab Global. Tracker Baihaqi belum aktif, jadi abaikan dulu.
 - Tracker Malaysia belum ada nilai RM berbentuk nombor atau tarikh follow-up. Bina v1 lapor kiraan sahaja dan tanda isu kualiti data (contoh: Lead ID berulang).
 - **Repo ini public**: jangan commit ID Sheet, nama atau nombor telefon prospek, data klien, atau apa-apa rahsia.
 
 - **Keputusan A (13 Nov 2026)**: satu Markas, dua pejabat (BinaLab + Meney), Nadi ketua Command. Prototaip Meney (meney-markas.zip) ialah kod yang sama; hanya agent, warna dan logo berbeza.
 - Data Meney ada dalam **Firebase/Firestore** (POS, accounting, KroniMeney). Markas hanya **baca** dan simpan **ringkasan** sahaja. Tiada tulis ke Firestore, dan tiada perubahan harga, stok, rekod kewangan atau mesej pelanggan tanpa kelulusan Danial.
-- Bila data hidup masuk, dashboard perlukan login (cadangan: Supabase Auth, pautan emel). Mod Data contoh boleh kekal terbuka.
+- Login dashboard: **kod akses** (`MARKAS_VIEW_CODE`) dimasukkan sekali dan diingat pelayar; dihantar sebagai header `x-markas-code`. Mod Data contoh kekal terbuka tanpa kod.
 
 ## Status peringkat
 - [x] Peringkat 0: repo, `.gitignore`, prototaip asal sebagai titik mula
@@ -69,7 +71,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 2d: konsep bangunan atas tanah + papan tanda bumbung (tiada lagi terapung)
 - [x] Peringkat 2e: siang/malam, mod laju, sampul report, tanda "perlu keputusan", pelanggan Meney
 - [x] Peringkat 2f: tanda nama, ekspresi muka, tekan bangunan untuk zum, cuaca sebenar, kereta bergerak + awan, papan pesan (`papanPesan` dalam config), animasi pembukaan
-- [ ] Peringkat 3: backend Supabase
+- [x] Peringkat 3: backend Vercel Functions + Upstash (diuji tempatan dengan Redis tiruan; ujian sebenar perlu Danial buka /api/health)
 - [ ] Peringkat 4: dashboard baca status + toggle data contoh
 - [ ] Peringkat 5: log aktiviti + report terakhir
 - [ ] Peringkat 6: hidupkan Bina (Apps Script)
