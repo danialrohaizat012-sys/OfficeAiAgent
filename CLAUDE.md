@@ -76,5 +76,10 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 3: backend Vercel Functions + Upstash (diuji tempatan dengan Redis tiruan; ujian sebenar perlu Danial buka /api/health)
 - [x] Peringkat 4: dashboard baca status + suis Data contoh / Hidup + kod akses (diuji dengan API tiruan; 12/12 lulus)
 - [x] Peringkat 5: report terakhir + aktiviti terkini dalam panel detail (mod Hidup dari `/api/log`; mod contoh dari log simulasi `a.sampleLog`)
-- [~] Peringkat 6: skrip Bina siap + diuji dengan data rekaan; menunggu Danial pasang di script.google.com (ikut `agents/bina/CARA-PASANG.md`)
-- [ ] Peringkat 7: README BM
+- [x] Peringkat 6: Bina hidup di Apps Script akaun Danial (ujiBina berjaya ke server sebenar 13 Nov 2026; jadual harian 8:00 pagi dipasang)
+- [x] Peringkat 7: README BM (`README.md`)
+
+## Cadangan seterusnya (belum dipersetujui)
+- Agent Meney (Lina: jualan/margin/tunai; Faris: repair terbuka) baca Firestore dengan akaun servis baca sahaja; pastikan Firestore Rules disemak dulu.
+- Tukar repo ke Private; tukar kunci yang pernah terdedah dalam chat.
+- Pelanggan Meney dicetus oleh jualan POS sebenar (ganti simulasi).
