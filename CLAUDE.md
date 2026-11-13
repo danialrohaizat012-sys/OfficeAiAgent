@@ -20,6 +20,7 @@ Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pe
 - `src/sim/life.js`: pekerja tak sibuk sekali-sekala bangun ke pantri/sofa/whiteboard/rakan dan kembali. Hiasan visual sahaja, tidak ubah status.
 - `api/`: backend (Vercel Functions). `_lib.js` (Upstash REST, semak kunci), `status.js` (POST agent hantar status dengan `Authorization: Bearer MARKAS_AGENT_KEY`; GET dashboard baca dengan `x-markas-code`), `log.js` (50 aktiviti terakhir), `decision.js` (tanda keputusan selesai), `health.js` (semakan tanpa rahsia + cadangan kunci rawak). Data Redis: `markas:status:<id>` (JSON) dan `markas:log:<id>` (senarai, maks 50).
 - `agents/bina/`: agent Bina (Google Apps Script). `Code.gs` (baca tracker MY + Global, kira ringkasan, hantar ke `/api/status`; tetapan dalam Script Properties: `MARKAS_URL`, `MARKAS_AGENT_KEY`, `SHEET_MY`, `SHEET_GLOBAL`), `appsscript.json` (zon waktu KL, skop baca sahaja), `CARA-PASANG.md` (panduan BM). ID Sheet TIDAK dalam repo.
+- `agents/meney/`: agent Lina + Faris (Google Apps Script, projek berasingan dari Bina). Baca Firestore `meney-daily-mission` melalui REST dengan token OAuth akaun Danial (`ScriptApp.getOAuthToken()` + skop `datastore` dalam `appsscript.json`; header `x-goog-user-project`). BACA SAHAJA. Lina: jualan hari/bulan (`sales.saleDate`), untung kasar (kos item; konsainan guna `consignmentPayable`), repair siap (`completedTransactionDate`), sasaran (`SASARAN_BULAN`), shift + beza tunai (|beza| ≥ RM5 = keputusan). Faris: repair terbuka ikut status, siap belum diambil ≥3 hari, terbuka ≥7 hari (≥3 tiket = keputusan). Jadual setiap jam 9 pagi–11 malam. Andaian medan ikut `pos.html` v2.9.1; perlu sahkan versi live.
 - Rahsia di Vercel sahaja (lihat `.env.example`): `MARKAS_AGENT_KEY`, `MARKAS_VIEW_CODE`; `KV_REST_API_URL`/`KV_REST_API_TOKEN` diisi oleh Upstash.
 - Tambah `?debug` pada URL untuk dedah `window.__markas` (renderer + agent) semasa ujian.
 - `logos/`: logo BinaLab dan Meney (SVG/PNG). `-dark` untuk latar gelap. Logo dibaca terus dari fail SVG.
@@ -79,7 +80,8 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 6: Bina hidup di Apps Script akaun Danial (ujiBina berjaya ke server sebenar 13 Nov 2026; jadual harian 8:00 pagi dipasang)
 - [x] Peringkat 7: README BM (`README.md`)
 
+- [~] Peringkat 8: agent Meney (Lina + Faris) siap + diuji dengan data rekaan (11/11); menunggu Danial pasang (`agents/meney/CARA-PASANG.md`)
+
 ## Cadangan seterusnya (belum dipersetujui)
-- Agent Meney (Lina: jualan/margin/tunai; Faris: repair terbuka) baca Firestore dengan akaun servis baca sahaja; pastikan Firestore Rules disemak dulu.
 - Tukar repo ke Private; tukar kunci yang pernah terdedah dalam chat.
 - Pelanggan Meney dicetus oleh jualan POS sebenar (ganti simulasi).
