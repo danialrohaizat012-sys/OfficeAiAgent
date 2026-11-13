@@ -1,21 +1,19 @@
-/**
- * BINA: agent pipeline & prospek BinaLab (Google Apps Script)
- * -----------------------------------------------------------------
- * Baca tracker prospek dalam Google Sheet, kira RINGKASAN sahaja,
- * dan hantar ke Markas (/api/status). Data mentah (nama, telefon,
- * alamat prospek) TIDAK dihantar; hanya angka dan senarai Lead ID.
- *
- * Tetapan (Apps Script → ⚙ Project Settings → Script Properties):
- *   MARKAS_URL        https://office-ai-agent-tawny.vercel.app
- *   MARKAS_AGENT_KEY  (kunci agent dari Vercel; JANGAN tulis dalam kod)
- *   SHEET_MY          ID Google Sheet tracker Malaysia (dari URL .../d/<ID>/edit)
- *   SHEET_GLOBAL      ID Google Sheet tracker BinaLab Global (pilihan)
- *
- * Fungsi untuk dijalankan:
- *   ujiBina()        sekali, untuk uji (lihat Execution log)
- *   pasangJadual()   sekali, untuk Bina jalan setiap pagi 8:00
- *   jalankanBina()   kerja harian (dipanggil oleh jadual)
- */
+// BINA: agent pipeline & prospek BinaLab (Google Apps Script)
+// -----------------------------------------------------------------
+// Baca tracker prospek dalam Google Sheet, kira RINGKASAN sahaja,
+// dan hantar ke Markas (/api/status). Data mentah (nama, telefon,
+// alamat prospek) TIDAK dihantar; hanya angka dan senarai Lead ID.
+//
+// Tetapan (Apps Script → ⚙ Project Settings → Script Properties):
+//   MARKAS_URL        https://office-ai-agent-tawny.vercel.app
+//   MARKAS_AGENT_KEY  (kunci agent dari Vercel; JANGAN tulis dalam kod)
+//   SHEET_MY          ID Google Sheet tracker Malaysia (dari URL .../d/<ID>/edit)
+//   SHEET_GLOBAL      ID Google Sheet tracker BinaLab Global (pilihan)
+//
+// Fungsi untuk dijalankan:
+//   ujiBina()        sekali, untuk uji (lihat Execution log)
+//   pasangJadual()   sekali, untuk Bina jalan setiap pagi 8:00
+//   jalankanBina()   kerja harian (dipanggil oleh jadual)
 
 var AGENT_ID = "bina";
 
@@ -51,7 +49,7 @@ function pasangJadual() {
 
 // ---------------------------------------------------------------- baca Sheet
 
-/** Pulangkan [{tab, header:[...], rows:[[...]]}] untuk semua tab yang namanya padan. */
+// Pulangkan [{tab, header:[...], rows:[[...]]}] untuk semua tab yang namanya padan.
 function bacaSemuaTab_(sheetId, padanNama) {
   var ss = SpreadsheetApp.openById(sheetId);
   return ss.getSheets().filter(function (sh) { return padanNama.test(sh.getName()); }).map(function (sh) {
@@ -70,7 +68,7 @@ function kol_(header, nama) {
 function tambah_(obj, key) { key = key || "(kosong)"; obj[key] = (obj[key] || 0) + 1; }
 function teks_(v) { return v == null ? "" : String(v).trim(); }
 
-/** Segmen ringkas dari kategori, untuk lihat automotive vs printing/signage dll. */
+// Segmen ringkas dari kategori, untuk lihat automotive vs printing/signage dll.
 function segmen_(kategori) {
   var k = kategori.toLowerCase();
   if (/motor|kereta|car|auto|vehicle|dealer/.test(k)) return "Automotive";
