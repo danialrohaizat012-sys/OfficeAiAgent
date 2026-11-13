@@ -81,7 +81,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 7: README BM (`README.md`)
 
 - [x] Peringkat 8: agent Meney (Lina + Faris) dipasang di Apps Script "Meney – Markas" akaun Danial; ujiMeney berjaya ke server sebenar 13 Nov 2026; jadual setiap jam dipasang. Danial sahkan angka Lina & Faris SAMA dengan POS (medan POS live sepadan dengan v2.9.1).
-- [~] Peringkat 9: Nadi rumus laporan harian (api/nadi.js + Vercel Cron + butang dalam panel). Diuji dengan Redis tiruan + API tiruan. Perlu Danial tambah `CRON_SECRET` di Vercel + Redeploy.
+- [x] Peringkat 9: Nadi rumus laporan harian (api/nadi.js + Vercel Cron 8:30 MYT + butang dalam panel). `CRON_SECRET` ditambah di Vercel dan diredeploy 13 Nov 2026.
 
 ## Cadangan seterusnya (belum dipersetujui)
 - Tukar repo ke Private; tukar kunci yang pernah terdedah dalam chat.
