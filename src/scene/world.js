@@ -5,7 +5,7 @@ import { person } from "./person.js";
 import { officeSpots } from "./spots.js";
 import {
   officeFloor, officeWalls, foundation, workstation, plant, wallDecor, commandDeck,
-  counterZone, loungeZone, sideZone, sideRZone, bakeStatic, WALL_H,
+  counterZone, loungeZone, sideZone, sideRZone, bakeStatic, WALL_H, aFrameSign,
 } from "./decor.js";
 
 // Semua logo SVG dalam folder logos/ (dimuat sebagai teks).
@@ -21,6 +21,7 @@ export function buildWorld(scene, offices, agents) {
   for (const [key, o] of Object.entries(offices)) {
     const grp = o.kind === "hub" ? hub(o, bobbers) : office(o);
     grp.position.set(...o.pos);
+    grp.userData.officeKey = key;
     scene.add(grp);
     officeGroups[key] = grp;
   }
@@ -124,7 +125,7 @@ function office(o) {
   furniture.add(foundation(plan, o.color, GROUND_Y));
   furniture.add(officeFloor(plan, o.color, theme));
   furniture.add(officeWalls(plan, o.color, theme));
-  furniture.add(wallDecor(plan, o.color, theme));
+  furniture.add(wallDecor(plan, o.color, theme, theme !== "kedai" ? o.message : null));
   o.deskSpots.forEach(([x, z], i) => { const d = workstation(o.color, x < 0 ? -1 : 1, theme, i); d.position.set(x, 0, z); furniture.add(d); });
   furniture.add(counterZone(anchors.counter, o.color, theme));
   furniture.add(loungeZone(anchors.lounge, o.color, theme));
@@ -135,6 +136,11 @@ function office(o) {
   furniture.add(plant(W2 - 0.55, plan.lanes.back - 0.2, 1, 0));
   furniture.add(plant(-0.95, plan.lanes.front + 0.75, 0.7, 0));
   furniture.add(plant(0.95, plan.lanes.front + 0.75, 0.7, 0));
+  if (theme === "kedai" && o.message) {
+    const sign = aFrameSign(o.message, o.color);
+    sign.position.set(-1.7, GROUND_Y, plan.shift + plan.D / 2 + 0.9); sign.rotation.y = 0.25;
+    furniture.add(sign);
+  }
   grp.add(bakeStatic(furniture));
 
   // papan tanda di atas bumbung dinding belakang

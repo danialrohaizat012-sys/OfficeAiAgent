@@ -57,7 +57,7 @@ header{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,
   display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
 header h1{margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em;color:#EEF2F7;
   text-shadow:0 2px 12px rgba(0,0,0,.6)}
-header p{margin:3px 0 0;font-size:12px;color:#AEB8CA}
+header p{margin:3px 0 0;font-size:12px;color:#E3E9F2;font-weight:600}
 .sample{pointer-events:auto;font-size:11px;color:#C9D2E2;border:1px solid rgba(255,255,255,.18);
   border-radius:999px;padding:5px 10px;background:rgba(6,9,19,.55)}
 
@@ -131,3 +131,10 @@ header h1,header p{text-shadow:0 1px 3px rgba(0,0,0,.65),0 2px 14px rgba(0,0,0,.
   font-size:12.5px;transition:opacity .3s,transform .3s;pointer-events:none;z-index:8;max-width:86vw;text-align:center;
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---- tanda nama atas kepala ---- */
+.tag{position:absolute;transform:translate(-50%,-100%);display:flex;align-items:center;gap:4px;
+  font-size:10.5px;font-weight:600;color:#fff;background:rgba(11,18,34,.72);border-radius:999px;padding:2px 7px 2px 4px;
+  white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .25s}
+.tag i{width:7px;height:7px;border-radius:50%;display:block}
+.tag.show{opacity:1}

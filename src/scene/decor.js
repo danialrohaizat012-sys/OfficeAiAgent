@@ -422,7 +422,7 @@ function openShelf(w, h, d, mat, rows) {
   return g;
 }
 
-export function wallDecor(plan, color, theme) {
+export function wallDecor(plan, color, theme, message) {
   const g = new THREE.Group();
   const z = plan.backZ + 0.08;
   if (theme === "kedai") {
@@ -450,11 +450,11 @@ export function wallDecor(plan, color, theme) {
     const wb = grp(-1.7, 1.15, z + 0.03);
     wb.add(mesh(box(1.7, 0.95, 0.04), M.metal(), 0, 0, 0));
     wb.add(mesh(box(1.62, 0.87, 0.02), M.white(), 0, 0, 0.02));
-    [0xf2c14e, 0x8fd3ff, 0xff9fb2, 0xb6ebc5, color].forEach((c, i) => wb.add(mesh(box(0.18, 0.18, 0.01), basic(c), -0.6 + (i % 3) * 0.26, 0.2 - Math.floor(i / 3) * 0.26, 0.035)));
-    const lines = [];
-    for (let i = 0; i < 4; i++) lines.push(0.1, 0.22 - i * 0.14, 0.035, 0.6, 0.22 - i * 0.14, 0.035);
-    const lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(lines, 3));
-    wb.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0x334455 })));
+    if (message) {
+      wb.add(mesh(new THREE.PlaneGeometry(1.6, 0.85), new THREE.MeshBasicMaterial({ map: boardTexture(message, hexStr(color), "putih") }), 0, 0, 0.032));
+    } else {
+      [0xf2c14e, 0x8fd3ff, 0xff9fb2, 0xb6ebc5, color].forEach((c, i) => wb.add(mesh(box(0.18, 0.18, 0.01), basic(c), -0.6 + (i % 3) * 0.26, 0.2 - Math.floor(i / 3) * 0.26, 0.035)));
+    }
     g.add(wb);
 
     const bk = grp(1.8, 0, z + 0.17);
@@ -479,6 +479,41 @@ export function wallDecor(plan, color, theme) {
       g.add(mesh(box(0.42, 0.32, 0.03), M.dark(), x, y, z + 0.02));
       g.add(mesh(box(0.36, 0.26, 0.01), std(c), x, y, z + 0.04));
     });
+  }
+  return g;
+}
+
+// Teks papan (whiteboard atau papan kapur), dibalut ikut lebar
+export function boardTexture(text, hex, style) {
+  const cv = document.createElement("canvas"); cv.width = 512; cv.height = 272;
+  const c = cv.getContext("2d");
+  const chalk = style === "kapur";
+  c.fillStyle = chalk ? "#1f2a24" : "#fbfbf8"; c.fillRect(0, 0, 512, 272);
+  const lines = String(text).split("\n");
+  const title = lines.length > 1 ? lines.shift() : (chalk ? "PROMO" : "FOKUS MINGGU INI");
+  c.fillStyle = hex; c.font = "900 40px sans-serif"; c.textAlign = "center";
+  c.fillText(title.toUpperCase(), 256, 58);
+  c.fillStyle = chalk ? "#f4f1e6" : "#22304a"; c.font = "700 34px sans-serif";
+  const words = lines.join(" ").split(/\s+/), rows = [];
+  let row = "";
+  for (const w of words) { const t = row ? row + " " + w : w; if (c.measureText(t).width > 460) { rows.push(row); row = w; } else row = t; }
+  if (row) rows.push(row);
+  rows.slice(0, 4).forEach((r, i) => c.fillText(r, 256, 112 + i * 42));
+  if (chalk) { c.strokeStyle = hex; c.lineWidth = 6; c.strokeRect(14, 14, 484, 244); }
+  return new THREE.CanvasTexture(cv);
+}
+
+// Papan "A" berdiri di luar pintu kedai
+export function aFrameSign(message, color) {
+  const g = new THREE.Group();
+  const tex = boardTexture(message, hexStr(color), "kapur");
+  const wood = std(0x6b5440);
+  for (const sz of [1, -1]) {
+    const leaf = grp(0, 0, sz * 0.18); leaf.rotation.x = sz * 0.22;
+    leaf.add(mesh(box(0.9, 1.0, 0.05), wood, 0, 0.5, 0));
+    const face = mesh(new THREE.PlaneGeometry(0.8, 0.85), new THREE.MeshBasicMaterial({ map: tex }), 0, 0.52, sz * 0.03);
+    if (sz < 0) face.rotation.y = PI;
+    leaf.add(face); g.add(leaf);
   }
   return g;
 }

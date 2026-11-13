@@ -11,6 +11,7 @@ import { createDaylight } from "./scene/daylight.js";
 import { createEnvelopes } from "./scene/effects.js";
 import { createCustomers } from "./sim/customers.js";
 import { createQuality } from "./scene/quality.js";
+import { createWeather } from "./scene/weather.js";
 
 const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors } = loadConfig();
 document.title = subtitle ? `${title}: ${subtitle}` : title;
@@ -48,6 +49,12 @@ const clockEl = document.getElementById("clock");
 const showClock = () => { clockEl.textContent = daylight.label(); };
 showClock(); setInterval(showClock, 30000);
 
+// Cuaca sebenar Pasir Tumboh (awan, hujan, kilat)
+const weather = createWeather({
+  scene, center: world.site.center, size: world.site.size,
+  onChange: w => { daylight.setWeather(w); showClock(); clockEl.title = `Waktu Malaysia · ${w.text}`; },
+});
+
 // Kualiti grafik (auto tukar ke "laju" kalau telefon berat)
 const quality = createQuality({ renderer, scene, key, button: document.getElementById("quality"), toast: ui.toast });
 
@@ -70,7 +77,13 @@ canvas.addEventListener("pointerup", e => {
   if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
   ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
   const hit = ray.intersectObjects(world.pickables, false)[0];
-  if (hit) select(hit.object.userData.agent, true);
+  if (hit) { select(hit.object.userData.agent, true); return; }
+  // tekan bangunan / papan tanda: zum ke pejabat itu
+  const b = ray.intersectObjects(Object.values(world.officeGroups), true)[0];
+  if (b) {
+    let o = b.object; while (o && !o.userData.officeKey) o = o.parent;
+    if (o && ui.filter !== o.userData.officeKey) ui.setFilter(o.userData.officeKey);
+  }
 });
 
 // Gelembung teks muncul seketika bila agent tukar tugas
@@ -101,14 +114,14 @@ const life = createLife(OFFICES, AGENTS, {
   onErrand: (a, label) => { a.bubble.querySelector("span").textContent = label; showBubble(a); },
 });
 
-if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality };
+if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather };
 
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
 }
 addEventListener("resize", () => { resize(); if (!ui.selected && ui.filter === "all" && !rig.moving) camera.position.copy(rig.homePos()); });
-resize(); rig.goHome();
+resize(); rig.goHome(); rig.intro();
 document.getElementById("loading").remove();
 
 const timer = new THREE.Timer(), v = new THREE.Vector3();
@@ -120,6 +133,11 @@ function loop() {
     world.bobbers.forEach(b => { if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else if (b.type === "spinY") b.m.rotation.y += b.speed * dt; else b.m.rotation.z += b.m.userData.spin * dt; });
     life.update(dt);
     envelopes.update(dt);
+    daylight.flash(weather.update(dt));
+    for (const c of world.site.cars) {
+      c.m.position.x += c.dir * c.speed * dt;
+      if (c.m.position.x > c.maxX) c.m.position.x = c.minX; else if (c.m.position.x < c.minX) c.m.position.x = c.maxX;
+    }
     customers.update(dt, t);
     AGENTS.forEach(a => a.mesh.userData.animate(t, { busy: a.busy, ph: a.ph, decision: !!a.decision, ...life.pose(a) }));
   } else {
@@ -131,12 +149,17 @@ function loop() {
 
   const now = performance.now();
   AGENTS.forEach(a => {
-    const vis = shown.has(a) && a.until > now && ui.visible(a) && !a.chip.hidden;
-    if (vis) {
-      a.mesh.getWorldPosition(v); v.y += 2.15; v.project(camera);
-      if (v.z < 1) { a.bubble.style.left = (v.x * 0.5 + 0.5) * innerWidth + "px"; a.bubble.style.top = (-v.y * 0.5 + 0.5) * innerHeight + "px"; }
-    }
-    a.bubble.classList.toggle("show", vis && v.z < 1);
+    const inView = ui.visible(a) && !a.chip.hidden;
+    a.mesh.getWorldPosition(v); v.y += 2.05; v.project(camera);
+    const onScreen = v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
+    const sx = (v.x * 0.5 + 0.5) * innerWidth, sy = (-v.y * 0.5 + 0.5) * innerHeight;
+    // tanda nama
+    a.tag.classList.toggle("show", inView && onScreen && !ui.selected);
+    if (onScreen) { a.tag.style.left = sx + "px"; a.tag.style.top = sy + "px"; }
+    // gelembung (di atas tanda nama)
+    const vis = shown.has(a) && a.until > now && inView;
+    if (onScreen) { a.bubble.style.left = sx + "px"; a.bubble.style.top = (sy - 20) + "px"; }
+    a.bubble.classList.toggle("show", vis && onScreen);
     if (!vis && a.until <= now) shown.delete(a);
   });
   requestAnimationFrame(loop);

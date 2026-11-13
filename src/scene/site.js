@@ -79,8 +79,13 @@ export function buildSite(scene, offices) {
   site.add(rect(roadL, 1.0, std(0x8a8f9e), cx, roadZ - roadW / 2 - 0.5, GROUND_Y + 0.01));          // kaki lima
   site.add(rect(roadL, roadW, std(0x23262f, { roughness: 0.95 }), cx, roadZ, GROUND_Y + 0.01));      // asfalt
   for (let x = cx - 60; x < cx + 60; x += 2.2) site.add(rect(1.1, 0.12, basic(0xe9e3c8), x, roadZ, GROUND_Y + 0.015));
-  // kereta diparkir / lalu
-  [[cx - 7, roadZ + 0.75, 0, 0x5ab0ff], [cx + 5.5, roadZ - 0.75, PI, 0xf2c14e], [cx + 13, roadZ + 0.75, 0, 0xe0303a]].forEach(([x, z, r, c]) => site.add(car(x, z, r, c)));
+  // kereta bergerak di dua lorong (tidak digabung supaya boleh bergerak)
+  const cars = [];
+  [[-6, 0.75, 1, 0x5ab0ff], [9, -0.75, -1, 0xf2c14e], [22, 0.75, 1, 0xe0303a], [-20, -0.75, -1, 0xeef1f6]].forEach(([x, dz, dir, c], i) => {
+    const m = car(cx + x, roadZ + dz, dir > 0 ? 0 : PI, c);
+    scene.add(m);
+    cars.push({ m, dir, speed: 2.2 + (i % 3) * 0.6, minX: cx - 45, maxX: cx + 45 });
+  });
 
   // lampu jalan di kaki lima
   for (let x = Math.floor((minX - 2) / 5) * 5; x <= maxX + 2; x += 5) site.add(streetLamp(x, roadZ - roadW / 2 - 0.5));
@@ -97,7 +102,7 @@ export function buildSite(scene, offices) {
   }
 
   scene.add(bakeStatic(site));
-  return { roadZ, roadW, minX, maxX, minZ, maxZ };
+  return { roadZ, roadW, minX, maxX, minZ, maxZ, cars, center: { x: cx, z: cz }, size: Math.max(tw, td) };
 }
 
 function tree(x, z, s, i) {

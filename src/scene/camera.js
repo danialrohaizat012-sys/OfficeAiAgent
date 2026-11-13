@@ -32,8 +32,27 @@ export function createCameraRig(camera, controls, offices, view, reduceMotion) {
 
   function goHome() { camera.position.copy(homePos()); controls.target.copy(homeTarget); }
 
+  // Animasi pembukaan: kamera terbang melengkung dari jauh dan tinggi ke pandangan utama
+  function intro() {
+    if (reduceMotion) { goHome(); return; }
+    const end = homePos().sub(homeTarget);
+    const r1 = Math.hypot(end.x, end.z), y1 = end.y;
+    controls.target.copy(homeTarget);
+    controls.autoRotate = false;
+    tween = { intro: true, t: 0, dur: 3.4, r1, y1, a1: Math.atan2(end.x, end.z) };
+    update(0);
+  }
+
   function update(dt) {
     if (!tween) return;
+    if (tween.intro) {
+      tween.t += dt / tween.dur;
+      const k = ease(Math.min(tween.t, 1));
+      const a = tween.a1 - 1.3 * (1 - k), r = tween.r1 * (1 + 1.1 * (1 - k)), y = tween.y1 * (1 + 1.4 * (1 - k));
+      camera.position.set(homeTarget.x + Math.sin(a) * r, homeTarget.y + y, homeTarget.z + Math.cos(a) * r);
+      if (tween.t >= 1) { tween = null; controls.autoRotate = true; }
+      return;
+    }
     tween.t += dt / tween.dur;
     const k = ease(Math.min(tween.t, 1));
     camera.position.lerpVectors(tween.p0, tween.p1, k);
@@ -43,5 +62,5 @@ export function createCameraRig(camera, controls, offices, view, reduceMotion) {
 
   controls.addEventListener("start", () => { tween = null; controls.autoRotate = false; });
 
-  return { focus, goHome, update, homePos, get moving() { return !!tween; } };
+  return { focus, goHome, intro, update, homePos, get moving() { return !!tween; } };
 }

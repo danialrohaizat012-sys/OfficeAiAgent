@@ -8,8 +8,9 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
 
   // Tab: "Semua" + satu tab bagi setiap pejabat
   const tabDefs = [["all", "Semua"], ...Object.entries(offices).map(([k, o]) => [k, o.short])];
+  const tabButtons = {};
   for (const [f, label] of tabDefs) {
-    const b = document.createElement("button");
+    const b = document.createElement("button"); tabButtons[f] = b;
     b.dataset.f = f; b.textContent = label; b.setAttribute("aria-pressed", f === "all");
     b.onclick = () => {
       filter = f;
@@ -38,6 +39,13 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     bb.querySelector("b").textContent = a.name;
     bb.querySelector("span").textContent = a.tasks[a.step];
     bubbles.appendChild(bb); a.bubble = bb;
+
+    // tanda nama kecil di atas kepala
+    const tag = document.createElement("div"); tag.className = "tag";
+    tag.innerHTML = `<i></i><span></span>`;
+    tag.querySelector("i").style.background = a.color;
+    tag.querySelector("span").textContent = a.name;
+    bubbles.appendChild(tag); a.tag = tag;
   }
 
   let selected = null;
@@ -94,6 +102,7 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
 
   return {
     openSheet, closeSheet, refresh, visible, toast,
+    setFilter: f => { if (tabButtons[f]) tabButtons[f].click(); },
     get filter() { return filter; },
     get selected() { return selected; },
   };

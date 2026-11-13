@@ -22,21 +22,38 @@ function torsoGeo() {
 
 // Muka dilukis atas kanvas, dibalut pada kepala silinder
 const faceCache = new Map();
+// Ekspresi: "senyum" (sedia), "fokus" (sibuk), "risau" (perlu keputusan Danial)
 function faceTexture(skin, mood) {
   const key = skin + mood;
   if (faceCache.has(key)) return faceCache.get(key);
   const cv = document.createElement("canvas"); cv.width = 256; cv.height = 128;
   const c = cv.getContext("2d");
   c.fillStyle = skin; c.fillRect(0, 0, 256, 128);
-  c.fillStyle = "#1a1a1a";
-  c.beginPath(); c.ellipse(110, 54, 6, 9, 0, 0, Math.PI * 2); c.fill();
-  c.beginPath(); c.ellipse(146, 54, 6, 9, 0, 0, Math.PI * 2); c.fill();
+  const ink = "#1a1a1a";
+  // mata
+  c.fillStyle = ink;
+  const eyeH = mood === "fokus" ? 6 : mood === "risau" ? 10 : 9;
+  c.beginPath(); c.ellipse(110, 54, 6, eyeH, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(146, 54, 6, eyeH, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = "rgba(255,255,255,.9)";
   c.beginPath(); c.arc(112, 50, 2, 0, Math.PI * 2); c.fill();
   c.beginPath(); c.arc(148, 50, 2, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = "#1a1a1a"; c.lineWidth = 4; c.lineCap = "round";
-  c.beginPath(); c.moveTo(102, 38); c.lineTo(116, 36); c.moveTo(140, 36); c.lineTo(154, 38); c.stroke();
-  c.lineWidth = 5; c.beginPath(); c.arc(128, 72, 20, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke();
+  // kening
+  c.strokeStyle = ink; c.lineWidth = 4; c.lineCap = "round";
+  c.beginPath();
+  if (mood === "fokus") { c.moveTo(101, 40); c.lineTo(117, 43); c.moveTo(139, 43); c.lineTo(155, 40); }
+  else if (mood === "risau") { c.moveTo(101, 40); c.lineTo(117, 33); c.moveTo(139, 33); c.lineTo(155, 40); }
+  else { c.moveTo(102, 38); c.lineTo(116, 36); c.moveTo(140, 36); c.lineTo(154, 38); }
+  c.stroke();
+  // mulut
+  c.lineWidth = 5; c.beginPath();
+  if (mood === "fokus") { c.moveTo(118, 82); c.lineTo(138, 82); }
+  else if (mood === "risau") { c.moveTo(112, 86); c.quadraticCurveTo(120, 78, 128, 84); c.quadraticCurveTo(136, 90, 144, 82); }
+  else c.arc(128, 72, 20, 0.15 * Math.PI, 0.85 * Math.PI);
+  c.stroke();
+  if (mood === "risau") { // titik peluh
+    c.fillStyle = "#7cc8ff"; c.beginPath(); c.moveTo(166, 34); c.quadraticCurveTo(160, 48, 166, 50); c.quadraticCurveTo(172, 48, 166, 34); c.fill();
+  }
   const tex = new THREE.CanvasTexture(cv);
   faceCache.set(key, tex);
   return tex;
@@ -155,6 +172,8 @@ export function person(opts) {
   g.userData.animate = (t, st) => {
     const { busy = false, ph = 0, sit = 0, seatY = 0.5, walk = null, typing = false, look = 0, decision = false } = st;
     flag.visible = decision; dot.visible = !npc && !decision;
+    const mood = decision ? "risau" : typing ? "fokus" : "senyum";
+    if (mood !== face.userData.mood) { face.map = faceTexture(skin, mood); face.userData.mood = mood; }
     if (decision) { flag.position.y = torsoY + 0.95 + Math.abs(Math.sin(t * 4 + ph)) * 0.12; flag.rotation.y = Math.sin(t * 1.5) * 0.5; }
     body.position.y = -(HIP_STAND - seatY) * sit;
     const swing = walk == null ? 0 : Math.sin(walk);

@@ -11,6 +11,8 @@
 //    jenis  : "hab" untuk Command di tengah (satu sahaja), "pejabat" untuk yang lain
 //    warna  : warna jenama (bingkai platform, jambatan, skrin meja)
 //    tema   : (pilihan) hiasan dinding: "studio" (whiteboard, rak buku) atau "kedai" (rak game, TV)
+//    papanPesan: (pilihan) teks di whiteboard (studio) atau papan promo luar pintu (kedai).
+//             Baris pertama = tajuk kalau guna "\n", contoh "PROMO\nTrade-in PS5 dapat lebih".
 //    logo   : (pilihan) papan tanda atas bumbung. "fail" = SVG dalam folder logos/.
 //             Pilihan "ikon" dan "tulisan" (viewBox dalam SVG) = ikon di kiri, tulisan di kanan.
 //
@@ -35,8 +37,10 @@ export default {
   pejabat: [
     { id: "command", nama: "Command", label: "Command", jenis: "hab", warna: "#8E9BFF" },
     { id: "binalab", nama: "BinaLab", label: "Pejabat BinaLab", jenis: "pejabat", tema: "studio", warna: "#4CC26C",
+      papanPesan: "Fokus minggu ini\nFollow-up semua quotation & demo Bina Review",
       logo: { fail: "binalab-logo-dark.svg", ikon: "112 88 382 440", tulisan: "80 558 450 90" } },
     { id: "meney", nama: "Meney", label: "Pejabat Meney Gaming", jenis: "pejabat", tema: "kedai", warna: "#8DC63F",
+      papanPesan: "Promo\nTrade-in PS5 anda di sini. Tanya di kaunter!",
       logo: { fail: "meney-logo-dark.svg" } },
   ],
 

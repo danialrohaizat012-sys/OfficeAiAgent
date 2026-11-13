@@ -47,13 +47,20 @@ export function createDaylight({ scene, renderer, hemi, key, nightLights, center
     }
   });
 
-  let hour = malaysiaHour(), state = null;
+  let hour = malaysiaHour(), state = null, weather = { cloud: 0.15, rain: 0, icon: "" };
+  const grey = new THREE.Color(), baseHemi = { v: 0 };
 
   function apply() {
     const s = sample(hour);
     state = s;
+    // mendung / hujan: langit lebih kelabu, matahari lebih lemah
+    const over = Math.max(0, weather.cloud - 0.4) / 0.6 * 0.7 + weather.rain * 0.3;
+    grey.set(s.night > 0.5 ? 0x141a24 : 0x7f8794);
+    s.sky.lerp(grey, Math.min(0.85, over));
+    s.sun *= 1 - Math.min(0.7, over);
     renderer.setClearColor(s.sky);
     scene.fog.color.copy(s.sky);
+    scene.fog.near = 45 - weather.rain * 20; scene.fog.far = 100 - weather.rain * 40;
     // matahari bergerak dari timur (pagi) ke barat (petang); waktu malam jadi cahaya bulan
     const dayK = THREE.MathUtils.clamp((hour - 6.5) / 12.5, 0, 1);
     const az = (dayK - 0.5) * 1.6;
@@ -61,9 +68,9 @@ export function createDaylight({ scene, renderer, hemi, key, nightLights, center
     key.target.position.set(center.x, 0, center.z);
     key.intensity = s.sun * LEGACY_LIGHT;
     key.color.copy(s.sunC);
-    hemi.intensity = (0.25 + 0.4 * (1 - s.night)) * LEGACY_LIGHT;
+    hemi.intensity = baseHemi.v = (0.25 + 0.4 * (1 - s.night)) * LEGACY_LIGHT;
     hemi.color.set(s.night > 0.5 ? 0x8fa2d8 : 0xdfe8ff);
-    for (const l of nightLights) l.intensity = s.night * 9;
+    for (const l of nightLights) l.intensity = Math.max(s.night, over * 0.6) * 9;
     for (const m of glowMats) m.emissiveIntensity = m.userData.dayGlow + (m.userData.nightGlow - m.userData.dayGlow) * s.night;
   }
 
@@ -72,12 +79,14 @@ export function createDaylight({ scene, renderer, hemi, key, nightLights, center
   setInterval(() => { hour = malaysiaHour(); apply(); }, 60000);
 
   return {
+    setWeather(w) { weather = w; apply(); },
+    flash(level) { hemi.intensity = baseHemi.v + level * 2.2 * LEGACY_LIGHT; },
     get hour() { return hour; },
     get isNight() { return state.night > 0.5; },
     label() {
       const h = Math.floor(hour), m = Math.floor((hour - h) * 60);
       const icon = state.night > 0.6 ? "🌙" : state.night > 0.2 ? "🌇" : "☀️";
-      return `${icon} ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      return `${weather.icon || icon} ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     },
   };
 }

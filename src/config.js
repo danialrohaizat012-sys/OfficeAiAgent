@@ -55,7 +55,7 @@ export function loadConfig() {
     const count = agents.filter(a => a.office === o.id).length;
     offices[o.id] = {
       kind: "office", label: o.label || o.nama, short: o.nama, color: hexNum(o.warna),
-      pos: [x, 0, OFFICE_Z], logo: o.logo || null, theme: o.tema || "studio", logoPhase: i * 1.3,
+      pos: [x, 0, OFFICE_Z], logo: o.logo || null, theme: o.tema || "studio", message: o.papanPesan || null, logoPhase: i * 1.3,
       ...deskLayout(count),
     };
   });
