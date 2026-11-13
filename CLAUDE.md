@@ -83,6 +83,15 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 8: agent Meney (Lina + Faris) dipasang di Apps Script "Meney – Markas" akaun Danial; ujiMeney berjaya ke server sebenar 13 Nov 2026; jadual setiap jam dipasang. Danial sahkan angka Lina & Faris SAMA dengan POS (medan POS live sepadan dengan v2.9.1).
 - [x] Peringkat 9: Nadi rumus laporan harian (api/nadi.js + Vercel Cron 8:30 MYT + butang dalam panel). `CRON_SECRET` ditambah di Vercel dan diredeploy 13 Nov 2026.
 
+## Seterusnya (dipersetujui Danial 13 Nov 2026, mula esok petang 14 Nov)
+Arah: agent mesti BUAT kerja / sediakan kerja sedia-lulus, bukan sekadar report. Setiap agent jawab: bila jalan, data apa, apa diputuskan, tindakan/draf apa, siapa lulus, ukuran berjaya.
+- **Telegram Bot (percuma)** untuk hantar kepada manusia (bukan WhatsApp API berbayar; gateway WhatsApp tidak rasmi DITOLAK kerana risiko ban).
+  1. Nadi → Danial: ringkasan pagi ke Telegram (uji dulu).
+  2. Faris → Amirul: follow-up repair dengan butang "Hantar WhatsApp" (link `wa.me` klik-untuk-hantar dari nombor Meney; manusia tekan Send). Nombor pelanggan dihantar kepada Amirul sahaja, TIDAK disimpan di Markas.
+  3. Bina → Fakhri: 5 prospek untuk dihubungi hari ini (perlu Fakhri tambah lajur Last Contact + Next Follow-up dalam tracker MY).
+- Danial perlu: buat bot di @BotFather, simpan token sebagai `TELEGRAM_BOT_TOKEN` di Vercel (jangan dalam chat), Danial/Amirul/Fakhri tekan Start pada bot.
+- Kemudian: draf mesej guna AI (Claude API) — ada kos, bincang anggaran dulu. Sesi brainstorm "kerja yang betul-betul membantu bisnes" masih perlu dibuat.
+
 ## Cadangan seterusnya (belum dipersetujui)
 - Tukar repo ke Private; tukar kunci yang pernah terdedah dalam chat.
 - Pelanggan Meney dicetus oleh jualan POS sebenar (ganti simulasi).
