@@ -159,3 +159,15 @@ button.sample.live::before{content:"";display:inline-block;width:6px;height:6px;
 .modal-card .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 .modal-card button{font:inherit;font-size:14px;font-weight:600;border-radius:999px;padding:9px 16px;border:1px solid var(--glass-line);background:transparent;color:var(--ink);cursor:pointer}
 .modal-card button[type=submit]{background:#3FAE5C;color:#fff;border-color:transparent}
+
+/* ---- report terakhir + log aktiviti dalam panel ---- */
+.sheet{max-height:min(78vh,640px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.sheet .when{font-weight:400;color:var(--ink-soft);margin-left:6px}
+.sheet .report{margin:0;font-size:13.5px;line-height:1.45;white-space:pre-wrap;background:var(--chip);border:1px solid var(--glass-line);border-radius:12px;padding:9px 11px}
+.sheet .log{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+.sheet .log li{display:grid;grid-template-columns:20px 1fr auto;gap:6px;align-items:baseline;font-size:12.5px;line-height:1.4;padding:5px 0;border-bottom:1px solid var(--glass-line)}
+.sheet .log li::before{content:none}
+.sheet .log li:last-child{border-bottom:0}
+.sheet .log .ic{text-align:center}
+.sheet .log .tm{color:var(--ink-soft);font-size:11px;white-space:nowrap}
+.sheet .log .empty{color:var(--ink-soft);grid-column:1/-1}

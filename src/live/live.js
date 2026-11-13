@@ -18,6 +18,13 @@ export async function fetchStatus(code) {
   return r.json();
 }
 
+export async function fetchLog(code, agentId) {
+  const r = await fetch(`/api/log?agent=${encodeURIComponent(agentId)}`, { headers: { "x-markas-code": code }, cache: "no-store" });
+  if (r.status === 401) throw Object.assign(new Error("Kod akses salah"), { auth: true });
+  if (!r.ok) throw new Error(`Server ralat ${r.status}`);
+  return (await r.json()).log || [];
+}
+
 export async function markDecisionDone(code, agentId) {
   const r = await fetch("/api/decision", {
     method: "POST",

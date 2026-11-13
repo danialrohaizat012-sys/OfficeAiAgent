@@ -12,7 +12,8 @@ import { createEnvelopes } from "./scene/effects.js";
 import { createCustomers } from "./sim/customers.js";
 import { createQuality } from "./scene/quality.js";
 import { createWeather } from "./scene/weather.js";
-import { savedMode, saveMode, savedCode, saveCode, fetchStatus, startPolling, markDecisionDone } from "./live/live.js";
+import { savedMode, saveMode, savedCode, saveCode, fetchStatus, fetchLog, startPolling, markDecisionDone } from "./live/live.js";
+import { log as sampleLog } from "./sim/sample.js";
 
 const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors } = loadConfig();
 document.title = subtitle ? `${title}: ${subtitle}` : title;
@@ -41,9 +42,9 @@ const ui = createUI({
   onSelect: select,
   onFilter: f => rig.focus(f === "all" ? null : f),
   onClose: f => rig.focus(f === "all" ? null : f),
-  onDecisionDone: async a => {
-    if (mode !== "hidup") { ui.toast(`✓ Keputusan untuk ${a.name} ditanda selesai`); return; }
-    try { await markDecisionDone(savedCode(), a.id); ui.toast(`✓ Keputusan untuk ${a.name} disimpan sebagai selesai`); }
+  onDecisionDone: async (a, was) => {
+    if (mode !== "hidup") { sampleLog(a, { selesai: was || "keputusan" }); ui.refresh(a); ui.toast(`✓ Keputusan untuk ${a.name} ditanda selesai`); return; }
+    try { await markDecisionDone(savedCode(), a.id); ui.toast(`✓ Keputusan untuk ${a.name} disimpan sebagai selesai`); loadLog(a, false); }
     catch (e) { ui.toast("⚠ Tak dapat simpan: " + e.message); }
   },
 });
@@ -71,6 +72,7 @@ const leader = AGENTS.find(a => a.home.standing);
 function select(id, fromChip) {
   const a = AGENTS.find(x => x.id === id); if (!a) return;
   ui.openSheet(a, fromChip);
+  if (a.live !== undefined) loadLog(a, true);
   const wp = new THREE.Vector3(); a.mesh.getWorldPosition(wp);
   rig.focus(a.office, wp);
 }
@@ -123,7 +125,7 @@ function applyLive(data) {
     a.decision = s ? s.keputusan : null;
     ui.refresh(a);
     if (prev === undefined) continue;                     // muatan pertama: jangan cetus kesan
-    if (s && (!prev || prev.dikemaskini !== s.dikemaskini)) showBubble(a);
+    if (s && (!prev || prev.dikemaskini !== s.dikemaskini)) { showBubble(a); if (ui.selected === a) loadLog(a, false); }
     if (s && s.reportPada && (!prev || prev.reportPada !== s.reportPada)) flyReport(a);
     if (s && s.keputusan && (!prev || prev.keputusan !== s.keputusan)) { a.bubble.querySelector("span").textContent = "⚠ Perlu keputusan Danial"; showBubble(a); }
   }
@@ -153,6 +155,13 @@ function setMode(m) {
     stopSample = startSample(AGENTS, ui, sampleHooks);
   }
   customers.enabled = m !== "hidup";   // pelanggan contoh hanya dalam mod contoh (nanti: ikut jualan POS)
+}
+
+// Log aktiviti dari server (mod Hidup)
+async function loadLog(a, showLoading) {
+  if (showLoading) ui.showLog(a, null, true);
+  try { ui.showLog(a, await fetchLog(savedCode(), a.id)); }
+  catch (e) { ui.showLog(a, []); if (!e.auth) ui.toast("⚠ Tak dapat muat aktiviti: " + e.message); }
 }
 
 // Skrin kod akses

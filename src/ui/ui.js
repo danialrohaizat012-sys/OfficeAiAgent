@@ -77,7 +77,9 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     a.tasks.forEach(t => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
     $("sOffice").textContent = "Pejabat: " + offices[a.office].short + (a.live ? ` · dikemas kini ${timeAgo(a.live.dikemaskini)}` : "");
     showDecision(a);
-    sheet.classList.add("open"); dock.style.visibility = "hidden";
+    showReport(a);
+    if (a.live === undefined) showLog(a, a.sampleLog || []);
+    sheet.classList.add("open"); sheet.scrollTop = 0; dock.style.visibility = "hidden";
     if (fromChip) a.chip.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", inline: "center", block: "nearest" });
   }
 
@@ -88,14 +90,43 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
 
   $("sClose").onclick = () => { closeSheet(); onClose(filter); };
 
+  // Report terakhir: mod Hidup dari server, mod contoh dari simulasi
+  function showReport(a) {
+    const src = a.live !== undefined ? a.live : a.sampleReport;
+    const has = !!(src && src.report);
+    $("sReportWrap").hidden = !has;
+    if (has) { $("sReport").textContent = src.report; $("sReportWhen").textContent = timeAgo(src.reportPada); }
+  }
+
+  // Senarai aktiviti (terbaru dahulu). entries: [{masa, sedang, report, keputusan, selesai}]
+  function showLog(a, entries, loading) {
+    if (selected !== a) return;
+    const ul = $("sLog"); ul.innerHTML = "";
+    const add = (ic, text, when, cls) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="ic"></span><span class="tx"></span><span class="tm"></span>`;
+      li.querySelector(".ic").textContent = ic; li.querySelector(".tx").textContent = text; li.querySelector(".tm").textContent = when;
+      if (cls) li.querySelector(".tx").className = cls;
+      ul.appendChild(li);
+    };
+    if (loading) return add("", "Memuat aktiviti…", "", "empty");
+    if (!entries || !entries.length) return add("", a.live !== undefined ? "Belum ada aktiviti dari agent ini." : "Aktiviti akan muncul di sini.", "", "empty");
+    for (const e of entries.slice(0, 12)) {
+      if (e.selesai) add("✓", `Keputusan selesai: ${e.selesai}`, timeAgo(e.masa));
+      else if (e.keputusan) add("⚠", `Perlu keputusan: ${e.keputusan}`, timeAgo(e.masa));
+      else if (e.report) add("📨", `Report: ${e.report}`, timeAgo(e.masa));
+      else add(e.sibuk ? "●" : "○", e.sedang || "—", timeAgo(e.masa));
+    }
+  }
+
   function showDecision(a) {
     $("sDecide").hidden = !a.decision;
     $("sDecideText").textContent = a.decision || "";
   }
   $("sDecideDone").onclick = () => {
     if (!selected) return;
-    const a = selected; a.decision = null; refresh(a);
-    if (onDecisionDone) onDecisionDone(a);
+    const a = selected, was = a.decision; a.decision = null; refresh(a);
+    if (onDecisionDone) onDecisionDone(a, was);
   };
 
   // Kemas kini paparan bila status agent berubah
@@ -106,7 +137,10 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     a.chip.classList.toggle("offline", a.live === null);
     a.chip.querySelector(".s").textContent = nowText(a);
     a.bubble.querySelector("span").textContent = nowText(a);
-    if (selected === a) { $("sNow").textContent = nowText(a); $("sTasksWrap").hidden = a.live !== undefined; }
+    if (selected === a) {
+      $("sNow").textContent = nowText(a); $("sTasksWrap").hidden = a.live !== undefined; showReport(a);
+      if (a.live === undefined) showLog(a, a.sampleLog || []);
+    }
   }
 
   const visible = a => filter === "all" || a.office === filter;
@@ -118,7 +152,7 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
   }
 
   return {
-    openSheet, closeSheet, refresh, visible, toast,
+    openSheet, closeSheet, refresh, visible, toast, showLog,
     setFilter: f => { if (tabButtons[f]) tabButtons[f].click(); },
     get filter() { return filter; },
     get selected() { return selected; },

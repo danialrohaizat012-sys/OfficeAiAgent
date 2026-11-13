@@ -74,6 +74,6 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 2f: tanda nama, ekspresi muka, tekan bangunan untuk zum, cuaca sebenar, kereta bergerak + awan, papan pesan (`papanPesan` dalam config), animasi pembukaan
 - [x] Peringkat 3: backend Vercel Functions + Upstash (diuji tempatan dengan Redis tiruan; ujian sebenar perlu Danial buka /api/health)
 - [x] Peringkat 4: dashboard baca status + suis Data contoh / Hidup + kod akses (diuji dengan API tiruan; 12/12 lulus)
-- [ ] Peringkat 5: log aktiviti + report terakhir
+- [x] Peringkat 5: report terakhir + aktiviti terkini dalam panel detail (mod Hidup dari `/api/log`; mod contoh dari log simulasi `a.sampleLog`)
 - [ ] Peringkat 6: hidupkan Bina (Apps Script)
 - [ ] Peringkat 7: README BM
