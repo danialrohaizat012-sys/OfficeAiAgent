@@ -6,9 +6,19 @@ Danial bukan developer sepenuh masa. Terangkan dalam Bahasa Melayu yang ringkas 
 
 Markas Agent BinaLab ialah sistem AI agent untuk BinaLab: satu hab Command dan satu pejabat BinaLab, dipaparkan sebagai dashboard 3D bertema angkasa. (Meney Gaming diurus secara berasingan dan BUKAN sebahagian projek ini.)
 
-## Fail sedia ada
-- `markas-binalab.html`: prototaip dashboard 3D (three.js r128 dari CDN, satu fail). Ada hab Command, pejabat BinaLab dengan logo terapung, jambatan, 5 robot agent, roster di bawah, tab penapis, panel detail agent, dan status SIMULASI (data contoh).
-- `logos/`: logo BinaLab dalam SVG dan PNG. `-dark` untuk latar gelap, `-light` untuk latar terang. Logo dark kini dibenamkan dalam HTML sebagai string.
+## Struktur projek
+- `index.html`: kerangka halaman (header, tab, roster, panel detail).
+- `src/main.js`: sambung semua bahagian + gelung animasi.
+- `src/style.css`: semua gaya (warna jenama, mesra phone).
+- `src/data/agents.js`: senarai pejabat dan agent.
+- `src/scene/`: dunia 3D. `stage.js` (renderer, kamera, lampu, bintang), `parts.js` (platform, meja, robot, papan logo), `world.js` (susun hab, pejabat, jambatan, robot), `camera.js` (gerakan kamera).
+- `src/ui/ui.js`: tab, roster, panel detail, gelembung.
+- `src/sim/sample.js`: mod "Data contoh" (status simulasi).
+- `logos/`: logo BinaLab (SVG/PNG). Logo dibaca terus dari `logos/binalab-logo-dark.svg`.
+- `prototaip/markas-binalab.html`: prototaip asal satu fail. Rujukan rupa sahaja, jangan ubah.
+
+Jalankan: `npm install`, kemudian `npm run dev`. Bina: `npm run build`, hasilnya dalam `dist/`.
+three.js 0.187 dengan tetapan "legacy" (ColorManagement off, output linear, lampu × π) supaya warna sama dengan r128.
 
 ## Agent sekarang
 - Command: Nadi (agih kerja, rumus laporan harian)
@@ -42,7 +52,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 
 ## Status peringkat
 - [x] Peringkat 0: repo, `.gitignore`, prototaip asal sebagai titik mula
-- [ ] Peringkat 1: susun semula ke Vite + three.js terkini (rupa mesti sama)
+- [x] Peringkat 1: susun semula ke Vite + three.js terkini (rupa sama; pepijat kanvas Retina dibetulkan)
 - [ ] Peringkat 2: config agent
 - [ ] Peringkat 3: backend Supabase
 - [ ] Peringkat 4: dashboard baca status + toggle data contoh
