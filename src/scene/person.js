@@ -79,44 +79,43 @@ function hair(style, color, accent) {
   return g;
 }
 
-export function person(opts) {
-  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt, seated = true } = opts;
-  const g = new THREE.Group();
-  const skinM = std(skin), shirtM = std(shirt), pantsM = std(pants);
-  const parts = {};
+// Pose dikawal oleh state: sit (0 = berdiri, 1 = duduk), seatY (tinggi pinggul
+// bila duduk), walk (fasa langkah), typing (menaip di meja).
+const HIP_STAND = 0.62;
 
-  // --- pinggul + kaki
-  const hipY = seated ? 0.5 : 0.62;
-  g.add(mesh(new THREE.BoxGeometry(0.5, 0.1, 0.26), pantsM, 0, hipY, 0));
+export function person(opts) {
+  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt } = opts;
+  const g = new THREE.Group();
+  const body = new THREE.Group(); g.add(body);           // dinaik/turunkan bila duduk
+  const skinM = std(skin), shirtM = std(shirt), pantsM = std(pants);
+
+  // --- pinggul + kaki (sendi di pinggul dan lutut)
+  body.add(mesh(new THREE.BoxGeometry(0.5, 0.1, 0.26), pantsM, 0, HIP_STAND, 0));
+  const legs = [];
   for (const sx of [-1, 1]) {
-    const leg = new THREE.Group(); leg.position.set(sx * 0.125, hipY - 0.04, 0);
-    if (seated) {
-      leg.add(mesh(new THREE.BoxGeometry(0.23, 0.16, 0.36), pantsM, 0, 0, 0.16));          // peha (mendatar)
-      leg.add(mesh(new THREE.BoxGeometry(0.23, 0.38, 0.2), pantsM, 0, -0.17, 0.3));       // betis
-      leg.add(mesh(new THREE.BoxGeometry(0.23, 0.08, 0.28), pantsM, 0, -0.38, 0.34));     // kaki
-    } else {
-      leg.add(mesh(new THREE.BoxGeometry(0.23, 0.5, 0.24), pantsM, 0, -0.27, 0));
-      leg.add(mesh(new THREE.BoxGeometry(0.23, 0.08, 0.3), pantsM, 0, -0.52, 0.04));
-    }
-    g.add(leg);
+    const hip = new THREE.Group(); hip.position.set(sx * 0.125, HIP_STAND - 0.03, 0);
+    hip.add(mesh(new THREE.BoxGeometry(0.23, 0.3, 0.24), pantsM, 0, -0.15, 0));
+    const knee = new THREE.Group(); knee.position.set(0, -0.3, 0);
+    knee.add(mesh(new THREE.BoxGeometry(0.23, 0.24, 0.22), pantsM, 0, -0.12, 0));
+    knee.add(mesh(new THREE.BoxGeometry(0.23, 0.07, 0.3), pantsM, 0, -0.255, 0.04));
+    hip.add(knee); body.add(hip);
+    legs.push({ hip, knee });
   }
 
-  // --- badan + leher
-  const torsoY = hipY + 0.26;
-  const torso = mesh(torsoGeo(), shirtM, 0, torsoY, 0); g.add(torso);
-  // kolar / tali leher kecil supaya nampak "pekerja pejabat"
-  g.add(mesh(new THREE.BoxGeometry(0.06, 0.2, 0.01), std(0x1a2238), 0, torsoY + 0.06, 0.132));
-  g.add(mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.05, 12), skinM, 0, torsoY + 0.235, 0));
+  // --- badan + leher + tali leher
+  const torsoY = HIP_STAND + 0.26;
+  body.add(mesh(torsoGeo(), shirtM, 0, torsoY, 0));
+  body.add(mesh(new THREE.BoxGeometry(0.06, 0.2, 0.01), std(0x1a2238), 0, torsoY + 0.06, 0.132));
+  body.add(mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.05, 12), skinM, 0, torsoY + 0.235, 0));
 
   // --- lengan + tangan "C"
-  parts.arms = [];
+  const arms = [];
   for (const sx of [-1, 1]) {
     const arm = new THREE.Group(); arm.position.set(sx * 0.22, torsoY + 0.15, 0);
     const upper = mesh(new THREE.CylinderGeometry(0.06, 0.065, 0.3, 10), shirtM, sx * 0.04, -0.13, 0); upper.rotation.z = sx * 0.18; arm.add(upper);
     const hand = mesh(new THREE.TorusGeometry(0.05, 0.022, 6, 12, Math.PI * 1.45), skinM, sx * 0.07, -0.32, 0.04);
     hand.rotation.set(Math.PI / 2, 0, Math.PI * 0.27); arm.add(hand);
-    arm.rotation.x = seated ? -0.9 : -0.15; // lengan ke depan ke arah papan kekunci
-    g.add(arm); parts.arms.push(arm);
+    body.add(arm); arms.push(arm);
   }
 
   // --- kepala + rambut
@@ -128,20 +127,31 @@ export function person(opts) {
   const chinB = mesh(new THREE.SphereGeometry(0.17, 20, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), skinM, 0, -0.135, 0); chinB.scale.y = 0.35; head.add(chinB);
   if (hairStyle === "botak") head.add(mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.07, 16), skinM, 0, 0.2, 0));
   else head.add(hair(hairStyle, hairColor, accent));
-  g.add(head); parts.head = head;
+  body.add(head);
 
-  // --- penunjuk status kecil terapung (hijau = sedia, kuning berkelip = sibuk)
+  // --- penunjuk status terapung (hijau = sedia, kuning berkelip = sibuk)
   const dot = mesh(new THREE.OctahedronGeometry(0.06, 0), new THREE.MeshBasicMaterial({ color: 0x46D37A }), 0, torsoY + 0.85, 0);
-  g.add(dot); parts.dot = dot;
+  body.add(dot);
 
-  g.userData.animate = (t, busy, ph) => {
+  g.userData.animate = (t, st) => {
+    const { busy = false, ph = 0, sit = 0, seatY = 0.5, walk = null, typing = false, look = 0 } = st;
+    body.position.y = -(HIP_STAND - seatY) * sit;
+    const swing = walk == null ? 0 : Math.sin(walk);
+    legs.forEach((l, i) => {
+      const s = i ? -swing : swing;
+      l.hip.rotation.x = -Math.PI / 2 * sit + s * 0.55 * (1 - sit);
+      l.knee.rotation.x = Math.PI / 2 * sit + Math.max(0, -s) * 0.5 * (1 - sit);
+    });
     const k = Math.sin(t * 14 + ph);
-    if (seated) {
-      parts.arms[0].rotation.x = -0.9 + (busy ? k * 0.12 : 0);
-      parts.arms[1].rotation.x = -0.9 - (busy ? k * 0.12 : 0);
-    }
-    parts.head.rotation.y = Math.sin(t * 0.7 + ph) * (busy ? 0.08 : 0.25);
-    parts.head.rotation.x = busy ? 0.08 : 0;
+    arms.forEach((arm, i) => {
+      const s = i ? swing : -swing;
+      if (typing) arm.rotation.x = -0.9 + (i ? -k : k) * 0.12;
+      else if (walk != null) arm.rotation.x = s * 0.5;
+      else arm.rotation.x = -0.15 - sit * 0.35;
+    });
+    body.rotation.z = walk != null ? Math.sin(walk) * 0.03 : 0;
+    head.rotation.y = look + Math.sin(t * 0.7 + ph) * (typing ? 0.06 : 0.22);
+    head.rotation.x = typing ? 0.08 : 0;
     dot.rotation.y = t * 2;
     dot.position.y = torsoY + 0.85 + Math.sin(t * 2 + ph) * 0.03;
     dot.material.color.set(busy ? (Math.sin(t * 6 + ph) > 0 ? 0xF2C14E : 0xffe9a8) : 0x46D37A);

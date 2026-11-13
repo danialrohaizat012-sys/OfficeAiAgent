@@ -3,10 +3,12 @@ import raw from "../markas.config.js";
 // Baca markas.config.js, semak kesilapan biasa, dan kira susun atur 3D.
 
 const HUB_POS = [0, 0, 3.6];
-const OFFICE_Z = -4.6;
-const OFFICE_SPACING = 8.8;   // jarak tengah ke tengah antara pejabat
-const OFFICE_W = 7.6, OFFICE_D = 6.2, ROW_GAP = 2.6;
+const OFFICE_Z = -5.3;
+const OFFICE_SPACING = 11;    // jarak tengah ke tengah antara pejabat
+const OFFICE_W = 9.6, OFFICE_D = 7.4, ROW_GAP = 2.6;
+const DESK_X = 1.9, FIRST_ROW_Z = -1.4;
 const HUB_RADIUS = 3.4;
+const BASE_HALF = 7.35;       // separuh saiz markas prototaip asal (rujukan skala kamera)
 
 const hexNum = h => parseInt(String(h).replace("#", ""), 16);
 
@@ -60,13 +62,23 @@ export function loadConfig() {
   return { title: raw.tajuk || "Markas Agent", subtitle: raw.subtajuk || "", offices, agents, errors, view: viewFit(offices) };
 }
 
-// Meja dalam grid 2 lajur. Sehingga 4 agent = susun atur asal prototaip.
+// Pelan pejabat: meja dalam grid 2 lajur, laluan pejalan kaki, dan tempat
+// yang pekerja boleh pergi (pantri, sofa, whiteboard...). Semua relatif
+// kepada tengah pejabat.
 function deskLayout(n) {
   const rows = Math.max(2, Math.ceil(n / 2));
-  const spots = [];
-  for (let r = 0; r < rows; r++) spots.push([-1.8, -1.2 + r * ROW_GAP], [1.8, -1.2 + r * ROW_GAP]);
+  const deskSpots = [];
+  for (let r = 0; r < rows; r++) deskSpots.push([-DESK_X, FIRST_ROW_Z + r * ROW_GAP], [DESK_X, FIRST_ROW_Z + r * ROW_GAP]);
   const extra = (rows - 2) * ROW_GAP;
-  return { deskSpots: spots, platformDepth: OFFICE_D + extra, platformShift: extra / 2 };
+  const W = OFFICE_W, D = OFFICE_D + extra, shift = extra / 2;
+  const backZ = shift - D / 2 + 0.35;
+  const lastRow = FIRST_ROW_Z + (rows - 1) * ROW_GAP;
+  const lanes = {
+    back: backZ + 0.65,
+    mid: Array.from({ length: rows - 1 }, (_, r) => FIRST_ROW_Z + r * ROW_GAP + 1.015),
+    front: lastRow + 1.1,
+  };
+  return { deskSpots, platformDepth: D, platformShift: shift, plan: { W, D, shift, backZ, rows, lanes, deskX: DESK_X } };
 }
 
 // Kira titik tengah dan saiz keseluruhan markas supaya kamera boleh muat semuanya.
@@ -74,14 +86,13 @@ function viewFit(offices) {
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
   for (const o of Object.values(offices)) {
     const [x, , z] = o.pos;
-    const hw = o.kind === "hub" ? HUB_RADIUS : OFFICE_W / 2;
-    const zMin = o.kind === "hub" ? z - HUB_RADIUS : z - OFFICE_D / 2 + (o.platformShift || 0) - (o.platformDepth - OFFICE_D) / 2;
-    const zMax = o.kind === "hub" ? z + HUB_RADIUS : z + OFFICE_D / 2 + (o.platformShift || 0) + (o.platformDepth - OFFICE_D) / 2;
+    const hw = o.kind === "hub" ? HUB_RADIUS : o.plan.W / 2;
+    const zMin = o.kind === "hub" ? z - HUB_RADIUS : z + o.platformShift - o.platformDepth / 2;
+    const zMax = o.kind === "hub" ? z + HUB_RADIUS : z + o.platformShift + o.platformDepth / 2;
     minX = Math.min(minX, x - hw); maxX = Math.max(maxX, x + hw);
     minZ = Math.min(minZ, zMin); maxZ = Math.max(maxZ, zMax);
   }
   const half = Math.max(maxX - minX, maxZ - minZ) / 2;
-  const BASE_HALF = (HUB_POS[2] + HUB_RADIUS - (OFFICE_Z - OFFICE_D / 2)) / 2; // prototaip asal (1 pejabat)
   return {
     target: [(minX + maxX) / 2, 1, (minZ + maxZ) / 2 - 0.25],
     scale: Math.max(1, half / BASE_HALF),

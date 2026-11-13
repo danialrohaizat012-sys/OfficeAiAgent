@@ -6,6 +6,7 @@ import { buildWorld } from "./scene/world.js";
 import { createCameraRig } from "./scene/camera.js";
 import { createUI } from "./ui/ui.js";
 import { initSample, startSample } from "./sim/sample.js";
+import { createLife } from "./sim/life.js";
 
 const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors } = loadConfig();
 document.title = subtitle ? `${title}: ${subtitle}` : title;
@@ -55,7 +56,15 @@ canvas.addEventListener("pointerup", e => {
 
 // Gelembung teks muncul seketika bila agent tukar tugas
 const shown = new Set();
-startSample(AGENTS, ui, a => { shown.add(a); a.until = performance.now() + 4200; });
+const showBubble = a => { shown.add(a); a.until = performance.now() + 4200; };
+startSample(AGENTS, ui, showBubble);
+
+// Pekerja bangun dan berjalan sekali-sekala (hiasan visual sahaja)
+if (location.search.includes("debug")) window.__markas = { renderer, AGENTS };
+
+const life = createLife(OFFICES, AGENTS, {
+  onErrand: (a, label) => { a.bubble.querySelector("span").textContent = label; showBubble(a); },
+});
 
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
@@ -71,10 +80,11 @@ function loop() {
   rig.update(dt);
   if (!reduce) {
     world.bobbers.forEach(b => { if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else b.m.rotation.z += b.m.userData.spin * dt; });
-    AGENTS.forEach(a => a.mesh.userData.animate(t, a.busy, a.ph));
+    life.update(dt);
+    AGENTS.forEach(a => a.mesh.userData.animate(t, { busy: a.busy, ph: a.ph, ...life.pose(a) }));
     world.bridges.forEach(br => br.dots.forEach((d, i) => { const k = (t * 0.12 + i / br.dots.length) % 1; d.position.lerpVectors(br.A, br.B, k); d.position.y = 0.06; }));
   } else {
-    AGENTS.forEach(a => a.mesh.userData.animate(0, a.busy, 0));
+    AGENTS.forEach(a => a.mesh.userData.animate(0, { busy: a.busy, ...life.pose(a) }));
     world.bridges.forEach(br => br.dots.forEach((d, i) => { d.position.lerpVectors(br.A, br.B, (i + 0.5) / br.dots.length); d.position.y = 0.06; }));
   }
   controls.update();

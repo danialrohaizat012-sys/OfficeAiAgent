@@ -1,13 +1,17 @@
 import * as THREE from "three";
 import { octagonShape, roundedShape, platform, logoSprite } from "./parts.js";
 import { person } from "./person.js";
-import { officeFloor, officeWalls, workstation, plant, wallDecor, commandDeck } from "./decor.js";
+import { officeSpots } from "./spots.js";
+import {
+  officeFloor, officeWalls, workstation, plant, wallDecor, commandDeck,
+  counterZone, loungeZone, sideZone, sideRZone, bakeStatic,
+} from "./decor.js";
 
 // Semua logo SVG dalam folder logos/ (dimuat sebagai teks).
 const LOGO_FILES = import.meta.glob("../../logos/*.svg", { query: "?raw", import: "default", eager: true });
 const logoSvg = file => LOGO_FILES["../../logos/" + file];
 
-// Bina seluruh dunia 3D: hab Command, pejabat, jambatan dan robot agent.
+// Bina seluruh dunia 3D: hab Command, pejabat, jambatan dan pekerja.
 export function buildWorld(scene, offices, agents) {
   const officeGroups = {}, pickables = [], bobbers = [], bridges = [];
 
@@ -27,15 +31,17 @@ export function buildWorld(scene, offices, agents) {
   for (const a of agents) {
     const o = offices[a.office];
     const r = person({ shirt: a.color, skin: a.look.kulit, pants: a.look.seluar, hairStyle: a.look.rambut, hairColor: a.look.warnaRambut,
-      accent: "#" + o.color.toString(16).padStart(6, "0"), seated: o.kind !== "hub" });
+      accent: "#" + o.color.toString(16).padStart(6, "0") });
     const i = used[a.office] = (used[a.office] ?? -1) + 1;
     if (o.kind === "hub") {
       const n = agents.filter(x => x.office === a.office).length;
       r.position.set((i - (n - 1) / 2) * 1.4, 0, 0.6);
+      a.home = { x: r.position.x, z: 0.6, standing: true };
     } else {
       // pekerja duduk di kerusi di belakang meja, menghadap kamera
       const [x, z] = o.deskSpots[i];
       r.position.set(x, 0, z - 0.62);
+      a.home = { x, z: z - 0.62, desk: i };
     }
     officeGroups[a.office].add(r);
     r.traverse(m => { if (m.isMesh) { m.userData.agent = a.id; pickables.push(m); } });
@@ -63,30 +69,45 @@ function hub(o, bobbers) {
   const deck = commandDeck(o.color);
   grp.add(deck.group);
   deck.holos.forEach((h, i) => bobbers.push({ m: h, type: "bob", base: h.position.y, ph: i * 1.7, amp: 0.06 }));
+  [[-2.3, 1.2], [2.3, 1.2], [-2.3, -0.9], [2.3, -0.9]].forEach(([x, z], i) => grp.add(plant(x, z, 0.8, i % 2)));
   return grp;
 }
 
 function office(o, bobbers) {
   const grp = new THREE.Group();
   const accent = "#" + o.color.toString(16).padStart(6, "0");
-  const W = 7.6, D = o.platformDepth, backZ = o.platformShift - D / 2 + 0.35;
-  const base = platform(roundedShape(W, D, 1.1), o.color);
-  base.position.z = o.platformShift; grp.add(base);
-  const floor = officeFloor(W, D, o.color); floor.position.z = o.platformShift; grp.add(floor);
-  grp.add(officeWalls(W, D, o.color, backZ));
-  grp.add(wallDecor(o.theme, o.color, backZ));
-  o.deskSpots.forEach(([x, z]) => { const d = workstation(o.color, x < 0 ? -1 : 1); d.position.set(x, 0, z); grp.add(d); });
-  const frontZ = o.platformShift + D / 2 - 0.75;
-  [[-3.05, frontZ], [3.05, frontZ]].forEach(([x, z]) => grp.add(plant(x, z, 0.9)));
+  const plan = o.plan, theme = o.theme;
+  const { anchors } = officeSpots(plan, theme);
+
+  // perabot statik: dibina dalam satu kumpulan, kemudian digabung
+  const furniture = new THREE.Group();
+  const base = platform(roundedShape(plan.W, plan.D, 1.1), o.color);
+  base.position.z = plan.shift; grp.add(base);
+  furniture.add(officeFloor(plan, o.color, theme));
+  furniture.add(officeWalls(plan, o.color, theme));
+  furniture.add(wallDecor(plan, o.color, theme));
+  o.deskSpots.forEach(([x, z], i) => { const d = workstation(o.color, x < 0 ? -1 : 1, theme, i); d.position.set(x, 0, z); furniture.add(d); });
+  furniture.add(counterZone(anchors.counter, o.color, theme));
+  furniture.add(loungeZone(anchors.lounge, o.color, theme));
+  furniture.add(sideZone(anchors.side, o.color, theme));
+  furniture.add(sideRZone(anchors.sideR, o.color, theme));
+  const W2 = plan.W / 2;
+  furniture.add(plant(-(W2 - 0.55), plan.lanes.back - 0.2, 1, 1));
+  furniture.add(plant(W2 - 0.55, plan.lanes.back - 0.2, 1, 0));
+  furniture.add(plant(-0.95, plan.lanes.front + 0.75, 0.7, 0));
+  furniture.add(plant(0.95, plan.lanes.front + 0.75, 0.7, 0));
+  grp.add(bakeStatic(furniture));
+
   const svg = o.logo && logoSvg(o.logo.fail);
   if (o.logo && !svg) console.error(`[markas.config.js] Logo "${o.logo.fail}" tiada dalam folder logos/.`);
+  const logoY = 6.2, backZ = plan.backZ;
   if (svg) {
     const sp = logoSprite(svg, o.logo.lebar, o.logo.tinggi, accent, o.logo.skala);
-    sp.position.set(0, 5.4, backZ); grp.add(sp);
-    bobbers.push({ m: sp, type: "bob", base: 5.4, ph: o.logoPhase });
+    sp.position.set(0, logoY, backZ); grp.add(sp);
+    bobbers.push({ m: sp, type: "bob", base: logoY, ph: o.logoPhase });
   }
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.3, 8), new THREE.MeshBasicMaterial({ color: o.color, transparent: true, opacity: 0.5 }));
-  pole.position.set(0, 2.55, backZ); grp.add(pole);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.6, 8), new THREE.MeshBasicMaterial({ color: o.color, transparent: true, opacity: 0.5 }));
+  pole.position.set(0, 3.3, backZ); grp.add(pole);
   return grp;
 }
 

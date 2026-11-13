@@ -22,7 +22,7 @@ export function createCameraRig(camera, controls, offices, view, reduceMotion) {
     else {
       const base = new THREE.Vector3(...offices[key].pos);
       tgt = agentPos ? agentPos.clone().setY(1) : base.clone().setY(0.8);
-      const d = (agentPos ? 8 : 13) * (innerWidth / innerHeight < 0.8 ? 1.45 : 1);
+      const d = (agentPos ? 8 : 15.5) * (innerWidth / innerHeight < 0.8 ? 1.45 : 1);
       const dir = tgt.clone().setY(0).normalize(); if (dir.lengthSq() < 0.01) dir.set(0, 0, 1);
       pos = tgt.clone().add(new THREE.Vector3(dir.x * d * 0.35, d * 0.6, d * 0.8));
     }
