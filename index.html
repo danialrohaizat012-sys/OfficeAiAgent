@@ -22,7 +22,7 @@
     <p></p>
   </div>
   <div class="hud">
-    <span class="sample" title="Status ini simulasi. Sambung ke agent sebenar untuk data hidup.">Data contoh</span>
+    <button class="sample" id="mode" title="Tukar antara data contoh dan data hidup">Data contoh</button>
     <div class="hud-row">
       <span class="chipx" id="clock" title="Waktu Malaysia">☀️ --:--</span>
       <button class="chipx" id="quality" title="Tukar kualiti grafik">✨ Cantik</button>
@@ -48,10 +48,26 @@
   </div>
   <h3>Sedang buat</h3>
   <p class="now" id="sNow"></p>
-  <h3>Senarai tugas</h3>
-  <ul id="sTasks"></ul>
+  <div id="sTasksWrap">
+    <h3>Senarai tugas</h3>
+    <ul id="sTasks"></ul>
+  </div>
   <span class="office" id="sOffice"></span>
 </section>
+
+<div class="modal" id="codeModal" hidden>
+  <form class="modal-card" id="codeForm" autocomplete="on">
+    <h2>Mod Hidup</h2>
+    <p>Masukkan kod akses Markas (<code>MARKAS_VIEW_CODE</code> dari Vercel). iPhone akan ingat kod ini.</p>
+    <input type="text" name="username" value="markas" autocomplete="username" hidden>
+    <input type="password" id="codeInput" name="password" autocomplete="current-password" placeholder="Kod akses" required>
+    <p class="err" id="codeErr" hidden></p>
+    <div class="row">
+      <button type="button" id="codeCancel">Batal</button>
+      <button type="submit" id="codeOk">Masuk</button>
+    </div>
+  </form>
+</div>
 
 <script type="module" src="/src/main.js"></script>
 </body>

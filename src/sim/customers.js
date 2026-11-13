@@ -17,6 +17,7 @@ export function createCustomers(offices, officeGroups, site) {
   const shops = Object.entries(offices).filter(([, o]) => o.kind === "office" && o.theme === "kedai");
   const people = [];
   let timer = 4;
+  const api = { enabled: true };
 
   function spawn() {
     if (!shops.length || people.length >= 2) return;
@@ -37,7 +38,7 @@ export function createCustomers(offices, officeGroups, site) {
 
   function update(dt, t) {
     timer -= dt;
-    if (timer <= 0) { spawn(); timer = rand(14, 30); }
+    if (timer <= 0) { if (api.enabled) spawn(); timer = rand(14, 30); }
     for (let i = people.length - 1; i >= 0; i--) {
       const c = people[i], m = c.m;
       if (c.mode === "wait") {
@@ -67,5 +68,5 @@ export function createCustomers(offices, officeGroups, site) {
     }
   }
 
-  return { update, get count() { return people.length; } };
+  return Object.assign(api, { update, get count() { return people.length; } });
 }

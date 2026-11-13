@@ -83,6 +83,7 @@ export function createDaylight({ scene, renderer, hemi, key, nightLights, center
     flash(level) { hemi.intensity = baseHemi.v + level * 2.2 * LEGACY_LIGHT; },
     get hour() { return hour; },
     get isNight() { return state.night > 0.5; },
+    get night() { return state.night; },
     label() {
       const h = Math.floor(hour), m = Math.floor((hour - h) * 60);
       const icon = state.night > 0.6 ? "🌙" : state.night > 0.2 ? "🌇" : "☀️";

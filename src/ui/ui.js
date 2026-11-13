@@ -2,6 +2,21 @@
 
 const $ = id => document.getElementById(id);
 
+// Teks "sedang buat": mod Hidup guna status dari server, mod contoh guna senarai tugas
+export function nowText(a) {
+  if (a.live !== undefined) return a.live ? (a.live.sedang || "—") : "Belum hantar status";
+  return a.tasks[a.step];
+}
+
+export function timeAgo(iso) {
+  if (!iso) return "";
+  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return "baru sahaja";
+  if (s < 3600) return `${Math.floor(s / 60)} min lalu`;
+  if (s < 86400) return `${Math.floor(s / 3600)} jam lalu`;
+  return `${Math.floor(s / 86400)} hari lalu`;
+}
+
 export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, onClose, onDecisionDone }) {
   const roster = $("roster"), bubbles = $("bubbles"), tabs = $("tabs"), sheet = $("sheet"), dock = $("dock");
   let filter = "all";
@@ -30,14 +45,14 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     b.innerHTML = `<span class="av"></span><span class="t"><span class="n"></span><span class="s"></span></span>`;
     const av = b.querySelector(".av"); av.style.background = a.color; av.textContent = a.name[0];
     b.querySelector(".n").textContent = a.name;
-    b.querySelector(".s").textContent = a.tasks[a.step];
+    b.querySelector(".s").textContent = nowText(a);
     b.onclick = () => onSelect(a.id, true);
     roster.appendChild(b); a.chip = b;
 
     const bb = document.createElement("div"); bb.className = "bubble";
     bb.innerHTML = `<b></b><span></span>`;
     bb.querySelector("b").textContent = a.name;
-    bb.querySelector("span").textContent = a.tasks[a.step];
+    bb.querySelector("span").textContent = nowText(a);
     bubbles.appendChild(bb); a.bubble = bb;
 
     // tanda nama kecil di atas kepala
@@ -56,10 +71,11 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     $("sAv").textContent = a.name[0]; $("sAv").style.background = a.color;
     $("sName").textContent = a.name;
     $("sRole").textContent = a.role;
-    $("sNow").textContent = a.tasks[a.step];
+    $("sNow").textContent = nowText(a);
+    $("sTasksWrap").hidden = a.live !== undefined;
     const ul = $("sTasks"); ul.innerHTML = ""; ul.style.setProperty("--acc", a.color);
     a.tasks.forEach(t => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
-    $("sOffice").textContent = "Pejabat: " + offices[a.office].short;
+    $("sOffice").textContent = "Pejabat: " + offices[a.office].short + (a.live ? ` · dikemas kini ${timeAgo(a.live.dikemaskini)}` : "");
     showDecision(a);
     sheet.classList.add("open"); dock.style.visibility = "hidden";
     if (fromChip) a.chip.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", inline: "center", block: "nearest" });
@@ -87,9 +103,10 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     a.chip.classList.toggle("busy", a.busy);
     a.chip.classList.toggle("decide", !!a.decision);
     if (selected === a) showDecision(a);
-    a.chip.querySelector(".s").textContent = a.tasks[a.step];
-    a.bubble.querySelector("span").textContent = a.tasks[a.step];
-    if (selected === a) $("sNow").textContent = a.tasks[a.step];
+    a.chip.classList.toggle("offline", a.live === null);
+    a.chip.querySelector(".s").textContent = nowText(a);
+    a.bubble.querySelector("span").textContent = nowText(a);
+    if (selected === a) { $("sNow").textContent = nowText(a); $("sTasksWrap").hidden = a.live !== undefined; }
   }
 
   const visible = a => filter === "all" || a.office === filter;

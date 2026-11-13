@@ -31,7 +31,7 @@ export function createWeather({ scene, center, size, onChange }) {
   const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, flatShading: true, transparent: true, opacity: 0.92 });
   const clouds = [];
   for (let i = 0; i < 10; i++) {
-    const g = new THREE.Group(); g.scale.setScalar(2.6);
+    const g = new THREE.Group(); g.scale.setScalar(1.8);
     const n = 3 + (i % 3);
     for (let k = 0; k < n; k++) {
       const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2 + ((i + k) % 3) * 0.4, 1), cloudMat);
@@ -40,9 +40,9 @@ export function createWeather({ scene, center, size, onChange }) {
     }
     // awan di ufuk (cincin jauh di luar kompleks) supaya tak menghalang pandangan
     g.userData.angle = i / 10 * Math.PI * 2 + (i % 3) * 0.2;
-    g.userData.radius = size / 2 + 48 + (i % 3) * 8;   // lebih jauh dari kamera: sentiasa di latar
+    g.userData.radius = size / 2 + 40 + (i % 3) * 8;   // jauh di ufuk: sentiasa di latar
     g.userData.speed = 0.012 + (i % 3) * 0.005;
-    g.position.y = 9 + (i % 4) * 2.5;
+    g.position.y = 17 + (i % 4) * 2;                     // tinggi: di atas pandangan phone tegak
     scene.add(g); clouds.push(g);
   }
 
@@ -63,10 +63,19 @@ export function createWeather({ scene, center, size, onChange }) {
 
   let flash = 0, nextFlash = 4;
 
+  // phone tegak: tiada ruang langit, awan disembunyi (hujan dan langit kelabu kekal)
+  function showClouds() {
+    const wide = innerWidth > innerHeight;
+    clouds.forEach(c => { c.visible = wide && c.userData.want !== false; });
+  }
+  showClouds();
+  addEventListener("resize", showClouds);
+
   function set(s) {
     state = s;
     cloudMat.color.set(s.rain > 0 ? 0x8d95a3 : s.cloud > 0.7 ? 0xc9ced8 : 0xffffff);
-    clouds.forEach((c, i) => { c.visible = i < 3 + Math.round(s.cloud * 7); });
+    clouds.forEach((c, i) => { c.userData.want = i < 3 + Math.round(s.cloud * 7); });
+    showClouds();
     rain.visible = s.rain > 0;
     onChange(s);
   }
@@ -87,7 +96,10 @@ export function createWeather({ scene, center, size, onChange }) {
   fetchNow();
   setInterval(fetchNow, 15 * 60 * 1000);
 
-  function update(dt) {
+  // night: 0 (siang) hingga 1 (malam). Awan dimalapkan waktu malam.
+  function update(dt, night = 0) {
+    cloudMat.opacity = 0.92 * (1 - 0.75 * night);
+
     for (const c of clouds) {
       c.userData.angle += c.userData.speed * dt;
       c.position.x = center.x + Math.cos(c.userData.angle) * c.userData.radius;
