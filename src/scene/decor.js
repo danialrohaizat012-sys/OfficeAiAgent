@@ -69,38 +69,64 @@ export function officeFloor(plan, color, theme) {
   return g;
 }
 
-// ==================== DINDING ====================
+// ==================== BANGUNAN: ASAS + DINDING ====================
+export const WALL_H = 2.6;
+
+// Asas bangunan (lantai konkrit dari tanah ke paras lantai pejabat)
+export function foundation(plan, color, groundY) {
+  const g = grp(0, 0, plan.shift);
+  const h = -groundY;
+  g.add(mesh(box(plan.W, h, plan.D), std(0x59607a, { roughness: 0.9 }), 0, -h / 2, 0));
+  // tangga masuk di depan
+  g.add(mesh(box(1.8, h * 0.5, 0.4), std(0x6b7389), 0, -h * 0.75, plan.D / 2 + 0.2));
+  // jalur warna jenama di tepi lantai
+  const edge = basic(color);
+  g.add(mesh(box(plan.W + 0.02, 0.04, 0.04), edge, 0, -0.02, plan.D / 2));
+  for (const sx of [-1, 1]) g.add(mesh(box(0.04, 0.04, plan.D), edge, sx * plan.W / 2, -0.02, 0));
+  return g;
+}
+
 export function officeWalls(plan, color, theme) {
   const g = new THREE.Group();
   const studio = theme !== "kedai";
-  const wallW = plan.W - 1.3, h = 2.5, z = plan.backZ;
-  g.add(mesh(box(wallW, h, 0.14), std(studio ? 0xe8e3da : 0x1f2538, { roughness: 0.9 }), 0, h / 2, z - 0.02));
-  // bingkai bawah (skirting) + jalur lampu atas
-  g.add(mesh(box(wallW, 0.1, 0.16), std(studio ? 0x8a6a4c : 0x12161f), 0, 0.05, z));
-  g.add(mesh(box(wallW, 0.05, 0.18), basic(color), 0, h + 0.02, z));
+  const h = WALL_H, z = plan.backZ, t = 0.2;
+  const wallM = std(studio ? 0xe8e3da : 0x1f2538, { roughness: 0.9 });
+  const outerM = std(studio ? 0xd6d0c4 : 0x2a3146, { roughness: 0.9 });
+  const capM = std(0x3a4152, { roughness: 0.6 });
+  const W2 = plan.W / 2, zBack = z - 0.1, zFront = plan.shift + plan.D / 2 - 0.1;
+  // dinding belakang (penuh dari sisi ke sisi)
+  g.add(mesh(box(plan.W, h, t), wallM, 0, h / 2, zBack - t / 2 + 0.08));
+  g.add(mesh(box(plan.W + 0.1, 0.12, t + 0.1), capM, 0, h + 0.06, zBack - t / 2 + 0.08));
+  // bingkai bawah + jalur lampu dalam
+  g.add(mesh(box(plan.W - 0.4, 0.1, 0.05), std(studio ? 0x8a6a4c : 0x12161f), 0, 0.05, z));
+  g.add(mesh(box(plan.W - 0.4, 0.05, 0.05), basic(color), 0, h - 0.08, z));
   if (studio) {
-    // tingkap panjang dengan pemandangan bandar waktu senja
-    const win = mesh(new THREE.PlaneGeometry(wallW - 0.4, 0.62), new THREE.MeshBasicMaterial({ map: skylineTexture() }), 0, 2.1, z + 0.075);
-    g.add(win);
-    g.add(mesh(box(wallW - 0.3, 0.05, 0.08), M.white(), 0, 1.77, z + 0.08));
-    g.add(mesh(box(wallW - 0.3, 0.05, 0.08), M.white(), 0, 2.43, z + 0.08));
-    for (let i = 0; i <= 5; i++) g.add(mesh(box(0.05, 0.66, 0.08), M.white(), -(wallW - 0.4) / 2 + i * (wallW - 0.4) / 5, 2.1, z + 0.08));
+    const ww = plan.W - 1.6;
+    g.add(mesh(new THREE.PlaneGeometry(ww, 0.62), new THREE.MeshBasicMaterial({ map: skylineTexture() }), 0, 2.08, z + 0.075));
+    g.add(mesh(box(ww + 0.1, 0.05, 0.08), M.white(), 0, 1.75, z + 0.08));
+    g.add(mesh(box(ww + 0.1, 0.05, 0.08), M.white(), 0, 2.41, z + 0.08));
+    for (let i = 0; i <= 6; i++) g.add(mesh(box(0.05, 0.66, 0.08), M.white(), -ww / 2 + i * ww / 6, 2.08, z + 0.08));
   } else {
-    // papan neon "GAME ON"
     g.add(mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: neonTexture("GAME ON", hexStr(color)), transparent: true }), 0, 2.08, z + 0.08));
-    // jalur LED tepi
-    g.add(mesh(box(wallW, 0.03, 0.03), basic(color), 0, 1.78, z + 0.08));
+    g.add(mesh(box(plan.W - 1.4, 0.03, 0.03), basic(color), 0, 1.78, z + 0.08));
   }
-  // dinding kaca sisi
-  const glass = new THREE.MeshStandardMaterial({ color: studio ? 0xcfe6ff : color, transparent: true, opacity: 0.12, roughness: 0.1, metalness: 0.2, depthWrite: false, side: THREE.DoubleSide });
-  const frame = basic(color, { transparent: true, opacity: 0.7 });
-  const zEnd = plan.lanes.front - 1.05, sideLen = zEnd - (z + 0.1), gh = 1.5;
+  // dinding sisi: separuh bawah konkrit, separuh atas kaca dengan tiang tingkap
+  const len = zFront - zBack, zc = (zFront + zBack) / 2, low = 0.85;
+  const glass = new THREE.MeshStandardMaterial({ color: studio ? 0xcfe6ff : color, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0.3, depthWrite: false, side: THREE.DoubleSide });
   for (const sx of [-1, 1]) {
-    const x = sx * (plan.W / 2 - 0.12), zc = z + 0.1 + sideLen / 2;
-    g.add(mesh(box(0.04, gh, sideLen), glass, x, gh / 2, zc));
-    g.add(mesh(box(0.06, 0.04, sideLen), frame, x, gh, zc));
-    g.add(mesh(box(0.06, gh, 0.06), frame, x, gh / 2, zEnd));
+    const x = sx * (W2 - t / 2);
+    g.add(mesh(box(t, low, len), outerM, x, low / 2, zc));
+    g.add(mesh(box(t + 0.06, 0.06, len), capM, x, low, zc));
+    g.add(mesh(box(0.04, h - low, len), glass, x, low + (h - low) / 2, zc));
+    g.add(mesh(box(t + 0.06, 0.12, len), capM, x, h + 0.06, zc));
+    const n = Math.round(len / 1.2);
+    for (let i = 0; i <= n; i++) g.add(mesh(box(0.08, h - low, 0.08), capM, x, low + (h - low) / 2, zBack + i * len / n));
+    // tiang depan (penjuru bangunan)
+    g.add(mesh(box(0.32, h + 0.12, 0.32), capM, sx * (W2 - 0.12), (h + 0.12) / 2, zFront));
   }
+  // rasuk depan yang sambung dua tiang (bangunan "dipotong" di depan supaya nampak dalam)
+  g.add(mesh(box(plan.W, 0.12, 0.2), capM, 0, h + 0.06, zFront));
+  g.add(mesh(box(plan.W - 0.6, 0.04, 0.04), basic(color), 0, h - 0.02, zFront + 0.11));
   return g;
 }
 

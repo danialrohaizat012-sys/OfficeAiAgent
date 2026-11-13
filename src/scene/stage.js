@@ -13,7 +13,7 @@ export function createStage(canvas, reduceMotion) {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setClearColor(BG);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(BG, 45, 100);
@@ -33,11 +33,11 @@ export function createStage(canvas, reduceMotion) {
   // Pencahayaan pejabat: cahaya langit lembut + matahari hangat yang buat bayang-bayang
   scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x1a2236, 0.6 * LEGACY_LIGHT));
   const key = new THREE.DirectionalLight(0xfff1dc, 0.85 * LEGACY_LIGHT);
-  key.position.set(7, 16, 9);
+  key.position.set(10, 22, 13);
   key.castShadow = true;
   const size = Math.min(innerWidth, innerHeight) < 600 ? 1024 : 2048;
   key.shadow.mapSize.set(size, size);
-  Object.assign(key.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 50 });
+  Object.assign(key.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 1, far: 80 });
   key.shadow.bias = -0.0005; key.shadow.normalBias = 0.02;
   scene.add(key);
 

@@ -11,7 +11,8 @@
 //    jenis  : "hab" untuk Command di tengah (satu sahaja), "pejabat" untuk yang lain
 //    warna  : warna jenama (bingkai platform, jambatan, skrin meja)
 //    tema   : (pilihan) hiasan dinding: "studio" (whiteboard, rak buku) atau "kedai" (rak game, TV)
-//    logo   : (pilihan) fail dalam folder logos/, saiz kanvas dan skala papan logo
+//    logo   : (pilihan) papan tanda atas bumbung. "fail" = SVG dalam folder logos/.
+//             Pilihan "ikon" dan "tulisan" (viewBox dalam SVG) = ikon di kiri, tulisan di kanan.
 //
 //  AGENT
 //    id     : nama ringkas unik, huruf kecil (dipakai oleh backend nanti)
@@ -33,9 +34,9 @@ export default {
   pejabat: [
     { id: "command", nama: "Command", label: "Command", jenis: "hab", warna: "#8E9BFF" },
     { id: "binalab", nama: "BinaLab", label: "Pejabat BinaLab", jenis: "pejabat", tema: "studio", warna: "#4CC26C",
-      logo: { fail: "binalab-logo-dark.svg", lebar: 1024, tinggi: 1240, skala: 4.4 } },
+      logo: { fail: "binalab-logo-dark.svg", ikon: "112 88 382 440", tulisan: "80 558 450 90" } },
     { id: "meney", nama: "Meney", label: "Pejabat Meney Gaming", jenis: "pejabat", tema: "kedai", warna: "#8DC63F",
-      logo: { fail: "meney-logo-dark.svg", lebar: 1400, tinggi: 700, skala: 3.1 } },
+      logo: { fail: "meney-logo-dark.svg" } },
   ],
 
   agent: [

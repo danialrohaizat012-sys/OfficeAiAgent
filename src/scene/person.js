@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { bakeStatic } from "./decor.js";
 
 // Figura pekerja gaya blok mainan: kepala silinder, badan trapezium,
 // tangan "C", kaki blok. Duduk di kerusi (pejabat) atau berdiri (Command).
@@ -132,6 +133,12 @@ export function person(opts) {
   // --- penunjuk status terapung (hijau = sedia, kuning berkelip = sibuk)
   const dot = mesh(new THREE.OctahedronGeometry(0.06, 0), new THREE.MeshBasicMaterial({ color: 0x46D37A }), 0, torsoY + 0.85, 0);
   body.add(dot);
+
+  // gabung bahagian yang tak bergerak sesama sendiri (kurangkan objek dilukis)
+  const joints = [...legs.flatMap(l => [l.hip, l.knee]), ...arms, head, dot];
+  joints.forEach(j => { j.userData.dynamic = true; });
+  bakeStatic(body);
+  joints.forEach(j => { if (j.isGroup) { j.userData.dynamic = false; bakeStatic(j); j.userData.dynamic = true; } });
 
   g.userData.animate = (t, st) => {
     const { busy = false, ph = 0, sit = 0, seatY = 0.5, walk = null, typing = false, look = 0 } = st;

@@ -57,3 +57,54 @@ export function logoSprite(svg, w, h, accent, scale) {
   sp.scale.set(scale * w / h, scale, 1);
   return sp;
 }
+
+// Papan tanda bumbung: kotak dengan muka depan bercetak. Kalau "ikon" dan
+// "tulisan" diberi (viewBox dalam SVG logo), ikon diletak di kiri dan
+// tulisan di kanan. Kalau tidak, logo penuh diletak di tengah.
+export function signBoard(svg, opt, accent, height) {
+  const W = 1600, H = 420;
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d");
+  const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4;
+  const r = 60;
+  ctx.beginPath(); ctx.moveTo(r, 8); ctx.arcTo(W - 8, 8, W - 8, H - 8, r); ctx.arcTo(W - 8, H - 8, 8, H - 8, r); ctx.arcTo(8, H - 8, 8, 8, r); ctx.arcTo(8, 8, W - 8, 8, r); ctx.closePath();
+  ctx.fillStyle = "#0b1222"; ctx.fill();
+  ctx.lineWidth = 12; ctx.strokeStyle = accent; ctx.stroke();
+
+  const load = (box) => new Promise(res => {
+    const src = box ? svg.replace(/viewBox="[^"]*"/, `viewBox="${box}"`).replace(/ width="[^"]*"/, "").replace(/ height="[^"]*"/, "") : svg;
+    const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null);
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(src);
+  });
+  const fit = (img, x, y, w, h) => {
+    const ar = (img.naturalWidth || 1) / (img.naturalHeight || 1);
+    let dw = w, dh = w / ar; if (dh > h) { dh = h; dw = h * ar; }
+    ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  };
+  if (opt && opt.ikon && opt.tulisan) {
+    Promise.all([load(opt.ikon), load(opt.tulisan)]).then(([icon, word]) => {
+      if (icon) fit(icon, 70, 50, 320, 320);
+      if (word) fit(word, 430, 90, W - 500, 240);
+      tex.needsUpdate = true;
+    });
+  } else {
+    load(null).then(img => { if (img) fit(img, 60, 40, W - 120, H - 80); tex.needsUpdate = true; });
+  }
+
+  const width = height * W / H;
+  const g = new THREE.Group();
+  const frame = new THREE.MeshStandardMaterial({ color: 0x0b1222, roughness: 0.6 });
+  const front = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.55 });
+  const board = new THREE.Mesh(new THREE.BoxGeometry(width, height, 0.12), [frame, frame, frame, frame, front, frame]);
+  board.position.y = height / 2 + 0.55; g.add(board);
+  // tiang penyokong ke bumbung
+  const postM = new THREE.MeshStandardMaterial({ color: 0x8a93a8, roughness: 0.4, metalness: 0.6 });
+  for (const x of [-width * 0.32, width * 0.32]) {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.6, 0.1), postM);
+    post.position.set(x, 0.3, -0.02); g.add(post);
+  }
+  // jalur lampu di bawah papan
+  const strip = new THREE.Mesh(new THREE.BoxGeometry(width * 0.9, 0.04, 0.04), new THREE.MeshBasicMaterial({ color: accent }));
+  strip.position.set(0, 0.53, 0.1); g.add(strip);
+  return g;
+}

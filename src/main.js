@@ -74,12 +74,13 @@ addEventListener("resize", () => { resize(); if (!ui.selected && ui.filter === "
 resize(); rig.goHome();
 document.getElementById("loading").remove();
 
-const clock = new THREE.Clock(), v = new THREE.Vector3();
+const timer = new THREE.Timer(), v = new THREE.Vector3();
 function loop() {
-  const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+  timer.update();
+  const dt = Math.min(timer.getDelta(), 0.05), t = timer.getElapsed();
   rig.update(dt);
   if (!reduce) {
-    world.bobbers.forEach(b => { if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else b.m.rotation.z += b.m.userData.spin * dt; });
+    world.bobbers.forEach(b => { if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else if (b.type === "spinY") b.m.rotation.y += b.speed * dt; else b.m.rotation.z += b.m.userData.spin * dt; });
     life.update(dt);
     AGENTS.forEach(a => a.mesh.userData.animate(t, { busy: a.busy, ph: a.ph, ...life.pose(a) }));
     world.bridges.forEach(br => br.dots.forEach((d, i) => { const k = (t * 0.12 + i / br.dots.length) % 1; d.position.lerpVectors(br.A, br.B, k); d.position.y = 0.06; }));

@@ -4,7 +4,7 @@
 Pemilik projek: Danial, pemilik BinaLab (projek bina app/produk dan monetisasi).
 Danial bukan developer sepenuh masa. Terangkan dalam Bahasa Melayu yang ringkas dan jelas.
 
-Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pejabat **BinaLab** (studio perisian) dan pejabat **Meney Gaming** (kedai gaming), dipaparkan sebagai dashboard 3D diorama pejabat. Satu kod, satu dashboard, tetapi data kedua-dua bisnes kekal berasingan.
+Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pejabat **BinaLab** (studio perisian) dan pejabat **Meney Gaming** (kedai gaming), dipaparkan sebagai dashboard 3D kompleks bangunan pejabat. Satu kod, satu dashboard, tetapi data kedua-dua bisnes kekal berasingan.
 
 ## Struktur projek
 - `index.html`: kerangka halaman (header, tab, roster, panel detail).
@@ -12,7 +12,7 @@ Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pe
 - `src/style.css`: semua gaya (warna jenama, mesra phone).
 - `markas.config.js`: **satu-satunya tempat** untuk tambah, buang atau namakan semula pejabat dan agent (penerangan medan ada di atas fail).
 - `src/config.js`: baca config, semak kesilapan (ID berulang, pejabat tiada), kira susun atur 3D: pejabat sebaris di belakang hab, meja grid 2 lajur ikut bilangan agent, kamera muat seluruh markas.
-- `src/scene/`: dunia 3D. `stage.js` (renderer, lampu, bayang-bayang), `parts.js` (platform, papan logo), `decor.js` (lantai, dinding, tingkap/neon, meja kerja, kerusi, zon pantri/kaunter, sofa/sudut gaming, printer/meja repair, pokok, meja Command + hologram; `bakeStatic` gabung perabot statik supaya laju), `spots.js` (tempat yang pekerja boleh pergi + laluan), `person.js` (figura pekerja bersendi: duduk, berdiri, berjalan), `world.js` (susun semuanya), `camera.js` (gerakan kamera).
+- `src/scene/`: dunia 3D. `stage.js` (renderer, lampu, bayang-bayang), `parts.js` (bentuk asas, papan tanda bumbung `signBoard`), `site.js` (tanah, dataran, laluan, jalan, pokok, lampu, kereta), `decor.js` (asas bangunan, lantai, dinding bangunan, tingkap/neon, meja kerja, kerusi, zon pantri/kaunter, sofa/sudut gaming, printer/meja repair, pokok, meja Command + hologram; `bakeStatic` gabung perabot statik supaya laju), `spots.js` (tempat yang pekerja boleh pergi + laluan), `person.js` (figura pekerja bersendi: duduk, berdiri, berjalan), `world.js` (susun semuanya), `camera.js` (gerakan kamera).
 - `src/ui/ui.js`: tab, roster, panel detail, gelembung.
 - `src/sim/sample.js`: mod "Data contoh" (status simulasi).
 - `src/sim/life.js`: pekerja tak sibuk sekali-sekala bangun ke pantri/sofa/whiteboard/rakan dan kembali. Hiasan visual sahaja, tidak ubah status.
@@ -32,7 +32,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 
 ## Peraturan
 - JANGAN mula dari kosong. Kekalkan rupa dan rasa visual semasa (susun atur, warna jenama, logo terapung, gerakan kamera).
-- Arah visual (dipersetujui Danial, 13 Nov 2026): **diorama pejabat sebenar**, bukan tema angkasa. Latar navy #0F1B2D, bayang-bayang lembut, perabot pejabat. Pekerja ialah **figura blok gaya mainan** (kepala silinder kuning, tangan "C"), duduk di meja; Nadi berdiri di hab Command. Jangan guna nama atau logo jenama mainan.
+- Arah visual (dipersetujui Danial, 13 Nov 2026): **kompleks bangunan atas tanah**, bukan platform terapung atau tema angkasa. Bangunan "dipotong" di depan dan tiada bumbung (macam rumah anak patung) supaya dalam nampak. Papan tanda di atas bumbung dengan tiang (BinaLab: ikon kiri, tulisan kanan). Command = pavilion kaca oktagon. Tapak: rumput, dataran, laluan pejalan kaki, jalan raya, pokok, lampu jalan, kereta. Latar navy #0F1B2D, bayang-bayang lembut. Pekerja ialah **figura blok gaya mainan** (kepala silinder kuning, tangan "C"), duduk di meja; Nadi berdiri di hab Command. Jangan guna nama atau logo jenama mainan.
 - Warna jenama: hijau #4CC26C, navy #0F1B2D; Command biru-ungu #8E9BFF.
 - Mesra phone (Danial guna iPhone) dan laju.
 - Kerja satu peringkat pada satu masa. Uji setiap peringkat sebelum teruskan.
@@ -65,6 +65,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 2: config agent + pejabat Meney (9 agent, 3 pejabat)
 - [x] Peringkat 2b: rupa pejabat sebenar + figura pekerja (tema "studio" BinaLab, "kedai" Meney)
 - [x] Peringkat 2c: pejabat lebih besar dan detail + pekerja berjalan
+- [x] Peringkat 2d: konsep bangunan atas tanah + papan tanda bumbung (tiada lagi terapung)
 - [ ] Peringkat 3: backend Supabase
 - [ ] Peringkat 4: dashboard baca status + toggle data contoh
 - [ ] Peringkat 5: log aktiviti + report terakhir
