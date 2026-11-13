@@ -3,12 +3,18 @@ import * as THREE from "three";
 // Gerakan kamera: pandangan utama, fokus pejabat, fokus agent.
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-export function createCameraRig(camera, controls, offices, reduceMotion) {
-  const homeTarget = new THREE.Vector3(0, 1, -0.6);
+export function createCameraRig(camera, controls, offices, view, reduceMotion) {
+  // Titik tengah dan skala dikira dari susun atur (src/config.js)
+  const homeTarget = new THREE.Vector3(...view.target);
   let tween = null;
 
   const frameDist = () => { const asp = innerWidth / innerHeight; return asp < 0.8 ? 30 : asp < 1.2 ? 24 : 20; };
-  const homePos = () => { const d = frameDist(); return new THREE.Vector3(0, d * 0.62, d * 0.82); };
+  // Jarak supaya seluruh lebar markas muat dalam skrin (penting untuk phone tegak)
+  const widthFit = () => {
+    const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * (innerWidth / innerHeight);
+    return (view.width + 2) / (2 * halfH) / 1.03;
+  };
+  const homePos = () => { const d = Math.max(frameDist() * view.scale, widthFit()); return homeTarget.clone().add(new THREE.Vector3(0, d * 0.62 - 1, d * 0.82 + 0.6)); };
 
   function focus(key, agentPos) {
     let tgt, pos;

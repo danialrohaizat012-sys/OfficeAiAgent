@@ -10,7 +10,8 @@ Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pe
 - `index.html`: kerangka halaman (header, tab, roster, panel detail).
 - `src/main.js`: sambung semua bahagian + gelung animasi.
 - `src/style.css`: semua gaya (warna jenama, mesra phone).
-- `src/data/agents.js`: senarai pejabat dan agent.
+- `markas.config.js`: **satu-satunya tempat** untuk tambah, buang atau namakan semula pejabat dan agent (penerangan medan ada di atas fail).
+- `src/config.js`: baca config, semak kesilapan (ID berulang, pejabat tiada), kira susun atur 3D: pejabat sebaris di belakang hab, meja grid 2 lajur ikut bilangan agent, kamera muat seluruh markas.
 - `src/scene/`: dunia 3D. `stage.js` (renderer, kamera, lampu, bintang), `parts.js` (platform, meja, robot, papan logo), `world.js` (susun hab, pejabat, jambatan, robot), `camera.js` (gerakan kamera).
 - `src/ui/ui.js`: tab, roster, panel detail, gelembung.
 - `src/sim/sample.js`: mod "Data contoh" (status simulasi).
@@ -58,7 +59,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 ## Status peringkat
 - [x] Peringkat 0: repo, `.gitignore`, prototaip asal sebagai titik mula
 - [x] Peringkat 1: susun semula ke Vite + three.js terkini (rupa sama; pepijat kanvas Retina dibetulkan)
-- [ ] Peringkat 2: config agent
+- [x] Peringkat 2: config agent + pejabat Meney (9 agent, 3 pejabat)
 - [ ] Peringkat 3: backend Supabase
 - [ ] Peringkat 4: dashboard baca status + toggle data contoh
 - [ ] Peringkat 5: log aktiviti + report terakhir

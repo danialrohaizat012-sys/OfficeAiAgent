@@ -1,11 +1,9 @@
 import * as THREE from "three";
 import { octagonShape, roundedShape, platform, desk, robot, logoSprite } from "./parts.js";
-import binalabLogoDark from "../../logos/binalab-logo-dark.svg?raw";
 
-const LOGOS = { binalab: binalabLogoDark };
-
-// Kedudukan meja dalam pejabat (Peringkat 2 akan jana ikut bilangan agent).
-const DESK_SPOTS = [[-1.8, -1.2], [1.8, -1.2], [-1.8, 1.4], [1.8, 1.4]];
+// Semua logo SVG dalam folder logos/ (dimuat sebagai teks).
+const LOGO_FILES = import.meta.glob("../../logos/*.svg", { query: "?raw", import: "default", eager: true });
+const logoSvg = file => LOGO_FILES["../../logos/" + file];
 
 // Bina seluruh dunia 3D: hab Command, pejabat, jambatan dan robot agent.
 export function buildWorld(scene, offices, agents) {
@@ -26,10 +24,13 @@ export function buildWorld(scene, offices, agents) {
   const used = {};
   for (const a of agents) {
     const r = robot(a.color);
-    if (offices[a.office].kind === "hub") {
-      r.position.set(0, 0, 0.6);
+    const o = offices[a.office];
+    const i = used[a.office] = (used[a.office] ?? -1) + 1;
+    if (o.kind === "hub") {
+      const n = agents.filter(x => x.office === a.office).length;
+      r.position.set((i - (n - 1) / 2) * 1.4, 0, 0.6);
     } else {
-      const [x, z] = DESK_SPOTS[used[a.office] = (used[a.office] ?? -1) + 1];
+      const [x, z] = o.deskSpots[i];
       r.position.set(x, 0, z + 0.75);
     }
     officeGroups[a.office].add(r);
@@ -63,12 +64,15 @@ function hub(o, bobbers) {
 function office(o, bobbers) {
   const grp = new THREE.Group();
   const accent = "#" + o.color.toString(16).padStart(6, "0");
-  grp.add(platform(roundedShape(7.6, 6.2, 1.1), o.color));
-  DESK_SPOTS.forEach(([x, z]) => { const d = desk(o.color); d.position.set(x, 0, z); grp.add(d); });
-  if (o.logo && LOGOS[o.logo]) {
-    const sp = logoSprite(LOGOS[o.logo], 1024, 1240, accent, 4.4);
+  const base = platform(roundedShape(7.6, o.platformDepth, 1.1), o.color);
+  base.position.z = o.platformShift; grp.add(base);
+  o.deskSpots.forEach(([x, z]) => { const d = desk(o.color); d.position.set(x, 0, z); grp.add(d); });
+  const svg = o.logo && logoSvg(o.logo.fail);
+  if (o.logo && !svg) console.error(`[markas.config.js] Logo "${o.logo.fail}" tiada dalam folder logos/.`);
+  if (svg) {
+    const sp = logoSprite(svg, o.logo.lebar, o.logo.tinggi, accent, o.logo.skala);
     sp.position.set(0, 5.4, -2.6); grp.add(sp);
-    bobbers.push({ m: sp, type: "bob", base: 5.4, ph: 0 });
+    bobbers.push({ m: sp, type: "bob", base: 5.4, ph: o.logoPhase });
   }
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 3.2, 8), new THREE.MeshBasicMaterial({ color: o.color, transparent: true, opacity: 0.5 }));
   pole.position.set(0, 1.6, -2.6); grp.add(pole);

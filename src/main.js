@@ -1,11 +1,16 @@
 import * as THREE from "three";
 import "./style.css";
-import { OFFICES, AGENTS } from "./data/agents.js";
+import { loadConfig } from "./config.js";
 import { createStage } from "./scene/stage.js";
 import { buildWorld } from "./scene/world.js";
 import { createCameraRig } from "./scene/camera.js";
 import { createUI } from "./ui/ui.js";
 import { initSample, startSample } from "./sim/sample.js";
+
+const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors } = loadConfig();
+document.title = subtitle ? `${title}: ${subtitle}` : title;
+document.querySelector("header h1").textContent = title;
+document.querySelector("header p").textContent = subtitle + (errors.length ? " · ⚠ semak markas.config.js" : "");
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const canvas = document.getElementById("stage");
@@ -21,7 +26,7 @@ const { renderer, scene, camera, controls } = stage;
 
 initSample(AGENTS);
 const world = buildWorld(scene, OFFICES, AGENTS);
-const rig = createCameraRig(camera, controls, OFFICES, reduce);
+const rig = createCameraRig(camera, controls, OFFICES, view, reduce);
 
 const ui = createUI({
   offices: OFFICES, agents: AGENTS, reduceMotion: reduce,
