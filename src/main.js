@@ -12,7 +12,7 @@ import { createEnvelopes } from "./scene/effects.js";
 import { createCustomers } from "./sim/customers.js";
 import { createQuality } from "./scene/quality.js";
 import { createWeather } from "./scene/weather.js";
-import { savedMode, saveMode, savedCode, saveCode, fetchStatus, fetchLog, startPolling, markDecisionDone } from "./live/live.js";
+import { savedMode, saveMode, savedCode, saveCode, fetchStatus, fetchLog, startPolling, markDecisionDone, runNadi } from "./live/live.js";
 import { log as sampleLog } from "./sim/sample.js";
 
 const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors } = loadConfig();
@@ -163,6 +163,20 @@ async function loadLog(a, showLoading) {
   try { ui.showLog(a, await fetchLog(savedCode(), a.id)); }
   catch (e) { ui.showLog(a, []); if (!e.auth) ui.toast("⚠ Tak dapat muat aktiviti: " + e.message); }
 }
+
+// Butang "Rumus laporan sekarang" dalam panel Nadi (mod Hidup)
+const actionBtn = document.getElementById("sAction");
+actionBtn.onclick = async () => {
+  const a = ui.selected; if (!a) return;
+  actionBtn.disabled = true; actionBtn.textContent = "Nadi sedang merumus…";
+  try {
+    await runNadi(savedCode());
+    ui.toast("✓ Laporan harian Nadi dikemas kini");
+    document.dispatchEvent(new Event("visibilitychange"));   // baca status baru segera
+    loadLog(a, false);
+  } catch (e) { ui.toast("⚠ Tak dapat rumus: " + e.message); }
+  finally { actionBtn.disabled = false; actionBtn.textContent = "↻ Rumus laporan sekarang"; }
+};
 
 // Skrin kod akses
 const modal = document.getElementById("codeModal"), codeInput = document.getElementById("codeInput"), codeErr = document.getElementById("codeErr");

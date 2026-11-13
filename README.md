@@ -98,6 +98,7 @@ Jawapan `{"ok":true,...}` = berjaya. Dashboard mod Hidup kemas kini dalam ~20 sa
 | `GET /api/status` | `x-markas-code: MARKAS_VIEW_CODE` | Dashboard baca semua status |
 | `GET /api/log?agent=bina` | `x-markas-code` | 50 aktiviti terakhir |
 | `POST /api/decision` `{"agent":"kai"}` | `x-markas-code` | Tandakan keputusan selesai |
+| `POST /api/nadi` | `x-markas-code`, `Bearer MARKAS_AGENT_KEY` atau `Bearer CRON_SECRET` | Nadi rumus laporan harian |
 | `GET /api/health` | tiada | Semak backend sedia + cadangan kunci rawak |
 
 ---
@@ -107,6 +108,8 @@ Jawapan `{"ok":true,...}` = berjaya. Dashboard mod Hidup kemas kini dalam ~20 sa
 | Agent | Di mana | Apa | Panduan |
 |---|---|---|---|
 | **Bina** | Google Apps Script (akaun Danial) | Setiap hari 8:00 pagi: ringkasan tracker prospek MY + Global | `agents/bina/CARA-PASANG.md` |
+| **Lina + Faris** | Google Apps Script "Meney – Markas" | Setiap jam 9 pagi–11 malam: jualan, untung, tunai, repair (Firebase POS, baca sahaja) | `agents/meney/CARA-PASANG.md` |
+| **Nadi** | Vercel Cron (`api/nadi.js`, `vercel.json`) | Setiap pagi ~8:30: rumus report semua agent + senarai perlu keputusan + agent senyap. Butang "↻ Rumus laporan sekarang" dalam panel Nadi | perlu `CRON_SECRET` di Vercel |
 
 Agent lain masih guna data contoh sehingga disambung.
 
@@ -117,6 +120,7 @@ Agent lain masih guna data contoh sehingga disambung.
 - Semua rahsia disimpan **di Vercel → Settings → Environment Variables** sahaja (lihat `.env.example`):
   - `MARKAS_AGENT_KEY`: untuk agent hantar status
   - `MARKAS_VIEW_CODE`: kod akses dashboard
+  - `CRON_SECRET`: supaya hanya Vercel Cron boleh cetus Nadi
   - `KV_REST_API_URL`, `KV_REST_API_TOKEN`: diisi automatik oleh Upstash
 - Tukar kunci: buka `/api/health`, salin `cadanganKunciRawak`, Edit di Vercel, kemudian **Redeploy**. Ingat kemas kini kunci dalam Script Properties agent juga.
 - Jangan commit ID Sheet, data prospek, data pelanggan atau kunci. **Repo ini public.**

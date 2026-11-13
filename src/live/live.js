@@ -25,6 +25,13 @@ export async function fetchLog(code, agentId) {
   return (await r.json()).log || [];
 }
 
+export async function runNadi(code) {
+  const r = await fetch("/api/nadi", { method: "POST", headers: { "x-markas-code": code } });
+  if (r.status === 401) throw Object.assign(new Error("Kod akses salah"), { auth: true });
+  if (!r.ok) throw new Error(`Server ralat ${r.status}`);
+  return r.json();
+}
+
 export async function markDecisionDone(code, agentId) {
   const r = await fetch("/api/decision", {
     method: "POST",

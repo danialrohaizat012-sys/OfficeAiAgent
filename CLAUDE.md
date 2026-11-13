@@ -18,10 +18,10 @@ Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pe
 - `src/sim/sample.js`: mod "Data contoh" (status simulasi, report ke Nadi, contoh "perlu keputusan" dari `contohKeputusan` dalam config).
 - `src/sim/customers.js`: pelanggan masuk kedai bertema "kedai" (Meney) dari kaki lima ke kaunter. Mod Data contoh; nanti boleh dicetus oleh jualan POS.
 - `src/sim/life.js`: pekerja tak sibuk sekali-sekala bangun ke pantri/sofa/whiteboard/rakan dan kembali. Hiasan visual sahaja, tidak ubah status.
-- `api/`: backend (Vercel Functions). `_lib.js` (Upstash REST, semak kunci), `status.js` (POST agent hantar status dengan `Authorization: Bearer MARKAS_AGENT_KEY`; GET dashboard baca dengan `x-markas-code`), `log.js` (50 aktiviti terakhir), `decision.js` (tanda keputusan selesai), `health.js` (semakan tanpa rahsia + cadangan kunci rawak). Data Redis: `markas:status:<id>` (JSON) dan `markas:log:<id>` (senarai, maks 50).
+- `api/`: backend (Vercel Functions). `_lib.js` (Upstash REST, semak kunci), `status.js` (POST agent hantar status dengan `Authorization: Bearer MARKAS_AGENT_KEY`; GET dashboard baca dengan `x-markas-code`), `log.js` (50 aktiviti terakhir), `decision.js` (tanda keputusan selesai), `health.js` (semakan tanpa rahsia + cadangan kunci rawak), `nadi.js` (Nadi rumus laporan harian dari status semua agent: ringkasan ikut pejabat + baris penting dari report, senarai perlu keputusan, agent senyap ikut `senyapSelepasJam` dalam config; dicetus Vercel Cron `vercel.json` 00:30 UTC = 8:30 MYT dengan `CRON_SECRET`, atau butang "Rumus laporan sekarang" dalam panel Nadi dengan kod akses). Data Redis: `markas:status:<id>` (JSON) dan `markas:log:<id>` (senarai, maks 50).
 - `agents/bina/`: agent Bina (Google Apps Script). `Code.gs` (baca tracker MY + Global, kira ringkasan, hantar ke `/api/status`; tetapan dalam Script Properties: `MARKAS_URL`, `MARKAS_AGENT_KEY`, `SHEET_MY`, `SHEET_GLOBAL`), `appsscript.json` (zon waktu KL, skop baca sahaja), `CARA-PASANG.md` (panduan BM). ID Sheet TIDAK dalam repo.
 - `agents/meney/`: agent Lina + Faris (Google Apps Script, projek berasingan dari Bina). Baca Firestore `meney-daily-mission` melalui REST dengan token OAuth akaun Danial (`ScriptApp.getOAuthToken()` + skop `datastore` dalam `appsscript.json`; header `x-goog-user-project`). BACA SAHAJA. Lina: jualan hari/bulan (`sales.saleDate`), untung kasar (kos item; konsainan guna `consignmentPayable`), repair siap (`completedTransactionDate`), sasaran (`SASARAN_BULAN`), shift + beza tunai (|beza| ≥ RM5 = keputusan). Faris: repair terbuka ikut status, siap belum diambil ≥3 hari, terbuka ≥7 hari (≥3 tiket = keputusan). Jadual setiap jam 9 pagi–11 malam. Medan ikut `pos.html` v2.9.1 (disahkan sepadan dengan POS live oleh Danial).
-- Rahsia di Vercel sahaja (lihat `.env.example`): `MARKAS_AGENT_KEY`, `MARKAS_VIEW_CODE`; `KV_REST_API_URL`/`KV_REST_API_TOKEN` diisi oleh Upstash.
+- Rahsia di Vercel sahaja (lihat `.env.example`): `MARKAS_AGENT_KEY`, `MARKAS_VIEW_CODE`, `CRON_SECRET`; `KV_REST_API_URL`/`KV_REST_API_TOKEN` diisi oleh Upstash.
 - Tambah `?debug` pada URL untuk dedah `window.__markas` (renderer + agent) semasa ujian.
 - `logos/`: logo BinaLab dan Meney (SVG/PNG). `-dark` untuk latar gelap. Logo dibaca terus dari fail SVG.
 - `prototaip/markas-binalab.html`: prototaip asal satu fail. Rujukan rupa sahaja, jangan ubah.
@@ -81,6 +81,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 7: README BM (`README.md`)
 
 - [x] Peringkat 8: agent Meney (Lina + Faris) dipasang di Apps Script "Meney – Markas" akaun Danial; ujiMeney berjaya ke server sebenar 13 Nov 2026; jadual setiap jam dipasang. Danial sahkan angka Lina & Faris SAMA dengan POS (medan POS live sepadan dengan v2.9.1).
+- [~] Peringkat 9: Nadi rumus laporan harian (api/nadi.js + Vercel Cron + butang dalam panel). Diuji dengan Redis tiruan + API tiruan. Perlu Danial tambah `CRON_SECRET` di Vercel + Redeploy.
 
 ## Cadangan seterusnya (belum dipersetujui)
 - Tukar repo ke Private; tukar kunci yang pernah terdedah dalam chat.

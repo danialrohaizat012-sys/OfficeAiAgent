@@ -9,6 +9,7 @@
 import crypto from "node:crypto";
 import config from "../markas.config.js";
 
+export const CONFIG = config;
 export const AGENT_IDS = new Set((config.agent || []).map(a => a.id));
 export const LOG_MAX = 50;
 export const K = {
@@ -72,3 +73,37 @@ export function fail(res, e) {
 }
 
 export const clip = (v, n) => (v == null ? null : String(v).slice(0, n));
+
+// Simpan status satu agent (gabung dengan status lama) + tambah ke log aktiviti.
+export async function saveStatus(id, b) {
+  const now = new Date().toISOString();
+  const [prevRaw] = await redis([["GET", K.status(id)]]);
+  const prev = prevRaw ? JSON.parse(prevRaw) : {};
+  const status = {
+    agent: id,
+    sedang: clip(b.sedang, 200) ?? prev.sedang ?? null,
+    sibuk: typeof b.sibuk === "boolean" ? b.sibuk : (prev.sibuk ?? false),
+    report: b.report !== undefined ? clip(b.report, 4000) : (prev.report ?? null),
+    reportPada: b.report ? now : (prev.reportPada ?? null),
+    keputusan: b.keputusan !== undefined ? clip(b.keputusan, 300) : (prev.keputusan ?? null),
+    dikemaskini: now,
+  };
+  const entry = { masa: now, sedang: status.sedang, sibuk: status.sibuk };
+  if (b.report) entry.report = clip(b.report, 600);
+  if (b.keputusan) entry.keputusan = status.keputusan;
+  await redis([
+    ["SET", K.status(id), JSON.stringify(status)],
+    ["LPUSH", K.log(id), JSON.stringify(entry)],
+    ["LTRIM", K.log(id), 0, LOG_MAX - 1],
+  ]);
+  return status;
+}
+
+// Baca status semua agent: { id: status }
+export async function readAll() {
+  const ids = [...AGENT_IDS];
+  const [vals] = await redis([["MGET", ...ids.map(K.status)]]);
+  const out = {};
+  ids.forEach((id, i) => { if (vals[i]) out[id] = JSON.parse(vals[i]); });
+  return out;
+}

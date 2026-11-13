@@ -78,6 +78,7 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     $("sOffice").textContent = "Pejabat: " + offices[a.office].short + (a.live ? ` · dikemas kini ${timeAgo(a.live.dikemaskini)}` : "");
     showDecision(a);
     showReport(a);
+    $("sAction").hidden = !(a.live !== undefined && a.home && a.home.standing);
     if (a.live === undefined) showLog(a, a.sampleLog || []);
     sheet.classList.add("open"); sheet.scrollTop = 0; dock.style.visibility = "hidden";
     if (fromChip) a.chip.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", inline: "center", block: "nearest" });

@@ -11,7 +11,7 @@
 //
 // GET (dashboard baca status semua agent), header: x-markas-code: <MARKAS_VIEW_CODE>
 
-import { AGENT_IDS, K, LOG_MAX, redis, isAgent, isViewer, body, send, fail, clip } from "./_lib.js";
+import { AGENT_IDS, isAgent, isViewer, body, send, fail, saveStatus, readAll } from "./_lib.js";
 
 export default async function handler(req, res) {
   try {
@@ -31,36 +31,12 @@ async function post(req, res) {
   const id = String(b.agent || "").toLowerCase();
   if (!AGENT_IDS.has(id)) return send(res, 400, { ok: false, ralat: `Agent "${id}" tiada dalam markas.config.js` });
 
-  const now = new Date().toISOString();
-  const [prevRaw] = await redis([["GET", K.status(id)]]);
-  const prev = prevRaw ? JSON.parse(prevRaw) : {};
-
-  const status = {
-    agent: id,
-    sedang: clip(b.sedang, 200) ?? prev.sedang ?? null,
-    sibuk: typeof b.sibuk === "boolean" ? b.sibuk : (prev.sibuk ?? false),
-    report: b.report !== undefined ? clip(b.report, 4000) : (prev.report ?? null),
-    reportPada: b.report ? now : (prev.reportPada ?? null),
-    keputusan: b.keputusan !== undefined ? clip(b.keputusan, 300) : (prev.keputusan ?? null),
-    dikemaskini: now,
-  };
-  const entry = { masa: now, sedang: status.sedang, sibuk: status.sibuk };
-  if (b.report) entry.report = clip(b.report, 600);
-  if (b.keputusan) entry.keputusan = status.keputusan;
-
-  await redis([
-    ["SET", K.status(id), JSON.stringify(status)],
-    ["LPUSH", K.log(id), JSON.stringify(entry)],
-    ["LTRIM", K.log(id), 0, LOG_MAX - 1],
-  ]);
+  const status = await saveStatus(id, b);
   return send(res, 200, { ok: true, status });
 }
 
 async function get(req, res) {
   if (!isViewer(req)) return send(res, 401, { ok: false, ralat: "Kod akses salah atau tiada" });
-  const ids = [...AGENT_IDS];
-  const [vals] = await redis([["MGET", ...ids.map(K.status)]]);
-  const agents = {};
-  ids.forEach((id, i) => { if (vals[i]) agents[id] = JSON.parse(vals[i]); });
+  const agents = await readAll();
   return send(res, 200, { ok: true, masaServer: new Date().toISOString(), agents });
 }
