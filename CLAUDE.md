@@ -12,7 +12,7 @@ Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pe
 - `src/style.css`: semua gaya (warna jenama, mesra phone).
 - `markas.config.js`: **satu-satunya tempat** untuk tambah, buang atau namakan semula pejabat dan agent (penerangan medan ada di atas fail).
 - `src/config.js`: baca config, semak kesilapan (ID berulang, pejabat tiada), kira susun atur 3D: pejabat sebaris di belakang hab, meja grid 2 lajur ikut bilangan agent, kamera muat seluruh markas.
-- `src/scene/`: dunia 3D. `stage.js` (renderer, kamera, lampu, bintang), `parts.js` (platform, meja, robot, papan logo), `world.js` (susun hab, pejabat, jambatan, robot), `camera.js` (gerakan kamera).
+- `src/scene/`: dunia 3D. `stage.js` (renderer, lampu, bayang-bayang), `parts.js` (platform, papan logo), `decor.js` (lantai, dinding, meja kerja, kerusi, rak, pokok, meja Command + hologram), `person.js` (figura pekerja), `world.js` (susun semuanya), `camera.js` (gerakan kamera).
 - `src/ui/ui.js`: tab, roster, panel detail, gelembung.
 - `src/sim/sample.js`: mod "Data contoh" (status simulasi).
 - `logos/`: logo BinaLab dan Meney (SVG/PNG). `-dark` untuk latar gelap. Logo dibaca terus dari fail SVG.
@@ -29,7 +29,8 @@ three.js 0.187 dengan tetapan "legacy" (ColorManagement off, output linear, lamp
 Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & prospek) ialah agent pertama yang patut dihidupkan.
 
 ## Peraturan
-- JANGAN mula dari kosong. Kekalkan rupa dan rasa visual prototaip (susun atur, warna, robot, logo, gerakan).
+- JANGAN mula dari kosong. Kekalkan rupa dan rasa visual semasa (susun atur, warna jenama, logo terapung, gerakan kamera).
+- Arah visual (dipersetujui Danial, 13 Nov 2026): **diorama pejabat sebenar**, bukan tema angkasa. Latar navy #0F1B2D, bayang-bayang lembut, perabot pejabat. Pekerja ialah **figura blok gaya mainan** (kepala silinder kuning, tangan "C"), duduk di meja; Nadi berdiri di hab Command. Jangan guna nama atau logo jenama mainan.
 - Warna jenama: hijau #4CC26C, navy #0F1B2D; Command biru-ungu #8E9BFF.
 - Mesra phone (Danial guna iPhone) dan laju.
 - Kerja satu peringkat pada satu masa. Uji setiap peringkat sebelum teruskan.
@@ -60,6 +61,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 0: repo, `.gitignore`, prototaip asal sebagai titik mula
 - [x] Peringkat 1: susun semula ke Vite + three.js terkini (rupa sama; pepijat kanvas Retina dibetulkan)
 - [x] Peringkat 2: config agent + pejabat Meney (9 agent, 3 pejabat)
+- [x] Peringkat 2b: rupa pejabat sebenar + figura pekerja (tema "studio" BinaLab, "kedai" Meney)
 - [ ] Peringkat 3: backend Supabase
 - [ ] Peringkat 4: dashboard baca status + toggle data contoh
 - [ ] Peringkat 5: log aktiviti + report terakhir

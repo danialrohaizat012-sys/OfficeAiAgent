@@ -1,5 +1,7 @@
 import * as THREE from "three";
-import { octagonShape, roundedShape, platform, desk, robot, logoSprite } from "./parts.js";
+import { octagonShape, roundedShape, platform, logoSprite } from "./parts.js";
+import { person } from "./person.js";
+import { officeFloor, officeWalls, workstation, plant, wallDecor, commandDeck } from "./decor.js";
 
 // Semua logo SVG dalam folder logos/ (dimuat sebagai teks).
 const LOGO_FILES = import.meta.glob("../../logos/*.svg", { query: "?raw", import: "default", eager: true });
@@ -23,15 +25,17 @@ export function buildWorld(scene, offices, agents) {
 
   const used = {};
   for (const a of agents) {
-    const r = robot(a.color);
     const o = offices[a.office];
+    const r = person({ shirt: a.color, skin: a.look.kulit, pants: a.look.seluar, hairStyle: a.look.rambut, hairColor: a.look.warnaRambut,
+      accent: "#" + o.color.toString(16).padStart(6, "0"), seated: o.kind !== "hub" });
     const i = used[a.office] = (used[a.office] ?? -1) + 1;
     if (o.kind === "hub") {
       const n = agents.filter(x => x.office === a.office).length;
       r.position.set((i - (n - 1) / 2) * 1.4, 0, 0.6);
     } else {
+      // pekerja duduk di kerusi di belakang meja, menghadap kamera
       const [x, z] = o.deskSpots[i];
-      r.position.set(x, 0, z + 0.75);
+      r.position.set(x, 0, z - 0.62);
     }
     officeGroups[a.office].add(r);
     r.traverse(m => { if (m.isMesh) { m.userData.agent = a.id; pickables.push(m); } });
@@ -56,26 +60,33 @@ function hub(o, bobbers) {
     ring.rotation.x = Math.PI / 2; ring.position.y = 0.08 + i * 0.02; ring.userData.spin = (i % 2 ? -1 : 1) * (0.4 + i * 0.2);
     grp.add(ring); bobbers.push({ m: ring, type: "spin" });
   }
-  const console_ = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 0.7), new THREE.MeshStandardMaterial({ color: 0x2a3149, emissive: 0x3b44a0, emissiveIntensity: 0.35 }));
-  console_.position.set(0, 0.25, 1.6); grp.add(console_);
+  const deck = commandDeck(o.color);
+  grp.add(deck.group);
+  deck.holos.forEach((h, i) => bobbers.push({ m: h, type: "bob", base: h.position.y, ph: i * 1.7, amp: 0.06 }));
   return grp;
 }
 
 function office(o, bobbers) {
   const grp = new THREE.Group();
   const accent = "#" + o.color.toString(16).padStart(6, "0");
-  const base = platform(roundedShape(7.6, o.platformDepth, 1.1), o.color);
+  const W = 7.6, D = o.platformDepth, backZ = o.platformShift - D / 2 + 0.35;
+  const base = platform(roundedShape(W, D, 1.1), o.color);
   base.position.z = o.platformShift; grp.add(base);
-  o.deskSpots.forEach(([x, z]) => { const d = desk(o.color); d.position.set(x, 0, z); grp.add(d); });
+  const floor = officeFloor(W, D, o.color); floor.position.z = o.platformShift; grp.add(floor);
+  grp.add(officeWalls(W, D, o.color, backZ));
+  grp.add(wallDecor(o.theme, o.color, backZ));
+  o.deskSpots.forEach(([x, z]) => { const d = workstation(o.color, x < 0 ? -1 : 1); d.position.set(x, 0, z); grp.add(d); });
+  const frontZ = o.platformShift + D / 2 - 0.75;
+  [[-3.05, frontZ], [3.05, frontZ]].forEach(([x, z]) => grp.add(plant(x, z, 0.9)));
   const svg = o.logo && logoSvg(o.logo.fail);
   if (o.logo && !svg) console.error(`[markas.config.js] Logo "${o.logo.fail}" tiada dalam folder logos/.`);
   if (svg) {
     const sp = logoSprite(svg, o.logo.lebar, o.logo.tinggi, accent, o.logo.skala);
-    sp.position.set(0, 5.4, -2.6); grp.add(sp);
+    sp.position.set(0, 5.4, backZ); grp.add(sp);
     bobbers.push({ m: sp, type: "bob", base: 5.4, ph: o.logoPhase });
   }
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 3.2, 8), new THREE.MeshBasicMaterial({ color: o.color, transparent: true, opacity: 0.5 }));
-  pole.position.set(0, 1.6, -2.6); grp.add(pole);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.3, 8), new THREE.MeshBasicMaterial({ color: o.color, transparent: true, opacity: 0.5 }));
+  pole.position.set(0, 2.55, backZ); grp.add(pole);
   return grp;
 }
 

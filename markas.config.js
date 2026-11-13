@@ -10,6 +10,7 @@
 //    label  : nama penuh (dalam panel detail agent)
 //    jenis  : "hab" untuk Command di tengah (satu sahaja), "pejabat" untuk yang lain
 //    warna  : warna jenama (bingkai platform, jambatan, skrin meja)
+//    tema   : (pilihan) hiasan dinding: "studio" (whiteboard, rak buku) atau "kedai" (rak game, TV)
 //    logo   : (pilihan) fail dalam folder logos/, saiz kanvas dan skala papan logo
 //
 //  AGENT
@@ -17,7 +18,10 @@
 //    nama   : nama paparan
 //    pejabat: id pejabat tempat agent duduk
 //    peranan: penerangan ringkas
-//    warna  : warna robot
+//    warna  : warna baju
+//    rambut : (pilihan) "pendek", "kemas", "panjang", "topi", "tudung" atau "botak"
+//    warnaRambut: (pilihan) warna rambut / tudung
+//    kulit, seluar: (pilihan) warna kulit (lalai kuning mainan) dan seluar
 //    tugas  : senarai tugas contoh (dipakai dalam mod "Data contoh")
 //
 //  Susunan agent di bawah = susunan dalam roster dan meja.
@@ -28,35 +32,35 @@ export default {
 
   pejabat: [
     { id: "command", nama: "Command", label: "Command", jenis: "hab", warna: "#8E9BFF" },
-    { id: "binalab", nama: "BinaLab", label: "Pejabat BinaLab", jenis: "pejabat", warna: "#4CC26C",
+    { id: "binalab", nama: "BinaLab", label: "Pejabat BinaLab", jenis: "pejabat", tema: "studio", warna: "#4CC26C",
       logo: { fail: "binalab-logo-dark.svg", lebar: 1024, tinggi: 1240, skala: 4.4 } },
-    { id: "meney", nama: "Meney", label: "Pejabat Meney Gaming", jenis: "pejabat", warna: "#8DC63F",
+    { id: "meney", nama: "Meney", label: "Pejabat Meney Gaming", jenis: "pejabat", tema: "kedai", warna: "#8DC63F",
       logo: { fail: "meney-logo-dark.svg", lebar: 1400, tinggi: 700, skala: 3.1 } },
   ],
 
   agent: [
     // Command
-    { id: "nadi", nama: "Nadi", pejabat: "command", peranan: "Ketua Command: agih kerja dan rumus laporan", warna: "#9AA8FF",
+    { id: "nadi", nama: "Nadi", pejabat: "command", peranan: "Ketua Command: agih kerja dan rumus laporan", warna: "#9AA8FF", rambut: "kemas", warnaRambut: "#2A1B12",
       tugas: ["Agih 6 tugasan pagi ini", "Semak siapa belum hantar report", "Rumus laporan harian", "Hantar ringkasan ke Danial"] },
 
     // BinaLab
-    { id: "bina", nama: "Bina", pejabat: "binalab", peranan: "Pipeline dan prospek", warna: "#4CC26C",
+    { id: "bina", nama: "Bina", pejabat: "binalab", peranan: "Pipeline dan prospek", warna: "#4CC26C", rambut: "pendek",
       tugas: ["Kemas kini 5 prospek baru", "Tanda deal yang perlu follow-up", "Kira nilai pipeline minggu ini"] },
-    { id: "riza", nama: "Riza", pejabat: "binalab", peranan: "Riset pasaran", warna: "#2FC1B0",
+    { id: "riza", nama: "Riza", pejabat: "binalab", peranan: "Riset pasaran", warna: "#2FC1B0", rambut: "kemas", warnaRambut: "#5A3A22",
       tugas: ["Senarai 10 pelanggan sasaran", "Banding harga pesaing", "Ringkas maklum balas pengguna"] },
-    { id: "mira", nama: "Mira", pejabat: "binalab", peranan: "Produk dan MVP", warna: "#B6EBC5",
+    { id: "mira", nama: "Mira", pejabat: "binalab", peranan: "Produk dan MVP", warna: "#B6EBC5", rambut: "tudung", warnaRambut: "#C9B6E8",
       tugas: ["Draf ciri MVP aplikasi utama", "Cadang 3 pakej harga", "Susun roadmap 4 minggu"] },
-    { id: "ayu", nama: "Ayu", pejabat: "binalab", peranan: "Admin dan customer care", warna: "#F2C14E",
+    { id: "ayu", nama: "Ayu", pejabat: "binalab", peranan: "Admin dan customer care", warna: "#F2C14E", rambut: "tudung", warnaRambut: "#F4A6B8",
       tugas: ["Balas 8 pertanyaan pelanggan", "Susun tiket sokongan", "Jadual demo dengan prospek"] },
 
     // Meney Gaming
-    { id: "kai", nama: "Kai", pejabat: "meney", peranan: "Jual beli dan stok", warna: "#8DC63F",
+    { id: "kai", nama: "Kai", pejabat: "meney", peranan: "Jual beli dan stok", warna: "#8DC63F", rambut: "topi",
       tugas: ["Kemas kini harga 12 item", "Semak stok konsol dan aksesori", "Nilai tawaran beli barang terpakai"] },
-    { id: "faris", nama: "Faris", pejabat: "meney", peranan: "Repair dan servis", warna: "#FF8A4C",
+    { id: "faris", nama: "Faris", pejabat: "meney", peranan: "Repair dan servis", warna: "#FF8A4C", rambut: "pendek", warnaRambut: "#1E1410",
       tugas: ["Jejak 4 tiket pembaikan", "Maklum pelanggan: peranti dah siap", "Senarai alat ganti untuk order"] },
-    { id: "zara", nama: "Zara", pejabat: "meney", peranan: "Content dan posting", warna: "#E879D3",
+    { id: "zara", nama: "Zara", pejabat: "meney", peranan: "Content dan posting", warna: "#E879D3", rambut: "panjang", warnaRambut: "#6B3E26",
       tugas: ["Rancang 7 posting minggu ini", "Tulis caption promosi", "Jadual live TikTok"] },
-    { id: "lina", nama: "Lina", pejabat: "meney", peranan: "Laporan dan angka", warna: "#5AB0FF",
+    { id: "lina", nama: "Lina", pejabat: "meney", peranan: "Laporan dan angka", warna: "#5AB0FF", rambut: "tudung", warnaRambut: "#9FD3F0",
       tugas: ["Kira jualan mingguan", "Ringkas prestasi media sosial", "Sediakan report satu muka"] },
   ],
 };

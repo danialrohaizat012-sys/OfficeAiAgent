@@ -38,6 +38,7 @@ export function loadConfig() {
       id: a.id, name: a.nama, office: a.pejabat, role: a.peranan || "",
       color: a.warna || "#cccccc",
       tasks: a.tugas && a.tugas.length ? a.tugas : ["Menunggu tugasan"],
+      look: { rambut: a.rambut || "pendek", warnaRambut: a.warnaRambut || "#3B2618", kulit: a.kulit || "#F6C944", seluar: a.seluar || "#2B3550" },
     });
   }
 
@@ -51,7 +52,7 @@ export function loadConfig() {
     const count = agents.filter(a => a.office === o.id).length;
     offices[o.id] = {
       kind: "office", label: o.label || o.nama, short: o.nama, color: hexNum(o.warna),
-      pos: [x, 0, OFFICE_Z], logo: o.logo || null, logoPhase: i * 1.3,
+      pos: [x, 0, OFFICE_Z], logo: o.logo || null, theme: o.tema || "studio", logoPhase: i * 1.3,
       ...deskLayout(count),
     };
   });

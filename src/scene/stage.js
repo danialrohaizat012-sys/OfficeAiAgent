@@ -5,15 +5,18 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 // Tetapan di bawah kekalkan rupa yang sama pada three.js moden.
 THREE.ColorManagement.enabled = false;
 const LEGACY_LIGHT = Math.PI;
+const BG = 0x0F1B2D; // navy jenama
 
 export function createStage(canvas, reduceMotion) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setClearColor(0x060913);
+  renderer.setClearColor(BG);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x060913, 40, 90);
+  scene.fog = new THREE.Fog(BG, 45, 100);
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 300);
 
@@ -27,24 +30,27 @@ export function createStage(canvas, reduceMotion) {
   controls.autoRotate = !reduceMotion;
   controls.autoRotateSpeed = 0.35;
 
-  scene.add(new THREE.HemisphereLight(0xbfd0ff, 0x10131f, 0.55 * LEGACY_LIGHT));
-  const key = new THREE.DirectionalLight(0xffffff, 0.85 * LEGACY_LIGHT);
-  key.position.set(6, 14, 8);
+  // Pencahayaan pejabat: cahaya langit lembut + matahari hangat yang buat bayang-bayang
+  scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x1a2236, 0.6 * LEGACY_LIGHT));
+  const key = new THREE.DirectionalLight(0xfff1dc, 0.85 * LEGACY_LIGHT);
+  key.position.set(7, 16, 9);
+  key.castShadow = true;
+  const size = Math.min(innerWidth, innerHeight) < 600 ? 1024 : 2048;
+  key.shadow.mapSize.set(size, size);
+  Object.assign(key.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 50 });
+  key.shadow.bias = -0.0005; key.shadow.normalBias = 0.02;
   scene.add(key);
-
-  scene.add(stars());
 
   return { renderer, scene, camera, controls };
 }
 
-function stars() {
-  const g = new THREE.BufferGeometry(), n = 1800, p = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) {
-    const r = 60 + Math.random() * 90, t = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, s = Math.sqrt(1 - u * u);
-    p[i * 3] = r * s * Math.cos(t);
-    p[i * 3 + 1] = r * u * 0.8 + 10;
-    p[i * 3 + 2] = r * s * Math.sin(t);
-  }
-  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
-  return new THREE.Points(g, new THREE.PointsMaterial({ color: 0xcfd8ff, size: 0.35, sizeAttenuation: true, transparent: true, opacity: 0.8 }));
+// Hidupkan bayang-bayang untuk semua objek pepejal (bukan kaca, cahaya atau hologram)
+export function enableShadows(root) {
+  root.traverse(m => {
+    if (!m.isMesh) return;
+    const mats = Array.isArray(m.material) ? m.material : [m.material];
+    const solid = mats.every(x => x.isMeshStandardMaterial && !x.transparent);
+    m.castShadow = solid;
+    m.receiveShadow = mats.some(x => x.isMeshStandardMaterial);
+  });
 }

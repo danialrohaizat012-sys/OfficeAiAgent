@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import "./style.css";
 import { loadConfig } from "./config.js";
-import { createStage } from "./scene/stage.js";
+import { createStage, enableShadows } from "./scene/stage.js";
 import { buildWorld } from "./scene/world.js";
 import { createCameraRig } from "./scene/camera.js";
 import { createUI } from "./ui/ui.js";
@@ -26,6 +26,7 @@ const { renderer, scene, camera, controls } = stage;
 
 initSample(AGENTS);
 const world = buildWorld(scene, OFFICES, AGENTS);
+enableShadows(scene);
 const rig = createCameraRig(camera, controls, OFFICES, view, reduce);
 
 const ui = createUI({
@@ -69,13 +70,11 @@ function loop() {
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   rig.update(dt);
   if (!reduce) {
-    world.bobbers.forEach(b => { if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * 0.18; else b.m.rotation.z += b.m.userData.spin * dt; });
-    AGENTS.forEach(a => {
-      a.mesh.position.y = Math.abs(Math.sin(t * 2 + a.ph)) * (a.busy ? 0.06 : 0.02);
-      a.mesh.userData.tip.material.color.set(a.busy && Math.sin(t * 6 + a.ph) > 0 ? "#ffffff" : a.color);
-    });
+    world.bobbers.forEach(b => { if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else b.m.rotation.z += b.m.userData.spin * dt; });
+    AGENTS.forEach(a => a.mesh.userData.animate(t, a.busy, a.ph));
     world.bridges.forEach(br => br.dots.forEach((d, i) => { const k = (t * 0.12 + i / br.dots.length) % 1; d.position.lerpVectors(br.A, br.B, k); d.position.y = 0.06; }));
   } else {
+    AGENTS.forEach(a => a.mesh.userData.animate(0, a.busy, 0));
     world.bridges.forEach(br => br.dots.forEach((d, i) => { d.position.lerpVectors(br.A, br.B, (i + 0.5) / br.dots.length); d.position.y = 0.06; }));
   }
   controls.update();
