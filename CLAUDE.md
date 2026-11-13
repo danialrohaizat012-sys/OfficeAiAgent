@@ -52,7 +52,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 
 ## Keputusan yang dah dipersetujui (13 Nov 2026)
 - Backend (ditukar 13 Nov 2026, dipersetujui Danial): **Vercel Functions + Upstash Redis** (bukan Supabase lagi). Semua kod API dalam `api/` repo ini, deploy automatik bersama dashboard. Upstash disambung melalui Vercel Marketplace (pelan percuma).
-- Hosting dashboard: **Vercel**.
+- Hosting dashboard: **Vercel** (team `bina-lab`, projek `office-ai-agent`). Alamat live: https://office-ai-agent-tawny.vercel.app (semakan backend: `/api/health`). Repo GitHub: `danialrohaizat012-sys/OfficeAiAgent`.
 - Agent Bina: **Google Apps Script berasingan** milik Danial. Ia baca tracker prospek dalam Google Sheet, kira ringkasan, dan hantar **ringkasan sahaja** ke `/api/status`. Data prospek mentah kekal dalam Google.
 - Sumber data Bina: tracker prospek Malaysia (milik Fakhri, aktif) dan tracker BinaLab Global. Tracker Baihaqi belum aktif, jadi abaikan dulu.
 - Tracker Malaysia belum ada nilai RM berbentuk nombor atau tarikh follow-up. Bina v1 lapor kiraan sahaja dan tanda isu kualiti data (contoh: Lead ID berulang).
