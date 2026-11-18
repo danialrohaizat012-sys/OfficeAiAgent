@@ -226,7 +226,7 @@ function loop() {
   const dt = Math.min(timer.getDelta(), 0.05), t = timer.getElapsed();
   rig.update(dt);
   if (!reduce) {
-    world.bobbers.forEach(b => { if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else if (b.type === "spinY") b.m.rotation.y += b.speed * dt; else b.m.rotation.z += b.m.userData.spin * dt; });
+    world.bobbers.forEach(b => { if (b.type === "nuri") b.update(t); else if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else if (b.type === "spinY") b.m.rotation.y += b.speed * dt; else b.m.rotation.z += b.m.userData.spin * dt; });
     life.update(dt);
     envelopes.update(dt);
     daylight.flash(weather.update(dt, daylight.night));
