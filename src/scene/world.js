@@ -3,6 +3,7 @@ import { octagonShape, signBoard } from "./parts.js";
 import { buildSite, GROUND_Y } from "./site.js";
 import { person } from "./person.js";
 import { officeSpots } from "./spots.js";
+import { buildNuriLab } from "./nuriLab.js";
 import {
   officeFloor, officeWalls, foundation, workstation, plant, wallDecor, commandDeck,
   counterZone, loungeZone, sideZone, sideRZone, bakeStatic, WALL_H, aFrameSign,
@@ -19,7 +20,7 @@ export function buildWorld(scene, offices, agents) {
   const site = buildSite(scene, offices);
 
   for (const [key, o] of Object.entries(offices)) {
-    const grp = o.kind === "hub" ? hub(o, bobbers) : office(o);
+    const grp = o.kind === "hub" ? hub(o, bobbers) : office(o, bobbers);
     grp.position.set(...o.pos);
     grp.userData.officeKey = key;
     scene.add(grp);
@@ -39,8 +40,14 @@ export function buildWorld(scene, offices, agents) {
     } else {
       // pekerja duduk di kerusi di belakang meja, menghadap kamera
       const [x, z] = o.deskSpots[i];
-      r.position.set(x, 0, z - 0.62);
-      a.home = { x, z: z - 0.62, desk: i };
+      if (o.theme === "robotik") {
+        const labX = i === 0 ? -1.25 : 1.25, labZ = -0.55;
+        r.position.set(labX, 0, labZ);
+        a.home = { x: labX, z: labZ, desk: i };
+      } else {
+        r.position.set(x, 0, z - 0.62);
+        a.home = { x, z: z - 0.62, desk: i };
+      }
     }
     officeGroups[a.office].add(r);
     r.traverse(m => { if (m.isMesh) { m.userData.agent = a.id; pickables.push(m); } });
@@ -114,7 +121,7 @@ function hub(o, bobbers) {
   return grp;
 }
 
-function office(o) {
+function office(o, bobbers) {
   const grp = new THREE.Group();
   const accent = "#" + o.color.toString(16).padStart(6, "0");
   const plan = o.plan, theme = o.theme;
@@ -126,7 +133,7 @@ function office(o) {
   furniture.add(officeFloor(plan, o.color, theme));
   furniture.add(officeWalls(plan, o.color, theme));
   furniture.add(wallDecor(plan, o.color, theme, theme !== "kedai" ? o.message : null));
-  o.deskSpots.forEach(([x, z], i) => { const d = workstation(o.color, x < 0 ? -1 : 1, theme, i); d.position.set(x, 0, z); furniture.add(d); });
+  if (theme !== "robotik") o.deskSpots.forEach(([x, z], i) => { const d = workstation(o.color, x < 0 ? -1 : 1, theme, i); d.position.set(x, 0, z); furniture.add(d); });
   furniture.add(counterZone(anchors.counter, o.color, theme));
   furniture.add(loungeZone(anchors.lounge, o.color, theme));
   furniture.add(sideZone(anchors.side, o.color, theme));
@@ -142,6 +149,11 @@ function office(o) {
     furniture.add(sign);
   }
   grp.add(bakeStatic(furniture));
+  if (theme === "robotik") {
+    const lab = buildNuriLab();
+    grp.add(lab.group);
+    bobbers.push({ type: "nuri", update: lab.update });
+  }
 
   // papan tanda di atas bumbung dinding belakang
   const svg = o.logo && logoSvg(o.logo.fail);
