@@ -33,7 +33,7 @@
 
 export default {
   tajuk: "Markas Agent",
-  subtajuk: "BinaLab · Meney Gaming",
+  subtajuk: "BinaLab · Meney Gaming · Ciptarobo",
 
   pejabat: [
     { id: "command", nama: "Command", label: "Command", jenis: "hab", warna: "#8E9BFF" },
@@ -43,6 +43,8 @@ export default {
     { id: "meney", nama: "Meney", label: "Pejabat Meney Gaming", jenis: "pejabat", tema: "kedai", warna: "#8DC63F",
       papanPesan: "Promo\nTrade-in PS5 anda di sini. Tanya di kaunter!",
       logo: { fail: "meney-logo-dark.svg" } },
+    { id: "ciptarobo", nama: "Ciptarobo", label: "Makmal R&D Ciptarobo", jenis: "pejabat", tema: "studio", warna: "#55C7EE",
+      papanPesan: "NURI LAB · SIMULASI\nLatihan AI & prototaip robotik" },
   ],
 
   agent: [
@@ -61,6 +63,12 @@ export default {
     { id: "ayu", nama: "Ayu", pejabat: "binalab", peranan: "Admin dan customer care", warna: "#F2C14E", rambut: "tudung", warnaRambut: "#F4A6B8",
       contohKeputusan: ["Klien minta tangguh bayaran ansuran kedua 2 minggu"],
       tugas: ["Balas 8 pertanyaan pelanggan", "Susun tiket sokongan", "Jadual demo dengan prospek"] },
+
+    // Ciptarobo (simulasi sahaja, bukan latihan AI sebenar)
+    { id: "muhafiz", nama: "Muhafiz", pejabat: "ciptarobo", peranan: "Penyelidikan hardware & prototaip Nuri", warna: "#4FA8FF", rambut: "kemas",
+      tugas: ["Simulasi pemeriksaan servo dan sendi kepala Nuri", "Simulasi ujian kuasa dan sensor", "Dokumentasi prototaip R&D"] },
+    { id: "reqa", nama: "Reqa", pejabat: "ciptarobo", peranan: "Simulasi latihan AI & respons Nuri", warna: "#C28CFF", rambut: "panjang",
+      tugas: ["Simulasi ujian respons perbualan Nuri", "Simulasi ekspresi wajah digital", "Catat eksperimen AI companion"] },
 
     // Meney Gaming
     { id: "kai", nama: "Kai", pejabat: "meney", peranan: "Jual beli dan stok", warna: "#8DC63F", rambut: "topi",
