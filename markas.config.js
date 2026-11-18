@@ -43,7 +43,7 @@ export default {
     { id: "meney", nama: "Meney", label: "Pejabat Meney Gaming", jenis: "pejabat", tema: "kedai", warna: "#8DC63F",
       papanPesan: "Promo\nTrade-in PS5 anda di sini. Tanya di kaunter!",
       logo: { fail: "meney-logo-dark.svg" } },
-    { id: "ciptarobo", nama: "Ciptarobo", label: "Makmal R&D Ciptarobo", jenis: "pejabat", tema: "studio", warna: "#55C7EE",
+    { id: "ciptarobo", nama: "Ciptarobo", label: "Makmal R&D Ciptarobo", jenis: "pejabat", tema: "robotik", warna: "#55C7EE",
       papanPesan: "NURI LAB · SIMULASI\nLatihan AI & prototaip robotik" },
   ],
 
