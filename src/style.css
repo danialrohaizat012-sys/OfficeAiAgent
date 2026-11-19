@@ -63,7 +63,7 @@ header p{margin:3px 0 0;font-size:12px;color:#E3E9F2;font-weight:600}
 
 /* ---- panel tingkat (kiri), macam butang lif ---- */
 .floors{position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);top:50%;transform:translateY(-50%);z-index:3;
-  display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:6px;border-radius:18px;background:rgba(6,9,19,.42);
+  display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:6px;border-radius:18px;background:rgba(6,9,19,.42);
   border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .floors button{position:relative;display:flex;align-items:center;gap:8px;font:inherit;cursor:pointer;text-align:left;
   min-width:112px;padding:6px 10px 6px 6px;border-radius:12px;border:0;background:transparent;color:#DCE3EE;
@@ -143,14 +143,13 @@ header p{margin:3px 0 0;font-size:12px;color:#E3E9F2;font-weight:600}
 .dir-row.decide .av::before{content:"!";position:absolute;left:-4px;top:-4px;width:16px;height:16px;border-radius:50%;
   background:#e5484d;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid var(--space)}
 
-/* telefon: panel tingkat lebih kecil (nombor sahaja + nama pendek) */
+/* telefon: panel tingkat lebih kecil (nombor + nama penuh) */
 @media (max-width:560px){
   .floors{left:calc(env(safe-area-inset-left,0px) + 6px);padding:4px;gap:2px;border-radius:14px}
   .floors button{min-width:0;padding:4px 7px 4px 4px;gap:6px}
   .floors .lv{flex-basis:24px;height:24px;font-size:10px;border-radius:8px}
-  .floors .nm{font-size:10.5px;display:none}
-  .floors button[aria-pressed="true"] .nm{display:block}
-  .floors .lv{flex-basis:30px;height:30px;font-size:11px}
+  .floors .nm{font-size:10.5px}
+  .floors .lv{flex-basis:26px;height:26px;font-size:10.5px}
 }
 .sheet{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
   max-width:440px;margin:0 auto;background:var(--glass);border:1px solid var(--glass-line);border-radius:20px;
