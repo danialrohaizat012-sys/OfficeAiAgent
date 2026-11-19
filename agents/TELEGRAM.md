@@ -24,8 +24,20 @@ Vercel → projek `office-ai-agent` → **Settings → Environment Variables** �
 Kemudian **Deployments → … → Redeploy**.
 
 ## 3. Sambung webhook (sekali)
-1. Buka Markas → tukar ke **● Hidup** → tekan **📋 Laporan** → **⚙️ Sambung Telegram**.
-2. Notis "✓ Bot @… disambung" muncul.
+**Cara paling mudah:** buka pautan ini dalam Safari:
+
+https://office-ai-agent-tawny.vercel.app/api/telegram?setup=1
+
+Masukkan **kod akses Markas** (`MARKAS_VIEW_CODE`), kemudian tekan **Sambung**. Mesej "✅ Berjaya! Bot @… disambung" patut muncul.
+
+(Cara lain: dalam Markas mod **● Hidup** → butang **📋** di atas → **⚙️ Sambung Telegram**. Di iPhone butang 📋 tiada tulisan "Laporan".)
+
+| Mesej | Maksud / cara betulkan |
+|---|---|
+| `TELEGRAM_BOT_TOKEN belum ada` | Token belum ditambah, atau belum **Redeploy** selepas tambah |
+| `Token Telegram ditolak` | Token tersalah salin. Salin semula dari @BotFather (`/mybots` → bot → API Token) |
+| `Kod akses salah` | Guna nilai `MARKAS_VIEW_CODE` di Vercel |
+| Halaman tak wujud (404) | Deploy terbaru belum siap. Tunggu 1–2 minit dan cuba semula |
 
 ## 4. Dapatkan Chat ID setiap orang
 Danial, Amirul dan Fakhri buka bot dalam Telegram dan tekan **Start**. Bot balas **Chat ID** masing-masing.

@@ -33,10 +33,25 @@ export default async function handler(req, res) {
   }
 }
 
+// Halaman ringkas: buka /api/telegram?setup=1 dalam Safari, masukkan kod akses, tekan Sambung
+const SETUP_PAGE = `<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sambung Telegram · Markas</title><style>body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:#0F1B2D;color:#EEF2F7;display:grid;place-items:center;min-height:100vh;padding:20px;box-sizing:border-box}
+.c{max-width:380px;width:100%;background:#16223a;border-radius:18px;padding:22px}h1{font-size:20px;margin:0 0 6px}p{color:#9AA5B8;font-size:14px;line-height:1.45}
+input{width:100%;box-sizing:border-box;font-size:17px;padding:12px;border-radius:12px;border:1px solid #2c3a57;background:#0F1B2D;color:#fff}
+button{margin-top:12px;width:100%;font-size:16px;font-weight:700;padding:13px;border:0;border-radius:12px;background:#B58A4A;color:#091411}
+#o{margin-top:14px;font-size:14px;line-height:1.5;white-space:pre-wrap}</style></head><body><div class="c">
+<h1>🤖 Sambung Telegram</h1><p>Masukkan kod akses Markas (MARKAS_VIEW_CODE) dan tekan Sambung. Buat sekali sahaja selepas TELEGRAM_BOT_TOKEN ditambah di Vercel dan Redeploy.</p>
+<input id="k" type="password" placeholder="Kod akses" autocomplete="current-password"><button id="b">Sambung</button><div id="o"></div></div>
+<script>document.getElementById("b").onclick=async()=>{const o=document.getElementById("o");o.textContent="Menyambung…";
+try{const r=await fetch("/api/telegram?setup=1",{headers:{"x-markas-code":document.getElementById("k").value.trim()},cache:"no-store"});const j=await r.json();
+o.textContent=j.ok?"✅ Berjaya! Bot "+(j.bot||"")+" disambung.\n\nLangkah seterusnya: buka bot dalam Telegram dan tekan Start untuk dapat Chat ID."+(j.danial?"\n\n✅ TELEGRAM_CHAT_DANIAL dah ada. Cuba hantar /laporan kepada bot.":""):"❌ "+(j.ralat||("Ralat "+r.status));}
+catch(e){o.textContent="❌ Tak dapat hubungi server: "+e.message}};</script></body></html>`;
+
 async function setup(req, res) {
   try {
-    if (!isViewer(req)) return send(res, 401, { ok: false, ralat: "Kod akses salah atau tiada" });
-    if (!tgReady()) return send(res, 400, { ok: false, ralat: "TELEGRAM_BOT_TOKEN belum ditambah di Vercel" });
+    if (!req.headers["x-markas-code"]) { res.setHeader("Content-Type", "text/html; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); return res.status(200).send(SETUP_PAGE); }
+    if (!isViewer(req)) return send(res, 401, { ok: false, ralat: "Kod akses salah. Semak MARKAS_VIEW_CODE di Vercel." });
+    if (!tgReady()) return send(res, 400, { ok: false, ralat: "TELEGRAM_BOT_TOKEN belum ada. Tambah di Vercel → Settings → Environment Variables, kemudian Deployments → Redeploy, dan cuba semula." });
     const url = `https://${req.headers["x-forwarded-host"] || req.headers.host}/api/telegram`;
     const a = await tg("setWebhook", { url, secret_token: webhookSecret(), allowed_updates: ["message", "callback_query"] });
     await tg("setMyCommands", { commands: [
@@ -45,6 +60,7 @@ async function setup(req, res) {
       { command: "keputusan", description: "Perkara perlu keputusan (Danial)" },
     ] });
     const me = await tg("getMe", {});
+    if (!me.ok) return send(res, 400, { ok: false, ralat: "Token Telegram ditolak (" + (me.description || "tidak sah") + "). Salin semula token dari @BotFather ke TELEGRAM_BOT_TOKEN, Redeploy." });
     return send(res, 200, { ok: !!a.ok, bot: me.result ? "@" + me.result.username : null, danial: !!danialChat(), ralat: a.ok ? null : a.description });
   } catch (e) { return fail(res, e); }
 }
