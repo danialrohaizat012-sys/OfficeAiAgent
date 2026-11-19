@@ -10,7 +10,10 @@ import {
 } from "./decor.js";
 
 // Semua logo SVG dalam folder logos/ (dimuat sebagai teks).
-const LOGO_FILES = import.meta.glob("../../logos/*.svg", { query: "?raw", import: "default", eager: true });
+const LOGO_FILES = {
+  ...import.meta.glob("../../logos/*.svg", { query: "?raw", import: "default", eager: true }),   // SVG: teks
+  ...import.meta.glob("../../logos/*.png", { query: "?url", import: "default", eager: true }),   // PNG: alamat fail
+};
 const at = (m, x, y, z) => { m.position.set(x, y, z); return m; };
 const logoSvg = file => LOGO_FILES["../../logos/" + file];
 

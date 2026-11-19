@@ -74,7 +74,8 @@ export function signBoard(svg, opt, accent, height) {
   const load = (box) => new Promise(res => {
     const src = box ? svg.replace(/viewBox="[^"]*"/, `viewBox="${box}"`).replace(/ width="[^"]*"/, "").replace(/ height="[^"]*"/, "") : svg;
     const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null);
-    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(src);
+    // SVG dihantar sebagai teks; PNG/JPG sebagai alamat fail
+    img.src = String(src).trimStart().startsWith("<") ? "data:image/svg+xml;charset=utf-8," + encodeURIComponent(src) : src;
   });
   const fit = (img, x, y, w, h) => {
     const ar = (img.naturalWidth || 1) / (img.naturalHeight || 1);

@@ -13,7 +13,7 @@
 //    tema   : (pilihan) hiasan dinding: "studio" (whiteboard, rak buku) atau "kedai" (rak game, TV)
 //    papanPesan: (pilihan) teks di whiteboard (studio) atau papan promo luar pintu (kedai).
 //             Baris pertama = tajuk kalau guna "\n", contoh "PROMO\nTrade-in PS5 dapat lebih".
-//    logo   : (pilihan) papan tanda atas bumbung. "fail" = SVG dalam folder logos/. "latar" = warna papan (lalai gelap).
+//    logo   : (pilihan) papan tanda atas bumbung. "fail" = SVG atau PNG dalam folder logos/. "latar" = warna papan (lalai gelap).
 //             Pilihan "ikon" dan "tulisan" (viewBox dalam SVG) = ikon di kiri, tulisan di kanan.
 //
 //  AGENT
@@ -45,7 +45,7 @@ export default {
       logo: { fail: "meney-logo-dark.svg" } },
     { id: "ciptarobo", nama: "Cipta Robo", label: "Makmal R&D Cipta Robo", jenis: "pejabat", tema: "robotik", warna: "#4FBF9F",
       papanPesan: "NURI LAB · SIMULASI\nMake NURI yours. Make NURI useful.",
-      logo: { fail: "ciptarobo-logo-light.svg", latar: "#F4F3EF" } },
+      logo: { fail: "ciptarobo-logo.png", latar: "#F4F3EF" } },
   ],
 
   agent: [
