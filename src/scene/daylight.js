@@ -71,7 +71,7 @@ export function createDaylight({ scene, renderer, hemi, key, nightLights, center
     key.color.copy(s.sunC);
     hemi.intensity = baseHemi.v = (0.25 + 0.4 * (1 - s.night)) * LEGACY_LIGHT;
     hemi.color.set(s.night > 0.5 ? 0x8fa2d8 : 0xdfe8ff);
-    for (const l of nightLights) l.intensity = Math.max(s.night, over * 0.6) * 9;
+    for (const l of nightLights) l.intensity = Math.max(s.night, over * 0.6, 0.45) * 9;   // lampu siling dalam menara
     for (const m of glowMats) m.emissiveIntensity = m.userData.dayGlow + (m.userData.nightGlow - m.userData.dayGlow) * s.night;
   }
 

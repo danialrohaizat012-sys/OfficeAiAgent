@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="300" viewBox="0 0 700 150" role="img" aria-label="ROI Resources">
+  <!-- Papan tanda bumbung menara (logo tulisan; ganti dengan logo rasmi ROI Resources bila ada) -->
+  <g transform="translate(14 23)">
+    <rect width="104" height="104" rx="20" fill="#8E9BFF"/>
+    <path d="M24 78V50M42 78V38M60 78V28M78 78V18" stroke="#0b1222" stroke-width="11" stroke-linecap="round"/>
+  </g>
+  <text x="140" y="88" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="800" letter-spacing="2" fill="#ffffff">ROI RESOURCES</text>
+  <text x="143" y="124" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="7.5" fill="#D4B26A">HOLDING · 6 VENTURES</text>
+</svg>

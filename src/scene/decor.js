@@ -50,7 +50,7 @@ const hexStr = c => "#" + c.toString(16).padStart(6, "0");
 // ==================== LANTAI ====================
 export function officeFloor(plan, color, theme) {
   const g = grp(0, 0, plan.shift);
-  const studio = theme !== "kedai";
+  const studio = theme !== "kedai" && theme !== "command";
   const floor = new THREE.Mesh(new THREE.ShapeGeometry(roundedShape(plan.W - 0.5, plan.D - 0.5, 0.85), 10),
     std(studio ? 0x9b7656 : 0x1d2335, { roughness: studio ? 0.75 : 0.5, metalness: studio ? 0.05 : 0.3 }));
   floor.rotation.x = -PI / 2; floor.position.y = 0.015; g.add(floor);
@@ -74,12 +74,12 @@ export function officeFloor(plan, color, theme) {
 export const WALL_H = 2.6;
 
 // Asas bangunan (lantai konkrit dari tanah ke paras lantai pejabat)
-export function foundation(plan, color, groundY) {
+export function foundation(plan, color, groundY, steps = true) {
   const g = grp(0, 0, plan.shift);
   const h = -groundY;
   g.add(mesh(box(plan.W, h, plan.D), std(0x59607a, { roughness: 0.9 }), 0, -h / 2, 0));
-  // tangga masuk di depan
-  g.add(mesh(box(1.8, h * 0.5, 0.4), std(0x6b7389), 0, -h * 0.75, plan.D / 2 + 0.2));
+  // tangga masuk di depan (aras jalan sahaja)
+  if (steps) g.add(mesh(box(1.8, h * 0.5, 0.4), std(0x6b7389), 0, -h * 0.75, plan.D / 2 + 0.2));
   // jalur warna jenama di tepi lantai
   const edge = basic(color);
   g.add(mesh(box(plan.W + 0.02, 0.04, 0.04), edge, 0, -0.02, plan.D / 2));
@@ -89,7 +89,7 @@ export function foundation(plan, color, groundY) {
 
 export function officeWalls(plan, color, theme) {
   const g = new THREE.Group();
-  const studio = theme !== "kedai";
+  const studio = theme !== "kedai" && theme !== "command";
   const h = WALL_H, z = plan.backZ, t = 0.2;
   const wallM = std(studio ? 0xe8e3da : 0x1f2538, { roughness: 0.9 });
   const outerM = std(studio ? 0xd6d0c4 : 0x2a3146, { roughness: 0.9 });
@@ -108,7 +108,7 @@ export function officeWalls(plan, color, theme) {
     g.add(mesh(box(ww + 0.1, 0.05, 0.08), M.white(), 0, 2.41, z + 0.08));
     for (let i = 0; i <= 6; i++) g.add(mesh(box(0.05, 0.66, 0.08), M.white(), -ww / 2 + i * ww / 6, 2.08, z + 0.08));
   } else {
-    g.add(mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: neonTexture("GAME ON", hexStr(color)), transparent: true }), 0, 2.08, z + 0.08));
+    g.add(mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: neonTexture(theme === "command" ? "ROI HQ" : "GAME ON", hexStr(color)), transparent: true }), 0, 2.08, z + 0.08));
     g.add(mesh(box(plan.W - 1.4, 0.03, 0.03), basic(color), 0, 1.78, z + 0.08));
   }
   // dinding sisi: separuh bawah konkrit, separuh atas kaca dengan tiang tingkap

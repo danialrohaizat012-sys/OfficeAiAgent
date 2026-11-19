@@ -8,23 +8,26 @@ export function createCameraRig(camera, controls, offices, view, reduceMotion) {
   const homeTarget = new THREE.Vector3(...view.target);
   let tween = null;
 
-  const frameDist = () => { const asp = innerWidth / innerHeight; return asp < 0.8 ? 30 : asp < 1.2 ? 24 : 20; };
-  // Jarak supaya seluruh lebar markas muat dalam skrin (penting untuk phone tegak)
-  const widthFit = () => {
-    const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * (innerWidth / innerHeight);
-    return (view.width + 2) / (2 * halfH) / 1.03;
+  const tanV = () => Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  // Jarak supaya seluruh menara (tinggi dan lebar) muat dalam skrin
+  const homeDist = () => {
+    const byH = (view.height / 2 + 2.5) / tanV();
+    const byW = (view.width + 3) / 2 / (tanV() * (innerWidth / innerHeight));
+    return Math.max(byH, byW) * 1.02;
   };
-  const homePos = () => { const d = Math.max(frameDist() * view.scale, widthFit()); return homeTarget.clone().add(new THREE.Vector3(0, d * 0.62 - 1, d * 0.82 + 0.6)); };
+  const homePos = () => { const d = homeDist(); return homeTarget.clone().add(new THREE.Vector3(d * 0.18, d * 0.2, d * 0.96)); };
 
   function focus(key, agentPos) {
     let tgt, pos;
+    const portrait = innerWidth / innerHeight < 0.8;
     if (!key) { tgt = homeTarget.clone(); pos = homePos(); }
     else {
-      const base = new THREE.Vector3(...offices[key].pos);
-      tgt = agentPos ? agentPos.clone().setY(1) : base.clone().setY(0.8);
-      const d = (agentPos ? 8 : 15.5) * (innerWidth / innerHeight < 0.8 ? 1.45 : 1);
-      const dir = tgt.clone().setY(0).normalize(); if (dir.lengthSq() < 0.01) dir.set(0, 0, 1);
-      pos = tgt.clone().add(new THREE.Vector3(dir.x * d * 0.35, d * 0.6, d * 0.8));
+      const o = offices[key];
+      const base = new THREE.Vector3(o.pos[0], o.pos[1], o.pos[2]);
+      // pandang dari depan, sedikit atas, supaya lantai tingkat atas tidak menghalang
+      tgt = agentPos ? agentPos.clone().setY(o.pos[1] + 1) : base.clone().add(new THREE.Vector3(0, 1.2, 0.3));
+      const d = (agentPos ? 7.5 : 12) * (portrait ? 1.45 : 1);
+      pos = tgt.clone().add(new THREE.Vector3(d * 0.12, d * 0.24, d * 0.96));
     }
     tween = { t: 0, dur: reduceMotion ? 1 : 1.1, p0: camera.position.clone(), p1: pos, t0: controls.target.clone(), t1: tgt };
     controls.autoRotate = false;

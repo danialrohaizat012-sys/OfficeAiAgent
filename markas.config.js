@@ -8,7 +8,8 @@
 //    id     : nama ringkas unik, huruf kecil tanpa jarak (contoh "meney")
 //    nama   : teks pada tab di bawah skrin
 //    label  : nama penuh (dalam panel detail agent)
-//    jenis  : "hab" untuk Command di tengah (satu sahaja), "pejabat" untuk yang lain
+//    jenis  : "hab" untuk ROI Command Centre (tingkat atas, satu sahaja), "pejabat" untuk venture
+//    Susunan pejabat = susunan tingkat menara (pertama = aras jalan).
 //    warna  : warna jenama (bingkai platform, jambatan, skrin meja)
 //    tema   : (pilihan) hiasan dinding: "studio" (whiteboard, rak buku) atau "kedai" (rak game, TV)
 //    papanPesan: (pilihan) teks di whiteboard (studio) atau papan promo luar pintu (kedai).
@@ -33,20 +34,21 @@
 
 export default {
   tajuk: "Markas Agent",
-  subtajuk: "ROI Resources · 6 venture",
+  bangunan: { nama: "ROI RESOURCES", logo: "roi-resources-logo.svg" },   // papan tanda bumbung menara
+  subtajuk: "ROI Resources · 6 anak syarikat",
 
   pejabat: [
-    { id: "command", nama: "Command", label: "Command", jenis: "hab", warna: "#8E9BFF" },
-    { id: "binalab", nama: "BinaLab", label: "Pejabat BinaLab", jenis: "pejabat", tema: "studio", warna: "#4CC26C",
-      papanPesan: "Fokus minggu ini\nFollow-up semua quotation & demo Bina Review",
-      logo: { fail: "binalab-logo-dark.svg", ikon: "112 88 382 440", tulisan: "80 558 450 90" } },
+    { id: "command", nama: "ROI HQ", label: "ROI Command Centre", jenis: "hab", warna: "#8E9BFF" },   // tingkat paling atas
+    // Venture di bawah: SUSUNAN = TINGKAT, dari bawah (aras jalan) ke atas.
     { id: "meney", nama: "Meney", label: "Pejabat Meney Gaming", jenis: "pejabat", tema: "kedai", warna: "#8DC63F",
       papanPesan: "Promo\nTrade-in PS5 anda di sini. Tanya di kaunter!",
       logo: { fail: "meney-logo-dark.svg" } },
+    { id: "binalab", nama: "BinaLab", label: "Pejabat BinaLab", jenis: "pejabat", tema: "studio", warna: "#4CC26C",
+      papanPesan: "Fokus minggu ini\nFollow-up semua quotation & demo Bina Review",
+      logo: { fail: "binalab-logo-dark.svg", ikon: "112 88 382 440", tulisan: "80 558 450 90" } },
     { id: "ciptarobo", nama: "Cipta Robo", label: "Makmal R&D Cipta Robo", jenis: "pejabat", tema: "robotik", warna: "#4FBF9F",
       papanPesan: "NURI LAB · SIMULASI\nMake NURI yours. Make NURI useful.",
       logo: { fail: "ciptarobo-logo.png", latar: "#F4F3EF" } },
-    // Baris kedua (di belakang)
     { id: "ehnakama", nama: "Ehnakama", label: "Pejabat EHNAKAMA", jenis: "pejabat", tema: "kedai", warna: "#FF4F6D",
       papanPesan: "EHNAKAMA\nAnime · Manga · Manhwa · Merch",
       logo: { fail: "ehnakama-logo.svg" } },   // logo SEMENTARA: ganti dengan logo rasmi

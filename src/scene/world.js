@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { octagonShape, signBoard } from "./parts.js";
+import { signBoard } from "./parts.js";
 import { buildSite, GROUND_Y } from "./site.js";
 import { person } from "./person.js";
 import { officeSpots } from "./spots.js";
@@ -17,8 +17,9 @@ const LOGO_FILES = {
 const at = (m, x, y, z) => { m.position.set(x, y, z); return m; };
 const logoSvg = file => LOGO_FILES["../../logos/" + file];
 
-// Bina seluruh dunia 3D: tapak, bangunan Command, bangunan pejabat dan pekerja.
-export function buildWorld(scene, offices, agents) {
+// Bina seluruh dunia 3D: tapak, menara ROI Resources (satu venture setiap tingkat,
+// ROI Command Centre di atas), lif, papan tanda bumbung dan pekerja.
+export function buildWorld(scene, offices, agents, building = {}) {
   const officeGroups = {}, pickables = [], bobbers = [], nightLights = [];
   const site = buildSite(scene, offices);
 
@@ -64,39 +65,56 @@ export function buildWorld(scene, offices, agents) {
     lamp.position.set(0, 2.4, o.kind === "hub" ? 0 : o.platformShift);
     officeGroups[key].add(lamp); nightLights.push(lamp);
   }
+  scene.add(tower(offices, building, bobbers));
   return { officeGroups, pickables, bobbers, nightLights, site };
 }
 
-// Bangunan Command: pavilion kaca berbentuk oktagon, bahagian depan terbuka
+// Struktur menara: lif kaca di sisi kanan (dengan kereta lif bergerak) dan
+// papan tanda ROI RESOURCES atas bumbung.
+function tower(offices, building, bobbers) {
+  const g = new THREE.Group();
+  const list = Object.values(offices);
+  const top = list.reduce((m, o) => Math.max(m, o.pos[1]), 0);
+  const plan = list[0].plan, W2 = plan.W / 2;
+  const H = top + WALL_H + 0.12 - GROUND_Y;
+  // lif kaca
+  const lift = new THREE.Group(); lift.position.set(W2 + 0.72, GROUND_Y, plan.backZ + 1.4);
+  const frame = new THREE.MeshStandardMaterial({ color: 0x3a4152, roughness: 0.5, metalness: 0.4 });
+  const glass = new THREE.MeshStandardMaterial({ color: 0x9fd4ff, transparent: true, opacity: 0.18, roughness: 0.05, depthWrite: false });
+  lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(1.2, H, 1.6), glass), 0, H / 2, 0));
+  for (const [x, z] of [[-0.6, -0.8], [0.6, -0.8], [-0.6, 0.8], [0.6, 0.8]]) lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.08, H, 0.08), frame), x, H / 2, z));
+  for (const o of list) {
+    // lampu nombor tingkat di depan lif, warna venture
+    lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 0.04), new THREE.MeshBasicMaterial({ color: o.color })), 0, o.pos[1] - GROUND_Y + 2.2, 0.82));
+  }
+  const car = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.9, 1.35), new THREE.MeshStandardMaterial({ color: 0xd8dde6, roughness: 0.4, metalness: 0.5 }));
+  lift.add(car);
+  const span = top;
+  bobbers.push({ type: "lift", update: t => {
+    const k = (Math.sin(t * 0.18) + 1) / 2;                      // naik turun perlahan
+    car.position.y = -GROUND_Y + 0.95 + k * span;
+  } });
+  g.add(lift);
+  // papan tanda syarikat induk atas bumbung
+  const svg = building.logo && logoSvg(building.logo);
+  if (svg) {
+    const sign = signBoard(svg, null, "#8E9BFF", 2.0);
+    sign.position.set(0, top + WALL_H + 0.12, plan.backZ - 0.2);
+    g.add(sign);
+  }
+  return g;
+}
+
+// Tingkat paling atas: ROI Command Centre (syarikat induk). Nadi di meja kawalan.
 function hub(o, bobbers) {
   const grp = new THREE.Group();
+  const plan = o.plan, W2 = plan.W / 2;
   const shell = new THREE.Group();
-  const R = 3.4, h = -GROUND_Y;
-  // asas oktagon
-  const base = new THREE.Mesh(new THREE.ExtrudeGeometry(octagonShape(R), { depth: h, bevelEnabled: false }), new THREE.MeshStandardMaterial({ color: 0x59607a, roughness: 0.9 }));
-  base.rotation.x = Math.PI / 2; shell.add(base);
-  const floor = new THREE.Mesh(new THREE.ShapeGeometry(octagonShape(R - 0.15)), new THREE.MeshStandardMaterial({ color: 0x262d44, roughness: 0.4, metalness: 0.3 }));
-  floor.rotation.x = -Math.PI / 2; floor.position.y = 0.01; shell.add(floor);
-  // dinding kaca di 5 sisi belakang (sisi depan terbuka)
-  const glass = new THREE.MeshStandardMaterial({ color: o.color, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0.3, depthWrite: false, side: THREE.DoubleSide });
-  const frameM = new THREE.MeshStandardMaterial({ color: 0x3a4152, roughness: 0.6 });
-  const wallH = WALL_H - 0.2;
-  for (let i = 0; i < 8; i++) {
-    const a0 = i / 8 * Math.PI * 2 + Math.PI / 8, a1 = a0 + Math.PI / 4;
-    const p0 = [Math.cos(a0) * (R - 0.1), Math.sin(a0) * (R - 0.1)], p1 = [Math.cos(a1) * (R - 0.1), Math.sin(a1) * (R - 0.1)];
-    const mx = (p0[0] + p1[0]) / 2, mz = -(p0[1] + p1[1]) / 2, len = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
-    const ang = Math.atan2(-(p1[1] - p0[1]), p1[0] - p0[0]);
-    const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.22, wallH + 0.1, 0.22), frameM);
-    pillar.position.set(p0[0], (wallH + 0.1) / 2, -p0[1]); shell.add(pillar);
-    if (mz > 0.5) continue; // sisi depan dibiar terbuka
-    const pane = new THREE.Mesh(new THREE.BoxGeometry(len, wallH, 0.05), glass);
-    pane.position.set(mx, wallH / 2, mz); pane.rotation.y = -ang; shell.add(pane);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(len + 0.2, 0.12, 0.22), frameM);
-    cap.position.set(mx, wallH + 0.06, mz); cap.rotation.y = -ang; shell.add(cap);
-    const sill = new THREE.Mesh(new THREE.BoxGeometry(len, 0.08, 0.2), new THREE.MeshBasicMaterial({ color: o.color }));
-    sill.position.set(mx, 0.04, mz); sill.rotation.y = -ang; shell.add(sill);
-  }
-  shell.add(plant(-2.2, -1.2, 0.8, 1)); shell.add(plant(2.2, -1.2, 0.8, 0));
+  shell.add(foundation(plan, o.color, -0.3, false));
+  shell.add(officeFloor(plan, o.color, "command"));
+  shell.add(officeWalls(plan, o.color, "command"));
+  shell.add(plant(-(W2 - 0.6), plan.lanes.back - 0.2, 1, 1)); shell.add(plant(W2 - 0.6, plan.lanes.back - 0.2, 1, 0));
+  shell.add(plant(-(W2 - 0.8), plan.lanes.front, 0.8, 0)); shell.add(plant(W2 - 0.8, plan.lanes.front, 0.8, 1));
   grp.add(bakeStatic(shell));
 
   // cincin lantai berputar + meja kawalan + hologram
@@ -109,19 +127,30 @@ function hub(o, bobbers) {
   grp.add(deck.group);
   deck.holos.forEach((h, i) => bobbers.push({ m: h, type: "bob", base: h.position.y, ph: i * 1.7, amp: 0.06 }));
 
-  // menara antena + radar di belakang bumbung
-  const mast = new THREE.Group(); mast.position.set(-R * 0.62, 0, -R * 0.62);
+  // antena + radar atas bumbung (penjuru belakang kiri)
+  const mast = new THREE.Group(); mast.position.set(-(W2 - 0.6), WALL_H + 0.12, plan.backZ - 0.1);
   const metal = new THREE.MeshStandardMaterial({ color: 0x8a93a8, metalness: 0.6, roughness: 0.35 });
-  mast.add(at(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 3.0, 8), metal), 0, 1.5, 0));
-  const dish = new THREE.Group(); dish.position.y = 2.95; dish.scale.setScalar(0.6);
+  mast.add(at(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 2.4, 8), metal), 0, 1.2, 0));
+  const dish = new THREE.Group(); dish.position.y = 2.35; dish.scale.setScalar(0.6);
   const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.5, 20, 10, 0, Math.PI * 2, 0, Math.PI / 3), new THREE.MeshStandardMaterial({ color: 0xeef1f6, side: THREE.DoubleSide, roughness: 0.4 }));
   bowl.rotation.x = -Math.PI / 2 - 0.4; dish.add(bowl);
   dish.add(at(new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), new THREE.MeshBasicMaterial({ color: o.color })), 0, 0.25, 0.3));
   mast.add(dish); bobbers.push({ m: dish, type: "spinY", speed: 0.6 });
   const tip = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff5a5a }));
-  tip.position.y = 3.1; mast.add(tip);
+  tip.position.y = 2.5; mast.add(tip);
   grp.add(mast);
+  fasciaSign(grp, o, "#" + o.color.toString(16).padStart(6, "0"));
   return grp;
+}
+
+// Papan logo venture di depan lantai tingkat atasnya (macam papan nama setiap tingkat)
+function fasciaSign(grp, o, accent) {
+  const svg = o.logo && logoSvg(o.logo.fail);
+  if (o.logo && !svg) console.error(`[markas.config.js] Logo "${o.logo.fail}" tiada dalam folder logos/.`);
+  if (!svg) return;
+  const sign = signBoard(svg, o.logo, accent, 0.62, "dinding");
+  sign.position.set(0, WALL_H + 0.08, o.plan.shift + o.plan.D / 2 + 0.14);
+  grp.add(sign);
 }
 
 function office(o, bobbers) {
@@ -132,7 +161,8 @@ function office(o, bobbers) {
 
   // perabot statik: dibina dalam satu kumpulan, kemudian digabung
   const furniture = new THREE.Group();
-  furniture.add(foundation(plan, o.color, GROUND_Y));
+  const ground = o.floor === 0;
+  furniture.add(foundation(plan, o.color, ground ? GROUND_Y : -0.3, ground));
   furniture.add(officeFloor(plan, o.color, theme));
   furniture.add(officeWalls(plan, o.color, theme));
   furniture.add(wallDecor(plan, o.color, theme, theme !== "kedai" ? o.message : null));
@@ -146,7 +176,7 @@ function office(o, bobbers) {
   furniture.add(plant(W2 - 0.55, plan.lanes.back - 0.2, 1, 0));
   furniture.add(plant(-0.95, plan.lanes.front + 0.75, 0.7, 0));
   furniture.add(plant(0.95, plan.lanes.front + 0.75, 0.7, 0));
-  if (theme === "kedai" && o.message) {
+  if (theme === "kedai" && o.message && ground) {
     const sign = aFrameSign(o.message, o.color);
     sign.position.set(-1.7, GROUND_Y, plan.shift + plan.D / 2 + 0.9); sign.rotation.y = 0.25;
     furniture.add(sign);
@@ -158,14 +188,7 @@ function office(o, bobbers) {
     bobbers.push({ type: "nuri", update: lab.update });
   }
 
-  // papan tanda di atas bumbung dinding belakang
-  const svg = o.logo && logoSvg(o.logo.fail);
-  if (o.logo && !svg) console.error(`[markas.config.js] Logo "${o.logo.fail}" tiada dalam folder logos/.`);
-  if (svg) {
-    const sign = signBoard(svg, o.logo, accent, 1.15);
-    sign.position.set(0, WALL_H + 0.12, plan.backZ - 0.2);
-    grp.add(sign);
-  }
+  fasciaSign(grp, o, accent);
   return grp;
 }
 

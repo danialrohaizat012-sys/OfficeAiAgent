@@ -14,7 +14,7 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const SPEED = 1.0;
 
 export function createCustomers(offices, officeGroups, site) {
-  const shops = Object.entries(offices).filter(([, o]) => o.kind === "office" && o.theme === "kedai");
+  const shops = Object.entries(offices).filter(([, o]) => o.kind === "office" && o.theme === "kedai" && o.floor === 0);
   const people = [];
   let timer = 4;
   const api = { enabled: true };

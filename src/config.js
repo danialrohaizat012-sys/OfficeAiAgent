@@ -2,13 +2,9 @@ import raw from "../markas.config.js";
 
 // Baca markas.config.js, semak kesilapan biasa, dan kira susun atur 3D.
 
-const HUB_POS = [0, 0, 3.6];
-const OFFICE_Z = -5.3;
-const OFFICE_SPACING = 11;    // jarak tengah ke tengah antara pejabat
 const OFFICE_W = 9.6, OFFICE_D = 7.4, ROW_GAP = 2.6;
 const DESK_X = 1.9, FIRST_ROW_Z = -1.4;
-const HUB_RADIUS = 3.4;
-const BASE_HALF = 7.35;       // separuh saiz markas prototaip asal (rujukan skala kamera)
+export const FLOOR_H = 3.3;    // tinggi satu tingkat (dinding 2.6 + lantai atas)
 
 const hexNum = h => parseInt(String(h).replace("#", ""), 16);
 
@@ -45,28 +41,25 @@ export function loadConfig() {
     });
   }
 
+  // MENARA: setiap venture satu tingkat (ikut susunan dalam config, bawah → atas).
+  // Pejabat jenis "hab" (ROI Command Centre) di tingkat paling atas.
   const offices = {};
-  if (hubs[0]) {
-    const h = hubs[0];
-    offices[h.id] = { kind: "hub", label: h.label || h.nama, short: h.nama, color: hexNum(h.warna), pos: HUB_POS.slice() };
-  }
-  // Susun pejabat dalam baris (maks 3 sebaris). Baris pertama paling dekat dengan Command,
-  // baris seterusnya di belakang. Baris terakhir yang tak penuh diletak di tengah.
-  const PER_ROW = 3, ROW_SPACING = OFFICE_D + 4.6;
   rooms.forEach((o, i) => {
-    const row = Math.floor(i / PER_ROW), col = i % PER_ROW;
-    const inRow = Math.min(PER_ROW, rooms.length - row * PER_ROW);
-    const x = (col - (inRow - 1) / 2) * OFFICE_SPACING;
-    const z = OFFICE_Z - row * ROW_SPACING;
     const count = agents.filter(a => a.office === o.id).length;
     offices[o.id] = {
       kind: "office", label: o.label || o.nama, short: o.nama, color: hexNum(o.warna),
-      pos: [x, 0, z], logo: o.logo || null, theme: o.tema || "studio", message: o.papanPesan || null, logoPhase: i * 1.3,
+      pos: [0, i * FLOOR_H, 0], floor: i, logo: o.logo || null, theme: o.tema || "studio", message: o.papanPesan || null,
       ...deskLayout(count),
     };
   });
+  if (hubs[0]) {
+    const h = hubs[0];
+    offices[h.id] = { kind: "hub", label: h.label || h.nama, short: h.nama, color: hexNum(h.warna),
+      pos: [0, rooms.length * FLOOR_H, 0], floor: rooms.length, logo: h.logo || null, ...deskLayout(0) };
+  }
+  const building = raw.bangunan || {};
 
-  return { title: raw.tajuk || "Markas Agent", subtitle: raw.subtajuk || "", offices, agents, errors, view: viewFit(offices) };
+  return { title: raw.tajuk || "Markas Agent", subtitle: raw.subtajuk || "", offices, agents, errors, building, view: viewFit(offices) };
 }
 
 // Pelan pejabat: meja dalam grid 2 lajur, laluan pejalan kaki, dan tempat
@@ -88,21 +81,11 @@ function deskLayout(n) {
   return { deskSpots, platformDepth: D, platformShift: shift, plan: { W, D, shift, backZ, rows, lanes, deskX: DESK_X } };
 }
 
-// Kira titik tengah dan saiz keseluruhan markas supaya kamera boleh muat semuanya.
+// Kira saiz menara supaya kamera boleh muat semuanya.
 function viewFit(offices) {
-  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
-  for (const o of Object.values(offices)) {
-    const [x, , z] = o.pos;
-    const hw = o.kind === "hub" ? HUB_RADIUS : o.plan.W / 2;
-    const zMin = o.kind === "hub" ? z - HUB_RADIUS : z + o.platformShift - o.platformDepth / 2;
-    const zMax = o.kind === "hub" ? z + HUB_RADIUS : z + o.platformShift + o.platformDepth / 2;
-    minX = Math.min(minX, x - hw); maxX = Math.max(maxX, x + hw);
-    minZ = Math.min(minZ, zMin); maxZ = Math.max(maxZ, zMax);
-  }
-  const half = Math.max(maxX - minX, maxZ - minZ) / 2;
-  return {
-    target: [(minX + maxX) / 2, 1, (minZ + maxZ) / 2 - 0.25],
-    scale: Math.max(1, half / BASE_HALF),
-    width: maxX - minX,
-  };
+  const list = Object.values(offices);
+  const floors = list.length;
+  const W = Math.max(...list.map(o => o.plan.W)), D = Math.max(...list.map(o => o.plan.D));
+  const height = floors * FLOOR_H + 2.6;            // + papan tanda bumbung
+  return { target: [0, height / 2 - 0.5, 0], width: W + 2.6, height, depth: D, floorH: FLOOR_H };
 }

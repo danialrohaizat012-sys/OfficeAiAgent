@@ -15,7 +15,7 @@ import { createWeather } from "./scene/weather.js";
 import { savedMode, saveMode, savedCode, saveCode, fetchStatus, fetchLog, startPolling, markDecisionDone, runNadi } from "./live/live.js";
 import { log as sampleLog } from "./sim/sample.js";
 
-const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors } = loadConfig();
+const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors, building } = loadConfig();
 document.title = subtitle ? `${title}: ${subtitle}` : title;
 document.querySelector("header h1").textContent = title;
 document.querySelector("header p").textContent = subtitle + (errors.length ? " · ⚠ semak markas.config.js" : "");
@@ -33,7 +33,7 @@ try {
 const { renderer, scene, camera, controls, hemi, key } = stage;
 
 initSample(AGENTS);
-const world = buildWorld(scene, OFFICES, AGENTS);
+const world = buildWorld(scene, OFFICES, AGENTS, building);
 enableShadows(scene);
 const rig = createCameraRig(camera, controls, OFFICES, view, reduce);
 
@@ -228,7 +228,7 @@ function loop() {
   const dt = Math.min(timer.getDelta(), 0.05), t = timer.getElapsed();
   rig.update(dt);
   if (!reduce) {
-    world.bobbers.forEach(b => { if (b.type === "nuri") b.update(t); else if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else if (b.type === "spinY") b.m.rotation.y += b.speed * dt; else b.m.rotation.z += b.m.userData.spin * dt; });
+    world.bobbers.forEach(b => { if (b.type === "nuri" || b.type === "lift") b.update(t); else if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else if (b.type === "spinY") b.m.rotation.y += b.speed * dt; else b.m.rotation.z += b.m.userData.spin * dt; });
     life.update(dt);
     envelopes.update(dt);
     daylight.flash(weather.update(dt, daylight.night));

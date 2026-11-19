@@ -32,17 +32,14 @@ function rect(w, d, mat, x, z, y = GROUND_Y + 0.005) {
 export function buildSite(scene, offices) {
   const site = new THREE.Group();
 
-  // sempadan semua bangunan
+  // sempadan tapak menara (semua tingkat sama saiz)
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
-  let hub = null;
   for (const o of Object.values(offices)) {
     const [x, , z] = o.pos;
-    const hw = o.kind === "hub" ? 3.4 : o.plan.W / 2;
-    const z0 = o.kind === "hub" ? z - 3.4 : z + o.platformShift - o.platformDepth / 2;
-    const z1 = o.kind === "hub" ? z + 3.4 : z + o.platformShift + o.platformDepth / 2;
-    minX = Math.min(minX, x - hw); maxX = Math.max(maxX, x + hw); minZ = Math.min(minZ, z0); maxZ = Math.max(maxZ, z1);
-    if (o.kind === "hub") hub = o;
+    minX = Math.min(minX, x - o.plan.W / 2); maxX = Math.max(maxX, x + o.plan.W / 2 + 1.5);   // + lif
+    minZ = Math.min(minZ, z + o.platformShift - o.platformDepth / 2); maxZ = Math.max(maxZ, z + o.platformShift + o.platformDepth / 2);
   }
+  maxZ += 3.5;   // dataran depan pintu masuk
 
   // rumput
   site.add(rect(140, 140, std(0x2c4a38, { roughness: 1 }), (minX + maxX) / 2, (minZ + maxZ) / 2, GROUND_Y));
@@ -56,23 +53,10 @@ export function buildSite(scene, offices) {
   const tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.Float32BufferAttribute(tiles, 3));
   scene.add(new THREE.LineSegments(tg, new THREE.LineBasicMaterial({ color: 0x3c4255 })));
 
-  // laluan pejalan kaki dari Command ke pintu setiap pejabat
-  if (hub) {
-    for (const o of Object.values(offices)) {
-      if (o.kind === "hub") continue;
-      const A = new THREE.Vector2(hub.pos[0], hub.pos[2]);
-      const B = new THREE.Vector2(o.pos[0], o.pos[2] + o.platformShift + o.platformDepth / 2 + 0.4);
-      const len = A.distanceTo(B), mid = A.clone().add(B).multiplyScalar(0.5);
-      const th = Math.atan2(B.x - A.x, B.y - A.y);      // arah laluan
-      const path = rect(1.3, len, std(0x8a8f9e), mid.x, mid.y, GROUND_Y + 0.02);
-      path.rotation.z = th; site.add(path);
-      // jalur warna jenama di kiri dan kanan laluan
-      for (const s of [-1, 1]) {
-        const edge = rect(0.06, len, basic(o.color), mid.x + s * 0.68 * Math.cos(th), mid.y - s * 0.68 * Math.sin(th), GROUND_Y + 0.025);
-        edge.rotation.z = th; site.add(edge);
-      }
-    }
-  }
+  // laluan dari pintu masuk menara ke kaki lima
+  const entranceZ = maxZ - 3.5, cxDoor = 0;
+  site.add(rect(1.8, 6, std(0x8a8f9e), cxDoor, entranceZ + 3, GROUND_Y + 0.02));
+  for (const s of [-1, 1]) site.add(rect(0.06, 6, basic(0x8E9BFF), cxDoor + s * 0.93, entranceZ + 3, GROUND_Y + 0.025));
 
   // jalan raya di depan kompleks
   const roadZ = maxZ + pad + 2.4, roadW = 3.2, roadL = 140;

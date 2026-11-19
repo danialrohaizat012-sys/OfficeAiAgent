@@ -4,14 +4,14 @@
 Pemilik projek: Danial, pemilik BinaLab (projek bina app/produk dan monetisasi).
 Danial bukan developer sepenuh masa. Terangkan dalam Bahasa Melayu yang ringkas dan jelas.
 
-Markas Agent ialah sistem AI agent untuk bisnes Danial: satu hab Command, pejabat **BinaLab** (studio perisian), pejabat **Meney Gaming** (kedai gaming), makmal **Cipta Robo** (R&D robot AI companion NURI), serta **EHNAKAMA**, **GilaPips** dan **LAKAR** (venture ROI Resources), dipaparkan sebagai dashboard 3D kompleks bangunan pejabat. Satu kod, satu dashboard, tetapi data kedua-dua bisnes kekal berasingan.
+Markas Agent ialah sistem AI agent untuk bisnes Danial: satu hab Command, pejabat **BinaLab** (studio perisian), pejabat **Meney Gaming** (kedai gaming), makmal **Cipta Robo** (R&D robot AI companion NURI), serta **EHNAKAMA**, **GilaPips** dan **LAKAR** (venture ROI Resources), dipaparkan sebagai dashboard 3D **menara ROI Resources** (syarikat induk; setiap venture = anak syarikat di satu tingkat). Satu kod, satu dashboard, tetapi data kedua-dua bisnes kekal berasingan.
 
 ## Struktur projek
 - `index.html`: kerangka halaman (header, tab, roster, panel detail).
 - `src/main.js`: sambung semua bahagian + gelung animasi.
 - `src/style.css`: semua gaya (warna jenama, mesra phone).
 - `markas.config.js`: **satu-satunya tempat** untuk tambah, buang atau namakan semula pejabat dan agent (penerangan medan ada di atas fail).
-- `src/config.js`: baca config, semak kesilapan (ID berulang, pejabat tiada), kira susun atur 3D: pejabat sebaris di belakang hab, meja grid 2 lajur ikut bilangan agent, kamera muat seluruh markas.
+- `src/config.js`: baca config, semak kesilapan (ID berulang, pejabat tiada), kira susun atur MENARA: setiap pejabat satu tingkat (`FLOOR_H` = 3.3), hab di atas; meja grid 2 lajur ikut bilangan agent; `viewFit` beri tinggi/lebar menara untuk kamera.
 - `src/scene/`: dunia 3D. `stage.js` (renderer, lampu, bayang-bayang), `parts.js` (bentuk asas, papan tanda bumbung `signBoard`), `site.js` (tanah, dataran, laluan, jalan, pokok, lampu, kereta), `decor.js` (asas bangunan, lantai, dinding bangunan, tingkap/neon, meja kerja, kerusi, zon pantri/kaunter, sofa/sudut gaming, printer/meja repair, pokok, meja Command + hologram; `bakeStatic` gabung perabot statik supaya laju), `spots.js` (tempat yang pekerja boleh pergi + laluan), `person.js` (figura pekerja bersendi: duduk, berdiri, berjalan; ekspresi muka senyum/fokus/risau), `world.js` (susun semuanya + lampu dalam bangunan), `camera.js` (gerakan kamera), `daylight.js` (siang/malam ikut waktu Malaysia; uji dengan `?jam=21`), `effects.js` (sampul report terbang ke Nadi), `weather.js` (cuaca sebenar Pasir Tumboh dari Open-Meteo, percuma tanpa key: awan di ufuk (disembunyi bila phone tegak, dimalapkan waktu malam), hujan, kilat; uji dengan `?cuaca=hujan|mendung|ribut|cerah`), `quality.js` (mod Cantik/Laju; auto tukar ke Laju kalau FPS < 32, pilihan disimpan dalam localStorage).
 - `src/ui/ui.js`: tab, roster, panel detail, gelembung, tanda nama atas kepala, notis (toast). Tekan bangunan = zum ke pejabat itu.
 - `src/live/live.js`: mod Hidup (baca `/api/status` setiap 20 saat, berhenti bila tab tersembunyi; simpan kod akses + mod dalam localStorage; `markDecisionDone`). Butang "Data contoh / ● Hidup" di header; skrin kod akses (`#codeModal`, autofill Password Manager). Dalam mod Hidup: `a.live` = status server (null = belum hantar, chip pudar), senarai tugas contoh disembunyi, pelanggan contoh dimatikan, sampul terbang bila `reportPada` berubah.
@@ -38,14 +38,14 @@ three.js 0.187 dengan tetapan "legacy" (ColorManagement off, output linear, lamp
   - EHNAKAMA (tema `kedai`, #FF4F6D): kandungan anime/manga/manhwa + merchandise; perkongsian Fakhri 60% / Danial 40% (jangan anggap milik ROI). Hana (kandungan & skrip), Ikmal (merchandise & stok), Nisa (sponsorship, affiliate & komuniti). **Logo `logos/ehnakama-logo.svg` ialah SEMENTARA** (tiada logo rasmi di GitHub/Drive) — ganti bila Danial beri logo.
   - GilaPips (tema `studio`, emas #D4B26A; repo `GilaPips`): edukasi pasaran & emas, komuniti, ebook; slogan "Ilmu Biasa. Hasil Luar Biasa." Amin (kandungan edukasi), Syafiq (komuniti & Telegram), Wani (ebook & produk digital). Jangan beri nasihat pelaburan. Logo `logos/gilapips-logo.svg` (ikon tiga bar dari repo + tulisan).
   - LAKAR (tema `studio`, terracotta #C4513B / teal #176B63; repo `lakar`, lakar.my): mural & seni ruang. Dina (konsep & reka mural), Fahmi (sebut harga & projek tapak), Ain (portfolio & media sosial). Logo `logos/lakar-logo.png` (dari repo, latar #F9F4EC).
-- Susun atur: maks 3 pejabat sebaris (`PER_ROW` dalam `src/config.js`); baris seterusnya di belakang. Logo papan tanda boleh SVG atau PNG.
+- Susun atur kini menara (lihat Arah visual). Logo papan tanda boleh SVG atau PNG.
 - Prestasi: 7 bangunan + 20 figura ≈ 1,550 draw calls (mod Cantik, dengan bayang-bayang). Mod Laju (auto bila FPS < 32) buang bayang-bayang. Kalau iPhone berat, langkah seterusnya: gabung figura / kurangkan perabot di baris belakang.
 
 Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & prospek) ialah agent pertama yang patut dihidupkan.
 
 ## Peraturan
 - JANGAN mula dari kosong. Kekalkan rupa dan rasa visual semasa (susun atur, warna jenama, logo terapung, gerakan kamera).
-- Arah visual (dipersetujui Danial, 13 Nov 2026): **kompleks bangunan atas tanah**, bukan platform terapung atau tema angkasa. Bangunan "dipotong" di depan dan tiada bumbung (macam rumah anak patung) supaya dalam nampak. Papan tanda di atas bumbung dengan tiang (BinaLab: ikon kiri, tulisan kanan). Command = pavilion kaca oktagon. Tapak: rumput, dataran, laluan pejalan kaki, jalan raya, pokok, lampu jalan, kereta. Latar navy #0F1B2D, bayang-bayang lembut. Pekerja ialah **figura blok gaya mainan** (kepala silinder kuning, tangan "C"), duduk di meja; Nadi berdiri di hab Command. Jangan guna nama atau logo jenama mainan.
+- Arah visual (dikemas kini 19 Nov 2026, permintaan Danial): **menara bertingkat ROI Resources**. Satu venture setiap tingkat (susunan `pejabat` dalam config = tingkat, pertama = aras jalan: Meney → BinaLab → Cipta Robo → EHNAKAMA → GilaPips → LAKAR), **ROI Command Centre (Nadi) di tingkat paling atas**, papan tanda **ROI RESOURCES** atas bumbung (`bangunan.logo` dalam config → `logos/roi-resources-logo.svg`, logo tulisan sementara). Setiap tingkat "dipotong" di depan (macam rumah anak patung), papan logo venture di depan lantai atas setiap tingkat (`fasciaSign`), lif kaca di sisi kanan dengan kereta lif bergerak dan lampu warna setiap venture. Tapak: rumput, dataran, laluan pintu masuk ke kaki lima, jalan raya, pokok, lampu jalan, kereta. Lampu siling dalam menara sentiasa sedikit menyala. Pelanggan contoh hanya masuk kedai di aras jalan. Latar navy #0F1B2D, bayang-bayang lembut. (Sebelum ini: kompleks bangunan berasingan, 13 Nov.)
 - Warna jenama: hijau #4CC26C, navy #0F1B2D; Command biru-ungu #8E9BFF.
 - Mesra phone (Danial guna iPhone) dan laju.
 - Kerja satu peringkat pada satu masa. Uji setiap peringkat sebelum teruskan.
@@ -88,6 +88,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 7: README BM (`README.md`)
 
 - [x] Peringkat 8: agent Meney (Lina + Faris) dipasang di Apps Script "Meney – Markas" akaun Danial; ujiMeney berjaya ke server sebenar 13 Nov 2026; jadual setiap jam dipasang. Danial sahkan angka Lina & Faris SAMA dengan POS (medan POS live sepadan dengan v2.9.1).
+- [x] Peringkat 12: rombak jadi menara ROI Resources (6 tingkat venture + ROI Command Centre di atas, papan bumbung ROI RESOURCES, lif, kamera menegak).
 - [x] Peringkat 11: pejabat EHNAKAMA, GilaPips, LAKAR (3 staf contoh setiap satu), susun atur 2 baris, roster desktop satu baris boleh skrol.
 - [x] Peringkat 10: makmal Cipta Robo (PR #1) + logo sebenar atas papan cerah, warna jenama teal, Reqa → Reka, kamera/kabus muat 3 bangunan di phone tegak.
 - [x] Peringkat 9: Nadi rumus laporan harian (api/nadi.js + Vercel Cron 8:30 MYT + butang dalam panel). `CRON_SECRET` ditambah di Vercel dan diredeploy 13 Nov 2026.

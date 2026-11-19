@@ -40,9 +40,9 @@ export function createWeather({ scene, center, size, onChange }) {
     }
     // awan di ufuk (cincin jauh di luar kompleks) supaya tak menghalang pandangan
     g.userData.angle = i / 10 * Math.PI * 2 + (i % 3) * 0.2;
-    g.userData.radius = size / 2 + 40 + (i % 3) * 8;   // jauh di ufuk: sentiasa di latar
+    g.userData.radius = size / 2 + 80 + (i % 3) * 10;  // jauh di ufuk: sentiasa di latar menara
     g.userData.speed = 0.012 + (i % 3) * 0.005;
-    g.position.y = 17 + (i % 4) * 2;                     // tinggi: di atas pandangan phone tegak
+    g.position.y = 34 + (i % 4) * 3;                     // lebih tinggi dari bumbung menara
     scene.add(g); clouds.push(g);
   }
 
