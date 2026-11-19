@@ -155,8 +155,9 @@ Teknologi: Vite, three.js 0.187, Vercel Functions, Upstash Redis (pelan percuma)
 
 ---
 
-## Riza V1 — prospek autonomi (kod disediakan, belum diaktifkan)
+## Riza V2 — OpenStreetMap prospecting (kod tersedia; belum diaktifkan)
 
-Riza (BinaLab, agent ID `riza`) kini ada skrip Google Apps Script **Free-First (Places ID-only)** di [`agents/riza/Code.gs`](agents/riza/Code.gs). Bila dikonfigurasi, ia membuat **maksimum satu carian sehari**, menyimpan **sehingga 5 calon Place ID sehari** secara default (had boleh ditingkatkan ke 10), menyemak pendua dan menghantar status ringkas ke Markas. Nama/telefon/alamat tidak diambil atau disimpan automatik: **Fakhri mesti mengesahkan prospek secara manual**. Ia **tidak menghantar outreach automatik**.
+Riza (agent ID `riza`) kini menggunakan **OpenStreetMap melalui Overpass API awam**. Tiada Google Cloud Console, Google Places API key atau model AI berbayar diperlukan. Skrip di [`agents/riza/Code.gs`](agents/riza/Code.gs) membaca data perniagaan OSM pada kawasan kecil, memeriksa pendua, dan menulis sehingga **5 calon prospek setiap hari** ke tab **`Riza OSM Leads`**. Jika `MARKAS_AGENT_KEY` dikonfigurasi, ia menghantar **ringkasan sahaja** ke Virtual Office. Tiada outreach automatik.
 
-**Baca [panduan pemasangan Riza](agents/riza/CARA-PASANG.md)** sebelum mengaktifkan. Memerlukan Google Places API (New) yang mengembalikan **places.id sahaja (IDs Only)**, akses edit Google Sheets, Apps Script trigger, dan konfigurasi rahsia dalam Script Properties. Google mungkin memerlukan billing untuk mengaktifkan API walaupun SKU IDs Only tiada caj semasa; tetapkan amaran dan had penggunaan. Hanya Place ID disimpan daripada Google; pembinaan CRM lengkap memerlukan semakan manusia dan sumber data yang sesuai. Fungsi belum diuji pada production dan belum dijadualkan pada akaun Google pengguna.
+**[Panduan pemasangan lengkap Riza V2](agents/riza/CARA-PASANG.md).** Tetapan wajib hanya ID Google Sheet dan `RIZA_ENABLE=YES`, selain keizinan Apps Script. Opsyen: akses Markas melalui rahsia Vercel. Jadual harian mesti diaktifkan pengguna melalui `pasangJadual`. Data © OpenStreetMap contributors (ODbL). Overpass awam tertakluk had dan boleh offline: hanya sesuai untuk eksperimen ringan, bukan SLA production.
+
