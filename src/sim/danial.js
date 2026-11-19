@@ -1,10 +1,10 @@
-// Danial (CEO ROI Resources) di taman bumbung: pandu go-kart keliling litar.
+// Danial (CEO ROI Resources) di taman bumbung: pandu kereta F1 keliling litar.
 // Bila Nadi perlukan keputusan: kart masuk pit di garisan mula, Danial turun,
 // jalan ke meja dan duduk. Selepas selesai, Danial kembali ke kart dan sambung memandu.
 // Hanya Nadi yang jumpa Danial (staf & ketua venture melalui Nadi).
 
-const MAX_V = 1.9, WALK = 1.1, STAND_TIME = 0.4;
-const KART_SEAT = { x: 0, y: 0.06, z: -0.17 };    // kedudukan Danial dalam kart (unit kart sebelum skala)
+const MAX_V = 2.4, WALK = 1.1, STAND_TIME = 0.4;
+const KART_SEAT = { x: 0, y: -0.02, z: -0.02 };   // kedudukan Danial dalam kokpit F1 (unit kereta sebelum skala)
 
 export function createDanial({ mesh, kart, hub, roof }) {
   const P = roof.track, N = P.length, Y = roof.y;
@@ -29,7 +29,7 @@ export function createDanial({ mesh, kart, hub, roof }) {
   function dismount() {
     const p = at(s);
     hub.add(mesh); mesh.scale.setScalar(1);
-    mesh.position.set(p.x + 0.55, Y, p.z); mesh.rotation.y = Math.PI / 2;
+    mesh.position.set(p.x + 0.6, Y, p.z); mesh.rotation.y = Math.PI / 2;
   }
   mount();
   place();
@@ -79,7 +79,7 @@ export function createDanial({ mesh, kart, hub, roof }) {
       if (!wantMeet && sit > 0.95) {
         sitTarget = 0; mode = "leave";
         const p = at(pitS);
-        path = [{ x: aisle, z: seat.z }, { x: aisle, z: p.z }, { x: p.x + 0.55, z: p.z }];
+        path = [{ x: aisle, z: seat.z }, { x: aisle, z: p.z }, { x: p.x + 0.6, z: p.z }];
       }
       return;
     }

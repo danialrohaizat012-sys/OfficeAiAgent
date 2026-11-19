@@ -90,7 +90,7 @@ canvas.addEventListener("pointerup", e => {
   if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
   ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
   const hit = ray.intersectObjects(world.pickables, false)[0];
-  if (hit && hit.object.userData.danial) { danialP.say("👋 Danial Rohaizat · CEO ROI Resources"); ui.toast("Danial Rohaizat · CEO ROI Resources (litar go-kart bumbung)"); return; }
+  if (hit && hit.object.userData.danial) { danialP.say("👋 Danial Rohaizat · CEO ROI Resources"); ui.toast("Danial Rohaizat · CEO ROI Resources (litar F1 bumbung)"); return; }
   if (hit) { select(hit.object.userData.agent, true); return; }
   // tekan bangunan / papan tanda: zum ke pejabat itu
   const b = ray.intersectObjects(Object.values(world.officeGroups), true)[0];

@@ -5,7 +5,7 @@ import { FLOOR_H } from "../config.js";
 import { person } from "./person.js";
 import { officeSpots } from "./spots.js";
 import { buildNuriLab } from "./nuriLab.js";
-import { GAYA, ceoSuite, roofGarden, goKart } from "./gaya.js";
+import { GAYA, ceoSuite, roofGarden, f1Car } from "./gaya.js";
 import { facade } from "./facade.js";
 
 const liftZ = plan => [plan.backZ + 0.6, plan.backZ + 2.2];   // julat z lif kaca di sisi kanan
@@ -73,13 +73,13 @@ export function buildWorld(scene, offices, agents, building = {}) {
   }
   scene.add(tower(offices, building, bobbers));
 
-  // Danial Rohaizat (CEO ROI Resources) di taman bumbung: sut lumba Heritage Emerald + jalur Legacy Brass, pandu go-kart
+  // Danial Rohaizat (CEO ROI Resources) di taman bumbung: sut lumba Heritage Emerald + jalur Legacy Brass, pandu kereta F1
   const hubKey = Object.keys(offices).find(k => offices[k].kind === "hub");
   let danial = null;
   if (hubKey && offices[hubKey].roof) {
     const R = offices[hubKey].roof;
     const mesh = person({ shirt: "#0E624D", pants: "#0E624D", hairStyle: "pendek", hairColor: "#141414", accent: "#B58A4A", tie: 0xB58A4A, collar: 0xF4F1E8 });
-    const kart = goKart();
+    const kart = f1Car();
     officeGroups[hubKey].add(kart);
     mesh.traverse(m => { if (m.isMesh) { m.userData.danial = true; pickables.push(m); } });
     kart.traverse(m => { if (m.isMesh) { m.userData.danial = true; pickables.push(m); } });

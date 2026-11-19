@@ -800,28 +800,44 @@ export function roofGarden(plan, color) {
   return g;
 }
 
-// ==================== GO-KART DANIAL ====================
-// Menghadap +z. Badan Heritage Emerald + Legacy Brass (warna ROI), nombor 1.
-export function goKart() {
+// ==================== KERETA F1 DANIAL ====================
+// Menghadap +z. Badan Heritage Emerald + jalur Legacy Brass (warna ROI), sayap putih, nombor 1.
+export function f1Car() {
   const g = new THREE.Group();
-  const em = std(0x0E624D, { roughness: 0.4, metalness: 0.2 }), brass = std(0xB58A4A, { metalness: 0.6, roughness: 0.3 });
-  const dark = std(0x15171d, { roughness: 0.6 }), tyreM = std(0x111111, { roughness: 0.9 });
-  g.add(mesh(box(0.62, 0.05, 1.05), dark, 0, 0.1, 0));                       // casis
-  g.add(mesh(box(0.5, 0.12, 0.32), em, 0, 0.17, 0.42));                      // muncung
-  g.add(mesh(box(0.56, 0.05, 0.12), brass, 0, 0.2, 0.6));                    // bampar depan
-  for (const sx of [-1, 1]) g.add(mesh(box(0.1, 0.12, 0.5), em, sx * 0.33, 0.16, -0.02));   // pod sisi
-  g.add(mesh(box(0.64, 0.06, 0.1), dark, 0, 0.16, -0.58));                   // bampar belakang
-  g.add(mesh(box(0.36, 0.06, 0.32), dark, 0, 0.17, -0.14));                  // tempat duduk
-  const back = mesh(box(0.36, 0.3, 0.06), em, 0, 0.32, -0.32); back.rotation.x = -0.25; g.add(back);
-  g.add(mesh(box(0.2, 0.18, 0.22), std(0x5a6274, { metalness: 0.6, roughness: 0.3 }), 0.2, 0.22, -0.45));   // enjin
-  const col = mesh(cyl(0.015, 0.015, 0.3, 6), dark, 0, 0.27, 0.2); col.rotation.x = -0.9; g.add(col);
-  const wheel = mesh(new THREE.TorusGeometry(0.08, 0.018, 6, 16), dark, 0, 0.36, 0.1); wheel.rotation.x = -0.6; g.add(wheel);
-  for (const [x, z, r] of [[-0.34, 0.36, 0.1], [0.34, 0.36, 0.1], [-0.36, -0.4, 0.12], [0.36, -0.4, 0.12]]) {
-    const w = mesh(cyl(r, r, 0.12, 14), tyreM, x, r, z); w.rotation.z = PI / 2; g.add(w);
-    const hub = mesh(cyl(r * 0.45, r * 0.45, 0.125, 10), brass, x, r, z); hub.rotation.z = PI / 2; g.add(hub);
+  const em = std(0x0E624D, { roughness: 0.35, metalness: 0.25 }), brass = std(0xB58A4A, { metalness: 0.6, roughness: 0.3 });
+  const carbon = std(0x15171d, { roughness: 0.5 }), white = std(0xF4F1E8, { roughness: 0.4 }), tyreM = std(0x111111, { roughness: 0.9 });
+  g.add(mesh(box(0.44, 0.03, 1.45), carbon, 0, 0.05, -0.05));                 // lantai / plank
+  g.add(mesh(box(0.26, 0.16, 0.85), em, 0, 0.15, 0.12));                      // monocoque
+  const nose = mesh(box(0.14, 0.08, 0.5), em, 0, 0.13, 0.75); nose.rotation.x = 0.08; g.add(nose);
+  g.add(mesh(box(0.1, 0.06, 0.08), brass, 0, 0.1, 1.0));                      // hujung muncung
+  g.add(mesh(box(0.66, 0.02, 0.16), white, 0, 0.05, 1.0));                    // sayap depan
+  g.add(mesh(box(0.62, 0.02, 0.1), em, 0, 0.08, 0.96));
+  for (const sx of [-1, 1]) g.add(mesh(box(0.02, 0.09, 0.2), carbon, sx * 0.33, 0.08, 1.0));
+  for (const sx of [-1, 1]) {
+    g.add(mesh(box(0.14, 0.14, 0.55), em, sx * 0.2, 0.13, -0.08));           // pod sisi
+    g.add(mesh(box(0.145, 0.03, 0.56), brass, sx * 0.2, 0.18, -0.08));       // jalur tembaga
+    g.add(mesh(box(0.1, 0.1, 0.02), carbon, sx * 0.2, 0.13, 0.2));           // salur udara
   }
-  const plate = tex("kart1", 64, 64, (c2, w, h) => { c2.fillStyle = "#F4F1E8"; c2.fillRect(0, 0, w, h); c2.fillStyle = "#091411"; c2.font = "900 50px sans-serif"; c2.textAlign = "center"; c2.textBaseline = "middle"; c2.fillText("1", 32, 35); });
-  g.add(mesh(new THREE.PlaneGeometry(0.16, 0.16), pic(plate), 0, 0.26, 0.665));
+  g.add(mesh(box(0.2, 0.2, 0.55), em, 0, 0.22, -0.4));                        // penutup enjin
+  g.add(mesh(box(0.12, 0.12, 0.14), carbon, 0, 0.38, -0.16));                 // salur udara atas kepala
+  g.add(mesh(box(0.04, 0.16, 0.5), em, 0, 0.36, -0.42));                      // sirip ikan jerung
+  // sayap belakang (dua elemen) + plat hujung
+  g.add(mesh(box(0.52, 0.025, 0.14), white, 0, 0.46, -0.78));
+  g.add(mesh(box(0.52, 0.02, 0.1), em, 0, 0.4, -0.74));
+  for (const sx of [-1, 1]) g.add(mesh(box(0.02, 0.22, 0.24), carbon, sx * 0.27, 0.38, -0.76));
+  g.add(mesh(box(0.04, 0.2, 0.06), carbon, 0, 0.3, -0.72));
+  // halo pelindung kokpit
+  const halo = mesh(new THREE.TorusGeometry(0.12, 0.014, 6, 18, PI), carbon, 0, 0.31, 0.02); halo.rotation.x = -PI / 2; g.add(halo);
+  g.add(mesh(box(0.025, 0.12, 0.025), carbon, 0, 0.26, 0.15));
+  // roda terbuka (depan kecil, belakang besar) dengan jalur dinding tayar
+  for (const [x, z, r, w] of [[-0.31, 0.6, 0.13, 0.12], [0.31, 0.6, 0.13, 0.12], [-0.32, -0.52, 0.15, 0.16], [0.32, -0.52, 0.15, 0.16]]) {
+    const t = mesh(cyl(r, r, w, 16), tyreM, x, r, z); t.rotation.z = PI / 2; g.add(t);
+    const band = mesh(cyl(r * 0.78, r * 0.78, w + 0.004, 16), std(0xF2C14E), x, r, z); band.rotation.z = PI / 2; g.add(band);
+    const hub = mesh(cyl(r * 0.6, r * 0.6, w + 0.008, 10), carbon, x, r, z); hub.rotation.z = PI / 2; g.add(hub);
+  }
+  const plate = tex("f1no1", 64, 64, (c2, w, h) => { c2.fillStyle = "#F4F1E8"; c2.fillRect(0, 0, w, h); c2.fillStyle = "#091411"; c2.font = "900 50px sans-serif"; c2.textAlign = "center"; c2.textBaseline = "middle"; c2.fillText("1", 32, 35); });
+  const no = mesh(new THREE.PlaneGeometry(0.12, 0.12), pic(plate), 0, 0.175, 0.62); no.rotation.x = -PI / 2 + 0.08; g.add(no);
+  const no2 = mesh(new THREE.PlaneGeometry(0.14, 0.14), pic(plate), 0, 0.36, -0.42); no2.rotation.y = PI / 2; no2.position.x = 0.021; g.add(no2);
   g.scale.setScalar(1.25);
   return g;
 }
