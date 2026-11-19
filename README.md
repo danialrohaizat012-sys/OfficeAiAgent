@@ -152,3 +152,11 @@ prototaip/           prototaip asal (rujukan sahaja)
 ```
 
 Teknologi: Vite, three.js 0.187, Vercel Functions, Upstash Redis (pelan percuma).
+
+---
+
+## Riza V1 — prospek autonomi (kod disediakan, belum diaktifkan)
+
+Riza (BinaLab, agent ID `riza`) kini ada skrip Google Apps Script di [`agents/riza/Code.gs`](agents/riza/Code.gs). Bila dikonfigurasi, ia boleh mencari sehingga **10 listing perniagaan awam sehari**, menyemak duplikasi pada spreadsheet yang sama, menulis ke tab `Riza Leads`, lalu menghantar status ringkas ke Markas. Ia **tidak menghantar outreach automatik**.
+
+**Baca [panduan pemasangan Riza](agents/riza/CARA-PASANG.md)** sebelum mengaktifkan. Memerlukan Google Places API (New) dengan billing/kuota, akses edit Google Sheets, Apps Script trigger, dan konfigurasi rahsia dalam Script Properties. Data Google Places tertakluk pada polisi penyimpanan dan penggunaan semula: semak pematuhan dahulu sebelum menggunakan data sebagai CRM kekal. Fungsi belum diuji pada production dan belum dijadualkan pada akaun Google pengguna.
