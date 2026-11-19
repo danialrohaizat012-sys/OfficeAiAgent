@@ -30,10 +30,20 @@
   </div>
 </header>
 
+<nav class="floors" id="tabs" aria-label="Pilih tingkat"></nav>
+
 <div class="dock" id="dock">
-  <div class="tabs" id="tabs" role="group" aria-label="Pilih pejabat"></div>
-  <div class="roster" id="roster"></div>
+  <div class="crew" id="crew">
+    <div class="crew-head" id="crewHead"></div>
+    <div class="roster" id="roster"></div>
+  </div>
+  <button class="staffbtn" id="staffBtn"><span>👥</span> <b>Semua staf</b> <i id="staffCount"></i><em id="staffDecide" hidden></em></button>
 </div>
+
+<section class="dir" id="dir" aria-label="Direktori staf" hidden>
+  <div class="dir-top"><h2>Direktori staf</h2><button class="close" id="dirClose">Tutup</button></div>
+  <div class="dir-list" id="dirList"></div>
+</section>
 
 <section class="sheet" id="sheet" aria-live="polite">
   <div class="top">
