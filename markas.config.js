@@ -49,9 +49,9 @@ export default {
     { id: "ciptarobo", nama: "Cipta Robo", label: "Makmal R&D Cipta Robo", jenis: "pejabat", tema: "robotik", warna: "#4FBF9F",
       papanPesan: "NURI LAB · SIMULASI\nMake NURI yours. Make NURI useful.",
       logo: { fail: "ciptarobo-logo.png", latar: "#F4F3EF" } },
-    { id: "ehnakama", nama: "Ehnakama", label: "Pejabat EHNAKAMA", jenis: "pejabat", tema: "kedai", warna: "#FF4F6D",
-      papanPesan: "EHNAKAMA\nAnime · Manga · Manhwa · Merch",
-      logo: { fail: "ehnakama-logo.svg" } },   // logo SEMENTARA: ganti dengan logo rasmi
+    { id: "ehnakama", nama: "Eh Nakama", label: "Studio EH NAKAMA", jenis: "pejabat", tema: "kedai", warna: "#D7252C",
+      papanPesan: "EH NAKAMA\nDifferent stories. Same nakama.",
+      logo: { fail: "ehnakama-logo.png" } },   // logo panjang (dijana dari logo bulat rasmi)
     { id: "gilapips", nama: "GilaPips", label: "Pejabat GilaPips", jenis: "pejabat", tema: "studio", warna: "#D4B26A",
       papanPesan: "Ilmu Biasa.\nHasil Luar Biasa.",
       logo: { fail: "gilapips-logo.svg" } },
@@ -83,9 +83,9 @@ export default {
     { id: "reka", nama: "Reka", pejabat: "ciptarobo", peranan: "Website, 3D & reka bentuk NURI", warna: "#C28CFF", rambut: "panjang",
       tugas: ["Kemas kini ciptarobo.com (EN | BM)", "Animasi \"NURI in action\"", "Konfigurator rupa, warna, dock & ukiran"] },
 
-    // EHNAKAMA (kandungan anime/manga/manhwa + merchandise; status contoh)
-    { id: "hana", nama: "Hana", pejabat: "ehnakama", peranan: "Kandungan & skrip anime/manga/manhwa", warna: "#FF4F6D", rambut: "panjang", warnaRambut: "#2A1B12",
-      tugas: ["Rancang 5 video ulasan manhwa minggu ini", "Tulis skrip short: manga baru bulan ini", "Jadual posting TikTok & IG"] },
+    // EH NAKAMA (studio media cerita anime/manga/manhwa/game + merchandise; status contoh)
+    { id: "hana", nama: "Hana", pejabat: "ehnakama", peranan: "Cerita & skrip anime/manga/manhwa/game", warna: "#D7252C", rambut: "panjang", warnaRambut: "#2A1B12",
+      tugas: ["Rancang 5 video cerita manhwa minggu ini", "Tulis skrip short: anime & game baru bulan ini", "Jadual posting TikTok & IG"] },
     { id: "ikmal", nama: "Ikmal", pejabat: "ehnakama", peranan: "Merchandise & stok", warna: "#7C5CFF", rambut: "topi",
       tugas: ["Senarai idea merchandise baru", "Semak stok & kos cetakan", "Kemas kini katalog merchandise"] },
     { id: "nisa", nama: "Nisa", pejabat: "ehnakama", peranan: "Sponsorship, affiliate & komuniti", warna: "#2FC1B0", rambut: "tudung", warnaRambut: "#F4A6B8",
