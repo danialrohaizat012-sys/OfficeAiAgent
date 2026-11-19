@@ -1,4 +1,4 @@
-# Markas Agent: BinaLab · Meney Gaming · Cipta Robo
+# Markas Agent: ROI Resources (BinaLab · Meney Gaming · Cipta Robo · EHNAKAMA · GilaPips · LAKAR)
 
 Dashboard 3D untuk AI agent dua bisnes Danial. Ada satu hab **Command** (Nadi), bangunan **BinaLab** (studio perisian) dan bangunan **Meney Gaming** (kedai gaming) dan makmal **Cipta Robo** (R&D NURI, simulasi). Setiap agent dipaparkan sebagai pekerja di pejabat. Mereka menaip bila sibuk, berjalan bila senggang, dan "!" merah muncul bila perlu keputusan Danial.
 
@@ -13,7 +13,7 @@ Dashboard 3D untuk AI agent dua bisnes Danial. Ada satu hab **Command** (Nadi), 
 |---|---|
 | **Data contoh / ● Hidup** (kanan atas) | Tukar antara simulasi dan status sebenar. Mod Hidup minta **kod akses** sekali (`MARKAS_VIEW_CODE`). |
 | **✨ Cantik / ⚡ Laju** | Kualiti grafik. Laju = tanpa bayang-bayang, untuk phone yang berat (bertukar sendiri kalau perlu). |
-| Tab **Semua / Command / BinaLab / Meney / Cipta Robo** | Zum ke pejabat. Boleh juga tekan terus bangunan atau papan tanda. |
+| Tab **Semua / Command / BinaLab / Meney / Cipta Robo / Ehnakama / GilaPips / Lakar** | Zum ke pejabat. Boleh juga tekan terus bangunan atau papan tanda. |
 | Tekan pekerja / chip di bawah | Panel detail: sedang buat, report terakhir, aktiviti terkini, perlu keputusan. |
 | **✓ Tandakan selesai** | Padam "perlu keputusan" (disimpan di server dalam mod Hidup). |
 

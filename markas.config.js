@@ -33,7 +33,7 @@
 
 export default {
   tajuk: "Markas Agent",
-  subtajuk: "BinaLab · Meney Gaming · Cipta Robo",
+  subtajuk: "ROI Resources · 6 venture",
 
   pejabat: [
     { id: "command", nama: "Command", label: "Command", jenis: "hab", warna: "#8E9BFF" },
@@ -46,6 +46,16 @@ export default {
     { id: "ciptarobo", nama: "Cipta Robo", label: "Makmal R&D Cipta Robo", jenis: "pejabat", tema: "robotik", warna: "#4FBF9F",
       papanPesan: "NURI LAB · SIMULASI\nMake NURI yours. Make NURI useful.",
       logo: { fail: "ciptarobo-logo.png", latar: "#F4F3EF" } },
+    // Baris kedua (di belakang)
+    { id: "ehnakama", nama: "Ehnakama", label: "Pejabat EHNAKAMA", jenis: "pejabat", tema: "kedai", warna: "#FF4F6D",
+      papanPesan: "EHNAKAMA\nAnime · Manga · Manhwa · Merch",
+      logo: { fail: "ehnakama-logo.svg" } },   // logo SEMENTARA: ganti dengan logo rasmi
+    { id: "gilapips", nama: "GilaPips", label: "Pejabat GilaPips", jenis: "pejabat", tema: "studio", warna: "#D4B26A",
+      papanPesan: "Ilmu Biasa.\nHasil Luar Biasa.",
+      logo: { fail: "gilapips-logo.svg" } },
+    { id: "lakar", nama: "Lakar", label: "Studio LAKAR", jenis: "pejabat", tema: "studio", warna: "#C4513B",
+      papanPesan: "LAKAR\nMural custom untuk ruang yang ada cerita.",
+      logo: { fail: "lakar-logo.png", latar: "#F9F4EC" } },
   ],
 
   agent: [
@@ -70,6 +80,30 @@ export default {
       tugas: ["Semak muat NURI Suit pada K151 (zon sentuh, kamera, USB-C)", "Uji pengecasan Slim Dock dan Nest Dock", "Semak pergerakan pan/tilt dan pengudaraan"] },
     { id: "reka", nama: "Reka", pejabat: "ciptarobo", peranan: "Website, 3D & reka bentuk NURI", warna: "#C28CFF", rambut: "panjang",
       tugas: ["Kemas kini ciptarobo.com (EN | BM)", "Animasi \"NURI in action\"", "Konfigurator rupa, warna, dock & ukiran"] },
+
+    // EHNAKAMA (kandungan anime/manga/manhwa + merchandise; status contoh)
+    { id: "hana", nama: "Hana", pejabat: "ehnakama", peranan: "Kandungan & skrip anime/manga/manhwa", warna: "#FF4F6D", rambut: "panjang", warnaRambut: "#2A1B12",
+      tugas: ["Rancang 5 video ulasan manhwa minggu ini", "Tulis skrip short: manga baru bulan ini", "Jadual posting TikTok & IG"] },
+    { id: "ikmal", nama: "Ikmal", pejabat: "ehnakama", peranan: "Merchandise & stok", warna: "#7C5CFF", rambut: "topi",
+      tugas: ["Senarai idea merchandise baru", "Semak stok & kos cetakan", "Kemas kini katalog merchandise"] },
+    { id: "nisa", nama: "Nisa", pejabat: "ehnakama", peranan: "Sponsorship, affiliate & komuniti", warna: "#2FC1B0", rambut: "tudung", warnaRambut: "#F4A6B8",
+      tugas: ["Senarai 10 calon sponsor/affiliate", "Balas komen & DM komuniti", "Kira prestasi pautan affiliate"] },
+
+    // GilaPips (edukasi pasaran & emas, komuniti; status contoh — bukan nasihat pelaburan)
+    { id: "amin", nama: "Amin", pejabat: "gilapips", peranan: "Kandungan edukasi pasaran & emas", warna: "#D4B26A", rambut: "kemas", warnaRambut: "#1E1410",
+      tugas: ["Tulis nota asas: apa itu pips", "Ringkasan mingguan pergerakan emas (edukasi)", "Draf infografik pengurusan risiko"] },
+    { id: "syafiq", nama: "Syafiq", pejabat: "gilapips", peranan: "Komuniti & Telegram", warna: "#3A6DF0", rambut: "pendek",
+      tugas: ["Sambut ahli baru komuniti", "Jawab soalan lazim ahli", "Jadual sesi belajar mingguan"] },
+    { id: "wani", nama: "Wani", pejabat: "gilapips", peranan: "Ebook & produk digital", warna: "#2FA86A", rambut: "tudung", warnaRambut: "#C9B6E8",
+      tugas: ["Susun bab ebook asas pasaran", "Semak fakta & penafian risiko", "Sediakan halaman jualan ebook"] },
+
+    // LAKAR (mural & seni ruang; status contoh)
+    { id: "dina", nama: "Dina", pejabat: "lakar", peranan: "Konsep & reka mural", warna: "#C4513B", rambut: "panjang", warnaRambut: "#6B3E26",
+      tugas: ["Lakar 3 konsep mural kafe", "Sediakan mockup dinding pelanggan", "Pilih palet warna projek"] },
+    { id: "fahmi", nama: "Fahmi", pejabat: "lakar", peranan: "Sebut harga & projek tapak", warna: "#176B63", rambut: "topi",
+      tugas: ["Ukur dinding & kira anggaran", "Sediakan sebut harga mural", "Jadual kerja tapak & bahan"] },
+    { id: "ain", nama: "Ain", pejabat: "lakar", peranan: "Portfolio & media sosial", warna: "#F2C14E", rambut: "tudung", warnaRambut: "#176B63",
+      tugas: ["Kemas kini portfolio lakar.my", "Posting proses mural (before/after)", "Kumpul testimoni pelanggan"] },
 
     // Meney Gaming
     { id: "kai", nama: "Kai", pejabat: "meney", peranan: "Jual beli dan stok", warna: "#8DC63F", rambut: "topi",

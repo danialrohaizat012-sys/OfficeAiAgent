@@ -105,7 +105,7 @@ button:focus-visible{outline:2px solid #8E9BFF;outline-offset:2px}
 .loading{position:fixed;inset:0;display:grid;place-items:center;color:#AEB8CA;font-size:13px}
 @media (min-width:900px){
   header h1{font-size:24px}
-  .roster{justify-content:center;flex-wrap:wrap}
+  .roster{padding-left:max(12px,calc(50vw - 560px));padding-right:max(12px,calc(50vw - 560px))}
 }
 
 /* ---- HUD kanan atas: data contoh, jam, kualiti ---- */

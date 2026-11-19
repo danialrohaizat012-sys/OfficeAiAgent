@@ -38,7 +38,7 @@ export function createStage(canvas, reduceMotion) {
   key.castShadow = true;
   const size = Math.min(innerWidth, innerHeight) < 600 ? 1024 : 2048;
   key.shadow.mapSize.set(size, size);
-  Object.assign(key.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 90 });
+  Object.assign(key.shadow.camera, { left: -34, right: 34, top: 34, bottom: -34, near: 1, far: 110 });
   key.shadow.bias = -0.0005; key.shadow.normalBias = 0.02;
   scene.add(key, key.target);
 

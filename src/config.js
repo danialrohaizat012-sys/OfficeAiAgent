@@ -50,12 +50,18 @@ export function loadConfig() {
     const h = hubs[0];
     offices[h.id] = { kind: "hub", label: h.label || h.nama, short: h.nama, color: hexNum(h.warna), pos: HUB_POS.slice() };
   }
+  // Susun pejabat dalam baris (maks 3 sebaris). Baris pertama paling dekat dengan Command,
+  // baris seterusnya di belakang. Baris terakhir yang tak penuh diletak di tengah.
+  const PER_ROW = 3, ROW_SPACING = OFFICE_D + 4.6;
   rooms.forEach((o, i) => {
-    const x = (i - (rooms.length - 1) / 2) * OFFICE_SPACING;
+    const row = Math.floor(i / PER_ROW), col = i % PER_ROW;
+    const inRow = Math.min(PER_ROW, rooms.length - row * PER_ROW);
+    const x = (col - (inRow - 1) / 2) * OFFICE_SPACING;
+    const z = OFFICE_Z - row * ROW_SPACING;
     const count = agents.filter(a => a.office === o.id).length;
     offices[o.id] = {
       kind: "office", label: o.label || o.nama, short: o.nama, color: hexNum(o.warna),
-      pos: [x, 0, OFFICE_Z], logo: o.logo || null, theme: o.tema || "studio", message: o.papanPesan || null, logoPhase: i * 1.3,
+      pos: [x, 0, z], logo: o.logo || null, theme: o.tema || "studio", message: o.papanPesan || null, logoPhase: i * 1.3,
       ...deskLayout(count),
     };
   });
