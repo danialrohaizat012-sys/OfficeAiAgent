@@ -4,7 +4,7 @@
 Pemilik projek: Danial, pemilik BinaLab (projek bina app/produk dan monetisasi).
 Danial bukan developer sepenuh masa. Terangkan dalam Bahasa Melayu yang ringkas dan jelas.
 
-Markas Agent ialah sistem AI agent untuk dua bisnes Danial: satu hab Command, pejabat **BinaLab** (studio perisian) dan pejabat **Meney Gaming** (kedai gaming), dipaparkan sebagai dashboard 3D kompleks bangunan pejabat. Satu kod, satu dashboard, tetapi data kedua-dua bisnes kekal berasingan.
+Markas Agent ialah sistem AI agent untuk bisnes Danial: satu hab Command, pejabat **BinaLab** (studio perisian), pejabat **Meney Gaming** (kedai gaming) dan makmal **Cipta Robo** (R&D robot AI companion NURI), dipaparkan sebagai dashboard 3D kompleks bangunan pejabat. Satu kod, satu dashboard, tetapi data kedua-dua bisnes kekal berasingan.
 
 ## Struktur projek
 - `index.html`: kerangka halaman (header, tab, roster, panel detail).
@@ -33,6 +33,7 @@ three.js 0.187 dengan tetapan "legacy" (ColorManagement off, output linear, lamp
 - Command: Nadi, ketua untuk kedua-dua bisnes (agih kerja, rumus laporan harian)
 - BinaLab: Bina (pipeline & prospek), Riza (riset pasaran), Mira (produk & MVP), Ayu (admin & customer care)
 - Meney: Kai (jual beli & stok), Faris (repair & servis), Zara (content & posting), Lina (laporan & angka). Warna Meney: hijau lime #8DC63F. Logo Meney melintang (kanvas 1400×700, skala 3.1).
+- Cipta Robo (tema `robotik`, makmal NURI dalam `src/scene/nuriLab.js`; ditambah melalui PR #1): Muhafiz (hardware & prototaip NURI: K151, Suit, Dock), Reka (website ciptarobo.com, 3D & reka bentuk NURI). Status/tugas masih SIMULASI. Warna jenama hijau-teal #4FBF9F, gelap #15191D, latar cerah #F4F3EF. Logo `logos/ciptarobo-logo-light.svg` (dari Drive › Cipta Robo › Logo; papan tanda guna `latar: "#F4F3EF"`). NURI: AI companion berasaskan M5Stack StackChan K151, sasaran RM999 (NURI Suit, Slim Dock, ukiran); 4 contoh kegunaan Learn/Reception/Assist/Companion (bukan SKU). Jangan dakwa ciri konsep sebagai tersedia. Rujukan: Drive › Cipta Robo › "NURI Use Cases V2.x".
 
 Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & prospek) ialah agent pertama yang patut dihidupkan.
 
@@ -81,6 +82,7 @@ Keutamaan: BinaLab perlukan data pipeline yang bermakna. Agent Bina (pipeline & 
 - [x] Peringkat 7: README BM (`README.md`)
 
 - [x] Peringkat 8: agent Meney (Lina + Faris) dipasang di Apps Script "Meney – Markas" akaun Danial; ujiMeney berjaya ke server sebenar 13 Nov 2026; jadual setiap jam dipasang. Danial sahkan angka Lina & Faris SAMA dengan POS (medan POS live sepadan dengan v2.9.1).
+- [x] Peringkat 10: makmal Cipta Robo (PR #1) + logo sebenar atas papan cerah, warna jenama teal, Reqa → Reka, kamera/kabus muat 3 bangunan di phone tegak.
 - [x] Peringkat 9: Nadi rumus laporan harian (api/nadi.js + Vercel Cron 8:30 MYT + butang dalam panel). `CRON_SECRET` ditambah di Vercel dan diredeploy 13 Nov 2026.
 
 ## Seterusnya (dipersetujui Danial; mula petang ini)

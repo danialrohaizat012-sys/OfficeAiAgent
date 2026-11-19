@@ -111,7 +111,7 @@ button:focus-visible{outline:2px solid #8E9BFF;outline-offset:2px}
 /* ---- HUD kanan atas: data contoh, jam, kualiti ---- */
 .hud{display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none}
 .hud-row{display:flex;gap:6px}
-.chipx{pointer-events:auto;font:inherit;font-size:11px;color:#E6ECF5;border:1px solid rgba(255,255,255,.18);
+.chipx{pointer-events:auto;white-space:nowrap;font:inherit;font-size:11px;color:#E6ECF5;border:1px solid rgba(255,255,255,.18);
   border-radius:999px;padding:5px 10px;background:rgba(6,9,19,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 button.chipx{cursor:pointer}
 header h1,header p{text-shadow:0 1px 3px rgba(0,0,0,.65),0 2px 14px rgba(0,0,0,.5)}

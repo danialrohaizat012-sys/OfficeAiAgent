@@ -1,6 +1,6 @@
-# Markas Agent: BinaLab · Meney Gaming · Ciptarobo
+# Markas Agent: BinaLab · Meney Gaming · Cipta Robo
 
-Dashboard 3D untuk AI agent dua bisnes Danial. Ada satu hab **Command** (Nadi), bangunan **BinaLab** (studio perisian) dan bangunan **Meney Gaming** (kedai gaming) dan makmal **Ciptarobo** (simulasi R&D Nuri). Setiap agent dipaparkan sebagai pekerja di pejabat. Mereka menaip bila sibuk, berjalan bila senggang, dan "!" merah muncul bila perlu keputusan Danial.
+Dashboard 3D untuk AI agent dua bisnes Danial. Ada satu hab **Command** (Nadi), bangunan **BinaLab** (studio perisian) dan bangunan **Meney Gaming** (kedai gaming) dan makmal **Cipta Robo** (R&D NURI, simulasi). Setiap agent dipaparkan sebagai pekerja di pejabat. Mereka menaip bila sibuk, berjalan bila senggang, dan "!" merah muncul bila perlu keputusan Danial.
 
 **Live:** https://office-ai-agent-tawny.vercel.app
 **Semakan backend:** https://office-ai-agent-tawny.vercel.app/api/health
@@ -13,17 +13,17 @@ Dashboard 3D untuk AI agent dua bisnes Danial. Ada satu hab **Command** (Nadi), 
 |---|---|
 | **Data contoh / ● Hidup** (kanan atas) | Tukar antara simulasi dan status sebenar. Mod Hidup minta **kod akses** sekali (`MARKAS_VIEW_CODE`). |
 | **✨ Cantik / ⚡ Laju** | Kualiti grafik. Laju = tanpa bayang-bayang, untuk phone yang berat (bertukar sendiri kalau perlu). |
-| Tab **Semua / Command / BinaLab / Meney / Ciptarobo** | Zum ke pejabat. Boleh juga tekan terus bangunan atau papan tanda. |
+| Tab **Semua / Command / BinaLab / Meney / Cipta Robo** | Zum ke pejabat. Boleh juga tekan terus bangunan atau papan tanda. |
 | Tekan pekerja / chip di bawah | Panel detail: sedang buat, report terakhir, aktiviti terkini, perlu keputusan. |
 | **✓ Tandakan selesai** | Padam "perlu keputusan" (disimpan di server dalam mod Hidup). |
 
 Jam dan cuaca ikut **waktu Malaysia** dan **cuaca sebenar Pasir Tumboh**. Untuk uji, tambah pada URL:
 `?jam=21` (malam), `?jam=19` (senja), `?cuaca=hujan`, `?cuaca=ribut`, `?cuaca=mendung`.
 
-### Ciptarobo: makmal R&D Nuri (simulasi)
+### Cipta Robo: makmal R&D NURI (simulasi)
 
-- Pilih tab **Ciptarobo** untuk zum ke makmal 3D.
-- **Muhafiz** mensimulasikan ujian hardware; **Reqa** mensimulasikan respons AI.
+- Pilih tab **Cipta Robo** untuk zum ke makmal 3D.
+- **Muhafiz** mensimulasikan ujian hardware; **Reka** (website, 3D & reka bentuk NURI). Status dan tugas masih simulasi.
 - Meja eksperimen besar menempatkan model Nuri 3D dengan pergerakan kepala, kedipan mata, dan skrin eksperimen berlabel **SIMULASI**.
 - Ini **animasi demo sahaja**, bukan latihan model AI, bukan ujian hardware sebenar, dan tidak mengawal robot fizikal. Dalam mod Hidup, kedua-dua agent tidak mempunyai status automatik sehingga sambungan backend disediakan.
 

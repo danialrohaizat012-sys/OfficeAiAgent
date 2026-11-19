@@ -68,7 +68,7 @@ export function signBoard(svg, opt, accent, height) {
   const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4;
   const r = 60;
   ctx.beginPath(); ctx.moveTo(r, 8); ctx.arcTo(W - 8, 8, W - 8, H - 8, r); ctx.arcTo(W - 8, H - 8, 8, H - 8, r); ctx.arcTo(8, H - 8, 8, 8, r); ctx.arcTo(8, 8, W - 8, 8, r); ctx.closePath();
-  ctx.fillStyle = "#0b1222"; ctx.fill();
+  ctx.fillStyle = (opt && opt.latar) || "#0b1222"; ctx.fill();   // "latar" dalam config: warna papan (cth logo untuk latar cerah)
   ctx.lineWidth = 12; ctx.strokeStyle = accent; ctx.stroke();
 
   const load = (box) => new Promise(res => {

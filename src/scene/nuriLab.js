@@ -3,9 +3,9 @@ import * as THREE from "three";
 // Makmal Nuri: persembahan 3D sahaja. Tiada latihan model atau sambungan hardware.
 const metal = new THREE.MeshStandardMaterial({ color: 0x28354b, metalness: 0.55, roughness: 0.35 });
 const white = new THREE.MeshStandardMaterial({ color: 0xe7f5ff, roughness: 0.35 });
-const cyan = new THREE.MeshStandardMaterial({ color: 0x55c7ee, emissive: 0x1479a0, emissiveIntensity: 0.35 });
+const cyan = new THREE.MeshStandardMaterial({ color: 0x4fbf9f, emissive: 0x1f7a60, emissiveIntensity: 0.35 });   // hijau-teal jenama Cipta Robo
 const screen = new THREE.MeshBasicMaterial({ color: 0x081c32 });
-const glow = new THREE.MeshBasicMaterial({ color: 0x79f2ff });
+const glow = new THREE.MeshBasicMaterial({ color: 0x8ff0cf });
 
 function add(g, geometry, material, x, y, z) {
   const m = new THREE.Mesh(geometry, material);
@@ -19,18 +19,16 @@ function displayTexture() {
   const c = document.createElement("canvas");
   c.width = 512; c.height = 256;
   const ctx = c.getContext("2d");
-  ctx.fillStyle = "#081a2e"; ctx.fillRect(0, 0, 512, 256);
-  ctx.fillStyle = "#61dce9"; ctx.font = "bold 35px sans-serif";
-  ctx.fillText("NURI LAB", 30, 57);
-  ctx.fillStyle = "#ffcc72"; ctx.font = "bold 25px sans-serif";
-  ctx.fillText("● SIMULASI / DEMO", 30, 101);
-  ctx.fillStyle = "#c1d8ee"; ctx.font = "22px sans-serif";
-  ctx.fillText("Muhafiz  •  Hardware", 30, 151);
-  ctx.fillText("Reqa  •  Respons AI", 30, 189);
-  ctx.fillStyle = "#58dba2"; ctx.fillText("Tiada latihan AI sebenar", 30, 228);
-  const texture = new THREE.CanvasTexture(c);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
+  ctx.fillStyle = "#15191d"; ctx.fillRect(0, 0, 512, 256);
+  ctx.fillStyle = "#4fbf9f"; ctx.font = "bold 35px sans-serif";
+  ctx.fillText("CIPTA ROBO · NURI", 30, 57);
+  ctx.fillStyle = "#ffcc72"; ctx.font = "bold 23px sans-serif";
+  ctx.fillText("● SIMULASI / DEMO", 30, 98);
+  ctx.fillStyle = "#e6ebe8"; ctx.font = "22px sans-serif";
+  ctx.fillText("Muhafiz  •  Hardware & prototaip", 30, 146);
+  ctx.fillText("Reka  •  Website, 3D & reka bentuk", 30, 182);
+  ctx.fillStyle = "#4fbf9f"; ctx.fillText("NURI Base · sasaran RM999", 30, 226);
+  return new THREE.CanvasTexture(c);
 }
 
 export function buildNuriLab() {

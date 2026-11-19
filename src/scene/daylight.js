@@ -38,7 +38,7 @@ function sample(h) {
   return { sky: c, sun: a.sun + (b.sun - a.sun) * k, sunC: sc, night: a.night + (b.night - a.night) * k };
 }
 
-export function createDaylight({ scene, renderer, hemi, key, nightLights, center }) {
+export function createDaylight({ scene, renderer, hemi, key, nightLights, center, fogScale = 1 }) {
   const glowMats = [];
   scene.traverse(o => {
     const mats = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
@@ -60,7 +60,8 @@ export function createDaylight({ scene, renderer, hemi, key, nightLights, center
     s.sun *= 1 - Math.min(0.7, over);
     renderer.setClearColor(s.sky);
     scene.fog.color.copy(s.sky);
-    scene.fog.near = 45 - weather.rain * 20; scene.fog.far = 100 - weather.rain * 40;
+    // kabus ikut jarak kamera (lebih banyak bangunan = kamera lebih jauh)
+    scene.fog.near = (45 - weather.rain * 20) * fogScale; scene.fog.far = (100 - weather.rain * 40) * fogScale;
     // matahari bergerak dari timur (pagi) ke barat (petang); waktu malam jadi cahaya bulan
     const dayK = THREE.MathUtils.clamp((hour - 6.5) / 12.5, 0, 1);
     const az = (dayK - 0.5) * 1.6;

@@ -50,7 +50,9 @@ const ui = createUI({
 });
 
 // Siang/malam ikut waktu Malaysia + jam kecil di header
-const daylight = createDaylight({ scene, renderer, hemi, key, nightLights: world.nightLights, center: { x: view.target[0], z: view.target[2] } });
+const homeDist = rig.homePos().distanceTo(new THREE.Vector3(...view.target));
+const daylight = createDaylight({ scene, renderer, hemi, key, nightLights: world.nightLights, center: { x: view.target[0], z: view.target[2] },
+  fogScale: Math.max(1, homeDist / 40) });
 const clockEl = document.getElementById("clock");
 const showClock = () => { clockEl.textContent = daylight.label(); };
 showClock(); setInterval(showClock, 30000);

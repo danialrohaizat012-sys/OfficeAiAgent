@@ -13,7 +13,7 @@
 //    tema   : (pilihan) hiasan dinding: "studio" (whiteboard, rak buku) atau "kedai" (rak game, TV)
 //    papanPesan: (pilihan) teks di whiteboard (studio) atau papan promo luar pintu (kedai).
 //             Baris pertama = tajuk kalau guna "\n", contoh "PROMO\nTrade-in PS5 dapat lebih".
-//    logo   : (pilihan) papan tanda atas bumbung. "fail" = SVG dalam folder logos/.
+//    logo   : (pilihan) papan tanda atas bumbung. "fail" = SVG dalam folder logos/. "latar" = warna papan (lalai gelap).
 //             Pilihan "ikon" dan "tulisan" (viewBox dalam SVG) = ikon di kiri, tulisan di kanan.
 //
 //  AGENT
@@ -33,7 +33,7 @@
 
 export default {
   tajuk: "Markas Agent",
-  subtajuk: "BinaLab · Meney Gaming · Ciptarobo",
+  subtajuk: "BinaLab · Meney Gaming · Cipta Robo",
 
   pejabat: [
     { id: "command", nama: "Command", label: "Command", jenis: "hab", warna: "#8E9BFF" },
@@ -43,8 +43,9 @@ export default {
     { id: "meney", nama: "Meney", label: "Pejabat Meney Gaming", jenis: "pejabat", tema: "kedai", warna: "#8DC63F",
       papanPesan: "Promo\nTrade-in PS5 anda di sini. Tanya di kaunter!",
       logo: { fail: "meney-logo-dark.svg" } },
-    { id: "ciptarobo", nama: "Ciptarobo", label: "Makmal R&D Ciptarobo", jenis: "pejabat", tema: "robotik", warna: "#55C7EE",
-      papanPesan: "NURI LAB · SIMULASI\nLatihan AI & prototaip robotik" },
+    { id: "ciptarobo", nama: "Cipta Robo", label: "Makmal R&D Cipta Robo", jenis: "pejabat", tema: "robotik", warna: "#4FBF9F",
+      papanPesan: "NURI LAB · SIMULASI\nMake NURI yours. Make NURI useful.",
+      logo: { fail: "ciptarobo-logo-light.svg", latar: "#F4F3EF" } },
   ],
 
   agent: [
@@ -64,11 +65,11 @@ export default {
       contohKeputusan: ["Klien minta tangguh bayaran ansuran kedua 2 minggu"],
       tugas: ["Balas 8 pertanyaan pelanggan", "Susun tiket sokongan", "Jadual demo dengan prospek"] },
 
-    // Ciptarobo (simulasi sahaja, bukan latihan AI sebenar)
-    { id: "muhafiz", nama: "Muhafiz", pejabat: "ciptarobo", peranan: "Penyelidikan hardware & prototaip Nuri", warna: "#4FA8FF", rambut: "kemas",
-      tugas: ["Simulasi pemeriksaan servo dan sendi kepala Nuri", "Simulasi ujian kuasa dan sensor", "Dokumentasi prototaip R&D"] },
-    { id: "reqa", nama: "Reqa", pejabat: "ciptarobo", peranan: "Simulasi latihan AI & respons Nuri", warna: "#C28CFF", rambut: "panjang",
-      tugas: ["Simulasi ujian respons perbualan Nuri", "Simulasi ekspresi wajah digital", "Catat eksperimen AI companion"] },
+    // Cipta Robo (status & tugas simulasi sahaja; NURI masih R&D)
+    { id: "muhafiz", nama: "Muhafiz", pejabat: "ciptarobo", peranan: "Hardware & prototaip NURI (K151, Suit, Dock)", warna: "#4FBF9F", rambut: "kemas",
+      tugas: ["Semak muat NURI Suit pada K151 (zon sentuh, kamera, USB-C)", "Uji pengecasan Slim Dock dan Nest Dock", "Semak pergerakan pan/tilt dan pengudaraan"] },
+    { id: "reka", nama: "Reka", pejabat: "ciptarobo", peranan: "Website, 3D & reka bentuk NURI", warna: "#C28CFF", rambut: "panjang",
+      tugas: ["Kemas kini ciptarobo.com (EN | BM)", "Animasi \"NURI in action\"", "Konfigurator rupa, warna, dock & ukiran"] },
 
     // Meney Gaming
     { id: "kai", nama: "Kai", pejabat: "meney", peranan: "Jual beli dan stok", warna: "#8DC63F", rambut: "topi",
