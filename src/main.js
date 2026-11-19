@@ -8,6 +8,7 @@ import { createUI } from "./ui/ui.js";
 import { initSample, startSample } from "./sim/sample.js";
 import { createLife } from "./sim/life.js";
 import { createMeetings } from "./sim/meeting.js";
+import { createDanial } from "./sim/danial.js";
 import { nowText } from "./ui/ui.js";
 import { createDaylight } from "./scene/daylight.js";
 import { createEnvelopes } from "./scene/effects.js";
@@ -89,7 +90,7 @@ canvas.addEventListener("pointerup", e => {
   if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
   ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
   const hit = ray.intersectObjects(world.pickables, false)[0];
-  if (hit && hit.object.userData.danial) { danialP.say("👋 Danial Rohaizat · CEO ROI Resources"); ui.toast("Danial Rohaizat · CEO ROI Resources (taman bumbung)"); return; }
+  if (hit && hit.object.userData.danial) { danialP.say("👋 Danial Rohaizat · CEO ROI Resources"); ui.toast("Danial Rohaizat · CEO ROI Resources (litar go-kart bumbung)"); return; }
   if (hit) { select(hit.object.userData.agent, true); return; }
   // tekan bangunan / papan tanda: zum ke pejabat itu
   const b = ray.intersectObjects(Object.values(world.officeGroups), true)[0];
@@ -235,13 +236,14 @@ const danialP = world.danial ? (() => {
   const bubbles = document.getElementById("bubbles");
   const bubble = document.createElement("div"); bubble.className = "bubble"; bubble.innerHTML = "<b>Danial</b><span></span>"; bubbles.appendChild(bubble);
   const tag = document.createElement("div"); tag.className = "tag"; tag.innerHTML = '<i style="background:#B58A4A"></i><span>👑 Danial · CEO</span>'; bubbles.appendChild(tag);
-  return { ...world.danial, bubble, tag, until: 0, say(text) { bubble.querySelector("span").textContent = text; this.until = performance.now() + 4200; } };
+  const ctl = createDanial(world.danial);
+  return { ...world.danial, ctl, bubble, tag, until: 0, say(text) { bubble.querySelector("span").textContent = text; this.until = performance.now() + 4200; } };
 })() : null;
 
 // ===== Mesyuarat ketua venture dengan Nadi di Pejabat CEO =====
 const say = (a, text) => { if (a === danialP) { a.say(text); return; } a.bubble.querySelector("span").textContent = text; showBubble(a); };
 const meetings = createMeetings({
-  offices: OFFICES, agents: AGENTS, life, lift: world.lift, danial: danialP, say, toast: ui.toast, reduce,
+  offices: OFFICES, agents: AGENTS, life, lift: world.lift, danial: danialP, danialCtl: danialP && danialP.ctl, say, toast: ui.toast, reduce,
   current: a => nowText(a),
   onLog: (a, text) => { if (a.live === undefined) { sampleLog(a, { sedang: "🗓️ " + text }); ui.refresh(a); } },
 });
@@ -276,7 +278,7 @@ document.getElementById("sMeet").onclick = () => {
 
 setMode(savedMode() === "hidup" && savedCode() ? "hidup" : "contoh");
 
-if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather, camera, controls, lift: world.lift, meetings };
+if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather, camera, controls, lift: world.lift, meetings, danial: danialP };
 
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
@@ -316,9 +318,9 @@ function loop() {
     }
     customers.update(dt, t);
     AGENTS.forEach(a => a.mesh.userData.animate(t, { busy: a.busy, ph: a.ph, decision: !!a.decision, ...life.pose(a) }));
-    if (danialP) danialP.mesh.userData.animate(t, { ph: danialP.ph, sit: 1, seatY: 0.48, typing: !meetings.danialTalking, look: meetings.danialTalking ? -0.9 : 0 });
+    if (danialP) { danialP.ctl.update(dt, t); danialP.mesh.userData.animate(t, { ph: danialP.ph, ...danialP.ctl.pose() }); }
   } else {
-    if (danialP) danialP.mesh.userData.animate(0, { sit: 1, seatY: 0.48 });
+    if (danialP) danialP.mesh.userData.animate(0, danialP.ctl.pose());
     AGENTS.forEach(a => a.mesh.userData.animate(0, { busy: a.busy, decision: !!a.decision, ...life.pose(a) }));
   }
   meetings.update(dt);
@@ -345,7 +347,7 @@ function loop() {
     if (!vis && a.until <= now) shown.delete(a);
   });
   if (danialP) {
-    const d = danialP, show = d.mesh.parent.visible && (ui.filter === "all" || OFFICES[ui.filter].kind === "hub");
+    const d = danialP, show = d.hub.visible && (ui.filter === "all" || OFFICES[ui.filter].kind === "hub");
     d.mesh.getWorldPosition(v); v.y += 1.6; v.project(camera);
     const on = v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
     const sx = (v.x * 0.5 + 0.5) * innerWidth, sy = (-v.y * 0.5 + 0.5) * innerHeight;

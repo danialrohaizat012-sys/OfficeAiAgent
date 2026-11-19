@@ -6,7 +6,7 @@
 const GATHER_MAX = 120;    // saat maksimum menunggu semua sampai
 const LINE_GAP = 3.6;     // saat antara setiap giliran bercakap
 
-export function createMeetings({ offices, agents, life, lift, danial, say, toast, onLog, reduce = false, current }) {
+export function createMeetings({ offices, agents, life, lift, danial, danialCtl, say, toast, onLog, reduce = false, current }) {
   const hubKey = Object.keys(offices).find(k => offices[k].kind === "hub");
   const hub = offices[hubKey], M = hub.meet;
   const nadi = agents.find(a => a.home.leader);
@@ -71,16 +71,17 @@ export function createMeetings({ offices, agents, life, lift, danial, say, toast
     trip = { text, phase: "go", t: 0, said: 0 };
     toast("⬆️ Nadi naik ke bumbung jumpa Danial: perlu keputusan");
     say(nadi, "⬆️ Naik jumpa Danial di bumbung");
+    if (danialCtl) danialCtl.requestMeeting();
     if (!reduce) life.summon(nadi, {
-      hubKey, seat: { ...R.nadi, stand: true }, viaLift: true, liftTo: lift.roofFloor, y: R.y,
-      pathIn: [R.lobby, { x: R.nadi.x, z: R.lobby.z }, { x: R.nadi.x, z: R.nadi.z }],
-      pathOut: [{ x: R.nadi.x, z: R.lobby.z }, R.lobby],
+      hubKey, seat: R.nadi, viaLift: true, liftTo: lift.roofFloor, y: R.y,
+      pathIn: [R.lobby, { x: R.aisleX, z: R.lobby.z }, { x: R.aisleX, z: R.nadi.z }, { x: R.nadi.x, z: R.nadi.z }],
+      pathOut: [{ x: R.aisleX, z: R.nadi.z }, { x: R.aisleX, z: R.lobby.z }, R.lobby],
     });
   }
   function updateTrip(dt) {
     const T = trip; T.t += dt;
     if (T.phase === "go") {
-      if (reduce || nadi.inMeeting || T.t > 120) { T.phase = "talk"; T.t = 0; T.lines = [
+      if (reduce || (nadi.inMeeting && (!danialCtl || danialCtl.atTable)) || T.t > 120) { T.phase = "talk"; T.t = 0; T.lines = [
         [nadi, `📝 Danial, perlu keputusan: ${T.text}`],
         [danial, "🤔 Baik, saya semak cadangan ini."],
         [nadi, "👍 Saya tunggu keputusan di dashboard."],
@@ -88,7 +89,8 @@ export function createMeetings({ offices, agents, life, lift, danial, say, toast
     } else if (T.phase === "talk") {
       if (T.said < T.lines.length && T.t >= T.said * LINE_GAP) { const [a, text] = T.lines[T.said++]; say(a, text); }
       if (T.said >= T.lines.length && T.t > T.lines.length * LINE_GAP + 1) {
-        if (!reduce) life.dismiss(nadi);
+        if (!reduce) life.dismiss(nadi, 1.2);
+        if (danialCtl) { danialCtl.release(); say(danial, "🏎️ Sambung pusing!"); }
         onLog(nadi, `Jumpa Danial di bumbung: ${T.text}`);
         trip = null; lastEnd = clock;
       }
