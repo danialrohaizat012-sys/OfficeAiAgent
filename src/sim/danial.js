@@ -25,10 +25,12 @@ export function createDanial({ mesh, kart, hub, roof }) {
   function mount() {
     kart.add(mesh); mesh.position.set(KART_SEAT.x, KART_SEAT.y, KART_SEAT.z); mesh.rotation.y = 0;
     mesh.scale.setScalar(1 / kart.scale.x);
+    if (mesh.userData.setHelmet) mesh.userData.setHelmet(true);    // pakai topi keledar dalam kereta
   }
   function dismount() {
     const p = at(s);
     hub.add(mesh); mesh.scale.setScalar(1);
+    if (mesh.userData.setHelmet) mesh.userData.setHelmet(false);   // tanggal topi keledar ke meja
     mesh.position.set(p.x + 0.6, Y, p.z); mesh.rotation.y = Math.PI / 2;
   }
   mount();

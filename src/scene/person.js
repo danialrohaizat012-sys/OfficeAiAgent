@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { bakeStatic } from "./decor.js";
+import { decal } from "./penaja.js";
 
 // Figura pekerja gaya blok mainan: kepala silinder, badan trapezium,
 // tangan "C", kaki blok. Duduk di kerusi (pejabat) atau berdiri (Command).
@@ -7,6 +8,7 @@ import { bakeStatic } from "./decor.js";
 const SKIN_DEFAULT = "#F6C944";
 const std = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.45, metalness: 0.05, ...extra });
 
+const at = (m, x, y, z) => { m.position.set(x, y, z); return m; };
 function mesh(geo, mat, x = 0, y = 0, z = 0) {
   const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); return m;
 }
@@ -116,7 +118,7 @@ function toVertexColor(root) {
 const HIP_STAND = 0.62;
 
 export function person(opts) {
-  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt, npc = false, lead = false, tie = 0x1a2238, collar = null } = opts;
+  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt, npc = false, lead = false, tie = 0x1a2238, collar = null, helmet = null, decals = [] } = opts;
   const g = new THREE.Group();
   const body = new THREE.Group(); g.add(body);           // dinaik/turunkan bila duduk
   const skinM = std(skin), shirtM = std(shirt), pantsM = std(pants);
@@ -142,7 +144,7 @@ export function person(opts) {
     const v = new THREE.Shape(); v.moveTo(-0.08, 0.2); v.lineTo(0.08, 0.2); v.lineTo(0, -0.02); v.closePath();
     body.add(mesh(new THREE.ShapeGeometry(v), std(collar), 0, torsoY - 0.01, 0.131));
   }
-  body.add(mesh(new THREE.BoxGeometry(0.06, 0.2, 0.01), std(tie), 0, torsoY + 0.06, 0.134));
+  if (tie != null) body.add(mesh(new THREE.BoxGeometry(0.06, 0.2, 0.01), std(tie), 0, torsoY + 0.06, 0.134));
   body.add(mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.05, 12), skinM, 0, torsoY + 0.235, 0));
   if (lead) {
     // lencana ketua: bintang emas di dada kiri
@@ -150,6 +152,13 @@ export function person(opts) {
     for (let i = 0; i < 10; i++) { const r = i % 2 ? 0.026 : 0.06, a = i / 10 * Math.PI * 2 + Math.PI / 2; i ? sh.lineTo(Math.cos(a) * r, Math.sin(a) * r) : sh.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
     const star = mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.015, bevelEnabled: false }), new THREE.MeshBasicMaterial({ color: 0xF2C14E }), 0.12, torsoY + 0.06, 0.128);
     body.add(star);
+  }
+
+  // --- logo penaja (sut lumba): depan & belakang badan, peha kiri & kanan
+  for (const d of decals) {
+    if (d.part === "depan") body.add(at(decal(d.name, 0.3, 0.35), 0, torsoY - 0.01, 0.1315));
+    else if (d.part === "belakang") { const m = at(decal(d.name, 0.3, 0.35), 0, torsoY - 0.01, -0.1315); m.rotation.y = Math.PI; body.add(m); }
+    else if (d.part === "pehaKiri" || d.part === "pehaKanan") legs[d.part === "pehaKiri" ? 1 : 0].hip.add(at(decal(d.name, 0.17, 0.21), 0, -0.15, 0.1215));
   }
 
   // --- lengan + tangan "C"
@@ -169,8 +178,24 @@ export function person(opts) {
   head.add(mesh(headGeo, [face, skinM, skinM]));
   const crown = mesh(new THREE.SphereGeometry(0.17, 20, 8, 0, Math.PI * 2, 0, Math.PI / 2), skinM, 0, 0.135, 0); crown.scale.y = 0.35; head.add(crown);
   const chinB = mesh(new THREE.SphereGeometry(0.17, 20, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), skinM, 0, -0.135, 0); chinB.scale.y = 0.35; head.add(chinB);
+  let hairG = null;
   if (hairStyle === "botak") head.add(mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.07, 16), skinM, 0, 0.2, 0));
-  else head.add(hair(hairStyle, hairColor, accent));
+  else { hairG = hair(hairStyle, hairColor, accent); head.add(hairG); }
+  // topi keledar full face (pemandu F1): boleh pakai / tanggal
+  let helmetG = null;
+  if (helmet) {
+    helmetG = new THREE.Group(); helmetG.userData.dynamic = true; helmetG.visible = false;
+    const shell = mesh(new THREE.SphereGeometry(0.24, 24, 16), std(helmet.color, { roughness: 0.25, metalness: 0.2 }), 0, 0.03, 0);
+    shell.scale.set(1, 1.04, 1.08); helmetG.add(shell);
+    const visor = mesh(new THREE.SphereGeometry(0.246, 24, 8, Math.PI / 2 - 0.85, 1.7, 1.12, 0.48), std(0x14181f, { roughness: 0.05, metalness: 0.8 }), 0, 0.03, 0);
+    visor.scale.set(1, 1.04, 1.08); helmetG.add(visor);
+    const stripe = mesh(new THREE.TorusGeometry(0.245, 0.018, 6, 30, Math.PI), std(helmet.stripe, { metalness: 0.6, roughness: 0.3 }), 0, 0.03, 0);
+    stripe.rotation.y = Math.PI / 2; stripe.scale.set(1.08, 1.04, 1); helmetG.add(stripe);
+    helmetG.add(mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.06, 20), std(0x15171d), 0, -0.2, 0));   // leher
+    if (helmet.logo) for (const sx of [-1, 1]) { const d = at(decal(helmet.logo, 0.13, 0.13), sx * 0.248, 0.05, 0); d.rotation.y = sx * Math.PI / 2; helmetG.add(d); }
+    head.add(helmetG);
+    if (hairG) hairG.userData.dynamic = true;   // rambut disembunyi bila pakai topi keledar
+  }
   body.add(head);
 
   // --- penunjuk status terapung (hijau = sedia, kuning berkelip = sibuk)
@@ -195,6 +220,8 @@ export function person(opts) {
   toVertexColor(g);
   bakeStatic(body);
   joints.forEach(j => { if (j.isGroup) { j.userData.dynamic = false; bakeStatic(j); j.userData.dynamic = true; } });
+
+  g.userData.setHelmet = on => { if (helmetG) { helmetG.visible = on; if (hairG) hairG.visible = !on; } };
 
   g.userData.animate = (t, st) => {
     const { busy = false, ph = 0, sit = 0, seatY = 0.5, walk = null, typing = false, look = 0, decision = false } = st;

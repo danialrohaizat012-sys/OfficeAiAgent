@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { std, basic, mesh, grp, box, cyl, M, nightGlow, hexStr, openShelf, chair, boardTexture, plant } from "./decor.js";
+import { std, basic, mesh, grp, box, cyl, M, nightGlow, hexStr, openShelf, chair, boardTexture, plant, bakeStatic } from "./decor.js";
+import { decal } from "./penaja.js";
 
 // Susun atur khas setiap venture (tema dalam markas.config.js):
 //   perisian = BinaLab (studio perisian)   media   = Eh Nakama (studio cerita anime/manga)
@@ -836,8 +837,19 @@ export function f1Car() {
     const hub = mesh(cyl(r * 0.6, r * 0.6, w + 0.008, 10), carbon, x, r, z); hub.rotation.z = PI / 2; g.add(hub);
   }
   const plate = tex("f1no1", 64, 64, (c2, w, h) => { c2.fillStyle = "#F4F1E8"; c2.fillRect(0, 0, w, h); c2.fillStyle = "#091411"; c2.font = "900 50px sans-serif"; c2.textAlign = "center"; c2.textBaseline = "middle"; c2.fillText("1", 32, 35); });
-  const no = mesh(new THREE.PlaneGeometry(0.12, 0.12), pic(plate), 0, 0.175, 0.62); no.rotation.x = -PI / 2 + 0.08; g.add(no);
-  const no2 = mesh(new THREE.PlaneGeometry(0.14, 0.14), pic(plate), 0, 0.36, -0.42); no2.rotation.y = PI / 2; no2.position.x = 0.021; g.add(no2);
+  const no = mesh(new THREE.PlaneGeometry(0.1, 0.1), pic(plate), 0, 0.152, 0.94); no.rotation.x = -PI / 2 + 0.08; g.add(no);
+  for (const sx of [-1, 1]) { const n2 = mesh(new THREE.PlaneGeometry(0.14, 0.14), pic(plate), sx * 0.021, 0.37, -0.5); n2.rotation.y = sx * PI / 2; g.add(n2); }
+  // ---- logo penaja (venture ROI Resources) ----
+  const put = (m, x, y, z, rx = 0, ry = 0, rz = 0) => { m.position.set(x, y, z); m.rotation.set(rx, ry, rz); g.add(m); };
+  for (const sx of [-1, 1]) {
+    put(decal("kereta-pod", 0.44, 0.11), sx * 0.2705, 0.115, -0.08, 0, sx * PI / 2);        // pod sisi: Meney + Cipta Robo
+    put(decal("kereta-enjin", 0.46, 0.17), sx * 0.1005, 0.22, -0.42, 0, sx * PI / 2);      // penutup enjin: ROI Resources
+    put(decal("kereta-plat", 0.19, 0.19), sx * 0.281, 0.39, -0.76, 0, sx * PI / 2);        // plat sayap: BinaLab
+  }
+  put(decal("kereta-sayap", 0.5, 0.125), 0, 0.4735, -0.78, -PI / 2);                     // sayap belakang: GilaPips + Lakar
+  put(decal("kereta-muncung", 0.42, 0.13), 0, 0.172, 0.68, -PI / 2 + 0.08, 0, PI / 2);   // muncung: Eh Nakama
+  put(decal("kereta-sayap", 0.6, 0.15), 0, 0.0615, 1.0, -PI / 2);                        // sayap depan
+  bakeStatic(g);
   g.scale.setScalar(1.25);
   return g;
 }

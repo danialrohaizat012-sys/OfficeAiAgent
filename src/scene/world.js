@@ -78,7 +78,9 @@ export function buildWorld(scene, offices, agents, building = {}) {
   let danial = null;
   if (hubKey && offices[hubKey].roof) {
     const R = offices[hubKey].roof;
-    const mesh = person({ shirt: "#0E624D", pants: "#0E624D", hairStyle: "pendek", hairColor: "#141414", accent: "#B58A4A", tie: 0xB58A4A, collar: 0xF4F1E8 });
+    const mesh = person({ shirt: "#0E624D", pants: "#0E624D", hairStyle: "pendek", hairColor: "#141414", accent: "#B58A4A", tie: null, collar: 0xF4F1E8,
+      helmet: { color: 0x0E624D, stripe: 0xB58A4A, logo: "topi-keledar" },
+      decals: [{ part: "depan", name: "sut-depan" }, { part: "belakang", name: "sut-belakang" }, { part: "pehaKiri", name: "peha-kiri" }, { part: "pehaKanan", name: "peha-kanan" }] });
     const kart = f1Car();
     officeGroups[hubKey].add(kart);
     mesh.traverse(m => { if (m.isMesh) { m.userData.danial = true; pickables.push(m); } });
