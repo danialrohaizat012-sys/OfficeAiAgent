@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="300" viewBox="0 0 700 150" role="img" aria-label="ROI Resources">
+  <!-- Pilihan B "Heksagon": 6 kepingan = 6 venture (warna jenama masing-masing), teras R = ROI Resources -->
+  <g transform="translate(75 75)">
+    <path d="M0 0 L0 -60 L52 -30 Z" fill="#8DC63F"/>
+    <path d="M0 0 L52 -30 L52 30 Z" fill="#4CC26C"/>
+    <path d="M0 0 L52 30 L0 60 Z" fill="#4FBF9F"/>
+    <path d="M0 0 L0 60 L-52 30 Z" fill="#D7252C"/>
+    <path d="M0 0 L-52 30 L-52 -30 Z" fill="#D4B26A"/>
+    <path d="M0 0 L-52 -30 L0 -60 Z" fill="#C4513B"/>
+    <circle r="27" fill="#0F1B2D" stroke="#8E9BFF" stroke-width="4"/>
+    <text y="12" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="900" fill="#ffffff">R</text>
+  </g>
+  <text x="150" y="86" font-family="Arial, Helvetica, sans-serif" font-size="60" font-weight="800" letter-spacing="2" fill="#ffffff">ROI RESOURCES</text>
+  <text x="153" y="122" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" letter-spacing="7" fill="#8E9BFF">ONE GROUP · SIX VENTURES</text>
+</svg>

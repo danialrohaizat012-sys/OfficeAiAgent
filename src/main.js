@@ -15,7 +15,7 @@ import { createWeather } from "./scene/weather.js";
 import { savedMode, saveMode, savedCode, saveCode, fetchStatus, fetchLog, startPolling, markDecisionDone, runNadi } from "./live/live.js";
 import { log as sampleLog } from "./sim/sample.js";
 
-const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors, building } = loadConfig();
+const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors, building, shift: SHIFT } = loadConfig();
 document.title = subtitle ? `${title}: ${subtitle}` : title;
 document.querySelector("header h1").textContent = title;
 document.querySelector("header p").textContent = subtitle + (errors.length ? " · ⚠ semak markas.config.js" : "");
@@ -100,14 +100,28 @@ const shown = new Set();
 const showBubble = a => { shown.add(a); a.until = performance.now() + 4200; };
 const wp = new THREE.Vector3(), wq = new THREE.Vector3();
 const officeHex = a => "#" + OFFICES[a.office].color.toString(16).padStart(6, "0");
+// Report: sampul terbang dari meja agent ke lif, lif bawa naik ke tingkat CEO, kemudian terbang ke Nadi
+const lift = world.lift;
 function flyReport(a) {
-  if (!leader || reduce || a === leader) return;
-  a.mesh.getWorldPosition(wp); wp.y += 1.4;
-  leader.mesh.getWorldPosition(wq); wq.y += 1.5;
-  envelopes.spawn(wp, wq, officeHex(a), () => {
-    leader.bubble.querySelector("span").textContent = `📨 Report dari ${a.name} diterima`;
-    showBubble(leader);
-  });
+  if (!leader || a === leader) return;
+  const received = () => { leader.bubble.querySelector("span").textContent = `📨 Report dari ${a.name} diterima`; showBubble(leader); };
+  if (reduce) { received(); return; }
+  if (lift.load >= 3) {   // lif sibuk: sampul terus terbang ke Nadi
+    a.mesh.getWorldPosition(wp); wp.y += 1.4; leader.mesh.getWorldPosition(wq); wq.y += 1.5;
+    envelopes.spawn(wp, wq, officeHex(a), received); return;
+  }
+  const floor = OFFICES[a.office].floor, top = OFFICES[leader.office].floor, color = officeHex(a);
+  lift.go(floor, () => {
+    const from = new THREE.Vector3(); a.mesh.getWorldPosition(from); from.y += 1.4;
+    envelopes.spawn(from, lift.door(floor), color, () => {
+      lift.carry(color);
+      lift.go(top, () => {
+        lift.carry(null);
+        const to = new THREE.Vector3(); leader.mesh.getWorldPosition(to); to.y += 1.5;
+        envelopes.spawn(lift.door(top), to, color, received);
+      });
+    }, 0.4);
+  }, 1.4);
 }
 const sampleHooks = {
   onShow: showBubble,
@@ -207,12 +221,13 @@ modeBtn.onclick = () => {
 
 
 const life = createLife(OFFICES, AGENTS, {
-  onErrand: (a, label) => { a.bubble.querySelector("span").textContent = label; showBubble(a); },
+  onErrand: (a, label) => { ui.refresh(a); a.bubble.querySelector("span").textContent = label; showBubble(a); },
+  hour: () => daylight.hour, shift: SHIFT, lift: world.lift,
 });
 
 setMode(savedMode() === "hidup" && savedCode() ? "hidup" : "contoh");
 
-if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather, camera, controls };
+if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather, camera, controls, lift: world.lift };
 
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
@@ -222,13 +237,27 @@ addEventListener("resize", () => { resize(); if (!ui.selected && ui.filter === "
 resize(); rig.goHome(); rig.intro();
 document.getElementById("loading").remove();
 
+// Tingkat di luar pandangan kamera tidak dilukis (termasuk bayang-bayang), tetapi tingkat
+// jiran kekal supaya bayang-bayang antara tingkat betul. Lampu dipindah ke scene supaya
+// bilangan lampu tetap (elak shader dibina semula).
+world.nightLights.forEach(l => scene.attach(l));
+const floorBoxes = Object.entries(world.officeGroups).map(([k, g]) => ({ g, floor: OFFICES[k].floor, box: new THREE.Box3().setFromObject(g).expandByScalar(0.5) }));
+const frustum = new THREE.Frustum(), projView = new THREE.Matrix4();
+let cullTick = 0;
+function cullFloors() {
+  projView.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  frustum.setFromProjectionMatrix(projView);
+  const seen = new Set(floorBoxes.filter(f => frustum.intersectsBox(f.box)).map(f => f.floor));
+  for (const f of floorBoxes) f.g.visible = seen.has(f.floor) || seen.has(f.floor - 1) || seen.has(f.floor + 1);
+}
+
 const timer = new THREE.Timer(), v = new THREE.Vector3();
 function loop() {
   timer.update();
   const dt = Math.min(timer.getDelta(), 0.05), t = timer.getElapsed();
   rig.update(dt);
   if (!reduce) {
-    world.bobbers.forEach(b => { if (b.type === "nuri" || b.type === "lift") b.update(t); else if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else if (b.type === "spinY") b.m.rotation.y += b.speed * dt; else b.m.rotation.z += b.m.userData.spin * dt; });
+    world.bobbers.forEach(b => { if (b.type === "nuri") b.update(t); else if (b.type === "liftCtl") b.ctl.update(dt); else if (b.type === "bob") b.m.position.y = b.base + Math.sin(t * 1.1 + b.ph) * (b.amp ?? 0.18); else if (b.type === "spinY") b.m.rotation.y += b.speed * dt; else b.m.rotation.z += b.m.userData.spin * dt; });
     life.update(dt);
     envelopes.update(dt);
     daylight.flash(weather.update(dt, daylight.night));
@@ -242,12 +271,13 @@ function loop() {
     AGENTS.forEach(a => a.mesh.userData.animate(0, { busy: a.busy, decision: !!a.decision, ...life.pose(a) }));
   }
   controls.update();
+  if (++cullTick % 6 === 0) { camera.updateMatrixWorld(); cullFloors(); }
   renderer.render(scene, camera);
   quality.tick(performance.now());
 
   const now = performance.now();
   AGENTS.forEach(a => {
-    const inView = ui.visible(a) && !a.chip.hidden;
+    const inView = ui.visible(a) && !a.chip.hidden && a.mesh.visible;
     a.mesh.getWorldPosition(v); v.y += 2.05; v.project(camera);
     const onScreen = v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
     const sx = (v.x * 0.5 + 0.5) * innerWidth, sy = (-v.y * 0.5 + 0.5) * innerHeight;

@@ -40,6 +40,9 @@ export default {
   tajuk: "Markas Agent",
   bangunan: { nama: "ROI RESOURCES", logo: "roi-resources-logo.svg" },   // papan tanda bumbung menara
   subtajuk: "ROI Resources · 6 anak syarikat",
+  // Waktu kerja pekerja dalam 3D (jam, waktu Malaysia; 8.5 = 8:30 pagi). Pekerja datang ikut lif
+  // sekitar waktu masuk dan balik selepas waktu balik. Nadi (Virtual CEO) sentiasa ada.
+  waktuKerja: { masuk: 8.5, balik: 18 },
 
   pejabat: [
     { id: "command", nama: "ROI HQ", label: "Pejabat CEO ROI Resources", jenis: "hab", warna: "#8E9BFF" },   // tingkat paling atas: Nadi, Virtual CEO

@@ -59,7 +59,9 @@ export function loadConfig() {
   }
   const building = raw.bangunan || {};
 
-  return { title: raw.tajuk || "Markas Agent", subtitle: raw.subtajuk || "", offices, agents, errors, building, view: viewFit(offices) };
+  const wk = raw.waktuKerja || {};
+  const shift = { masuk: wk.masuk ?? 8.5, balik: wk.balik ?? 18 };
+  return { title: raw.tajuk || "Markas Agent", subtitle: raw.subtajuk || "", offices, agents, errors, building, shift, view: viewFit(offices) };
 }
 
 // Pelan pejabat: meja dalam grid 2 lajur, laluan pejalan kaki, dan tempat

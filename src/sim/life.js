@@ -8,10 +8,28 @@ const SPEED = 1.15;          // unit sesaat
 const STAND_TIME = 0.45;     // masa bangun / duduk (saat)
 const rand = (a, b) => a + Math.random() * (b - a);
 
-export function createLife(offices, agents, { onErrand } = {}) {
+// Waktu kerja: pekerja datang ikut lif dan berjalan ke meja, petang balik ke lif.
+// Nadi (Virtual CEO, AI) sentiasa ada. Agent yang sedang sibuk (mod Hidup) kekal walaupun lewat.
+export function createLife(offices, agents, { onErrand, hour = () => 12, shift = { masuk: 8.5, balik: 18 }, lift = null } = {}) {
   const spotsByOffice = {};
   for (const [k, o] of Object.entries(offices)) if (o.kind === "office") spotsByOffice[k] = officeSpots(o.plan, o.theme).spots;
   const taken = new Set();
+  const lobbyOf = o => ({ x: o.plan.W / 2 - 0.9, z: o.plan.backZ + 1.4 });
+  const backLane = o => o.plan.lanes.back;
+  agents.forEach((a, i) => {
+    a.shiftIn = shift.masuk - 0.5 + (i % 6) * 0.15;
+    a.shiftOut = shift.balik + ((i * 7) % 8) * 0.15;
+  });
+  const onDuty = a => {
+    if (a.home.leader || a.home.standing) return true;
+    if (a.live && a.live.sibuk) return true;
+    const h = hour();
+    return h >= a.shiftIn && h < a.shiftOut;
+  };
+  const toLobby = a => {
+    const o = offices[a.office], L = lobbyOf(o), lane = backLane(o);
+    return [{ x: 0, z: a.home.z }, { x: 0, z: lane }, { x: L.x, z: lane }, L];
+  };
 
   for (const a of agents) {
     a.life = {
@@ -19,6 +37,13 @@ export function createLife(offices, agents, { onErrand } = {}) {
       timer: rand(4, 20), path: [], face: 0, walk: null, spot: null,
     };
     if (a.home.standing) a.life.mode = "fixed";
+    if (!onDuty(a)) goAway(a);
+  }
+
+  function goAway(a) {
+    const L = a.life;
+    L.mode = "away"; L.sit = L.sitTarget = 0; L.walk = null; a.away = true;
+    a.mesh.visible = false;
   }
 
   // Laluan: keluar ke lorong tengah (x = 0), ikut lorong ke baris sasaran, kemudian ke sasaran
@@ -57,6 +82,27 @@ export function createLife(offices, agents, { onErrand } = {}) {
       // duduk / bangun secara lembut
       L.sit += Math.sign(L.sitTarget - L.sit) * Math.min(Math.abs(L.sitTarget - L.sit), dt / STAND_TIME);
 
+      if (L.mode === "away") {
+        if (onDuty(a)) {
+          L.mode = "lift";
+          const o = offices[a.office];
+          const appear = () => {
+            const P = lobbyOf(o);
+            m.position.set(P.x, 0, P.z); m.visible = true; a.away = false;
+            L.mode = "walking"; L.walk = 0; L.then = "home"; L.sit = L.sitTarget = 0;
+            L.path = [{ x: P.x, z: backLane(o) }, { x: 0, z: backLane(o) }, { x: 0, z: a.home.z }, { x: a.home.x, z: a.home.z }];
+            if (onErrand) onErrand(a, "👋 Selamat pagi! Baru sampai");
+          };
+          if (lift) lift.go(o.floor, appear, 0.6); else appear();
+        }
+        continue;
+      }
+      if (L.mode === "lift") continue;
+      if (L.mode === "seated" && !onDuty(a) && L.sit > 0.95) {
+        if (onErrand) onErrand(a, "🏠 Balik dulu. Jumpa esok!");
+        startWalk(a, toLobby(a), "gone");
+        continue;
+      }
       if (L.mode === "seated") {
         if (!a.busy) L.timer -= dt;
         if (L.timer <= 0) {
@@ -102,6 +148,10 @@ export function createLife(offices, agents, { onErrand } = {}) {
   function arrive(a) {
     const L = a.life;
     L.walk = null;
+    if (L.then === "gone") {
+      if (lift) lift.go(offices[a.office].floor, null, 0.6);
+      goAway(a); return;
+    }
     if (L.then === "home") {
       L.mode = "seated"; L.face = 0; L.sitTarget = 1; L.seatY = 0.5; L.timer = rand(12, 35);
     } else {

@@ -5,7 +5,7 @@
 
 export function startSample(agents, ui, { onShow, onReport, onDecision } = {}) {
   function tick() {
-    const pool = agents.filter(ui.visible);
+    const pool = agents.filter(a => ui.visible(a) && !a.away);
     const a = pool[Math.floor(Math.random() * pool.length)];
     if (!a) return;
     const prev = a.step;
@@ -25,7 +25,7 @@ export function startSample(agents, ui, { onShow, onReport, onDecision } = {}) {
     // sekali-sekala, agent perlukan keputusan Danial
     const open = agents.filter(x => x.decision).length;
     if (onDecision && open < 2 && Math.random() < 0.08) {
-      const cand = agents.filter(x => !x.decision && x.sampleDecisions.length);
+      const cand = agents.filter(x => !x.decision && !x.away && x.sampleDecisions.length);
       const b = cand[Math.floor(Math.random() * cand.length)];
       if (b) { b.decision = b.sampleDecisions[Math.floor(Math.random() * b.sampleDecisions.length)]; log(b, { keputusan: b.decision }); ui.refresh(b); onDecision(b); }
     }

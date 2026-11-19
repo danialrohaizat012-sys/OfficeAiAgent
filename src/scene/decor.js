@@ -641,7 +641,7 @@ export function bakeStatic(root) {
     while (p && p !== root) { if (p.userData.dynamic) { dyn = true; break; } p = p.parent; }
     if (dyn) return;
     const geo = (o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone());
-    for (const k of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(k)) geo.deleteAttribute(k);
+    for (const k of Object.keys(geo.attributes)) if (!["position", "normal", "uv", "color"].includes(k)) geo.deleteAttribute(k);
     if (!geo.attributes.uv) geo.setAttribute("uv", new THREE.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 2), 2));
     geo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
     if (!byMat.has(o.material)) byMat.set(o.material, []);

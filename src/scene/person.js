@@ -97,6 +97,20 @@ function hair(style, color, accent) {
   return g;
 }
 
+// Semua bahagian berwarna biasa dikongsi satu bahan "warna bucu" (vertex color),
+// supaya setiap sendi digabung jadi satu objek: kurang kerja lukis untuk iPhone.
+const PERSON_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5, metalness: 0.05, side: THREE.DoubleSide });
+function toVertexColor(root) {
+  root.traverse(o => {
+    if (!o.isMesh || Array.isArray(o.material) || !o.material.isMeshStandardMaterial || o.material.map) return;
+    const c = o.material.color, geo = o.geometry.clone(), n = geo.attributes.position.count;
+    const arr = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { arr[i * 3] = c.r; arr[i * 3 + 1] = c.g; arr[i * 3 + 2] = c.b; }
+    geo.setAttribute("color", new THREE.BufferAttribute(arr, 3));
+    o.geometry = geo; o.material = PERSON_MAT;
+  });
+}
+
 // Pose dikawal oleh state: sit (0 = berdiri, 1 = duduk), seatY (tinggi pinggul
 // bila duduk), walk (fasa langkah), typing (menaip di meja).
 const HIP_STAND = 0.62;
@@ -166,6 +180,7 @@ export function person(opts) {
   // gabung bahagian yang tak bergerak sesama sendiri (kurangkan objek dilukis)
   const joints = [...legs.flatMap(l => [l.hip, l.knee]), ...arms, head, dot, flag];
   joints.forEach(j => { j.userData.dynamic = true; });
+  toVertexColor(g);
   bakeStatic(body);
   joints.forEach(j => { if (j.isGroup) { j.userData.dynamic = false; bakeStatic(j); j.userData.dynamic = true; } });
 

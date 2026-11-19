@@ -5,6 +5,7 @@ const $ = id => document.getElementById(id);
 // Teks "sedang buat": mod Hidup guna status dari server, mod contoh guna senarai tugas
 export function nowText(a) {
   if (a.live !== undefined) return a.live ? (a.live.sedang || "—") : "Belum hantar status";
+  if (a.away) return "🏠 Dah balik · masuk semula esok pagi";
   return a.tasks[a.step];
 }
 
@@ -135,7 +136,7 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     a.chip.classList.toggle("busy", a.busy);
     a.chip.classList.toggle("decide", !!a.decision);
     if (selected === a) showDecision(a);
-    a.chip.classList.toggle("offline", a.live === null);
+    a.chip.classList.toggle("offline", a.live === null || !!a.away);
     a.chip.querySelector(".s").textContent = nowText(a);
     a.bubble.querySelector("span").textContent = nowText(a);
     if (selected === a) {

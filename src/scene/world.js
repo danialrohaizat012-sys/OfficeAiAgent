@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import { signBoard } from "./parts.js";
 import { buildSite, GROUND_Y } from "./site.js";
+import { FLOOR_H } from "../config.js";
 import { person } from "./person.js";
 import { officeSpots } from "./spots.js";
 import { buildNuriLab } from "./nuriLab.js";
-import { GAYA, ceoSuite } from "./gaya.js";
+import { GAYA, ceoSuite, roofGarden } from "./gaya.js";
 import { facade } from "./facade.js";
 
 const liftZ = plan => [plan.backZ + 0.6, plan.backZ + 2.2];   // julat z lif kaca di sisi kanan
@@ -71,7 +72,8 @@ export function buildWorld(scene, offices, agents, building = {}) {
     officeGroups[key].add(lamp); nightLights.push(lamp);
   }
   scene.add(tower(offices, building, bobbers));
-  return { officeGroups, pickables, bobbers, nightLights, site };
+  const lift = bobbers.find(b => b.type === "liftCtl").ctl;
+  return { officeGroups, pickables, bobbers, nightLights, site, lift };
 }
 
 // Struktur menara: lif kaca di sisi kanan (dengan kereta lif bergerak) dan
@@ -92,13 +94,49 @@ function tower(offices, building, bobbers) {
     // lampu nombor tingkat di depan lif, warna venture
     lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 0.04), new THREE.MeshBasicMaterial({ color: o.color })), 0, o.pos[1] - GROUND_Y + 2.2, 0.82));
   }
-  const car = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.9, 1.35), new THREE.MeshStandardMaterial({ color: 0xd8dde6, roughness: 0.4, metalness: 0.5 }));
+  const car = new THREE.Group();
+  car.add(new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.9, 1.35), new THREE.MeshStandardMaterial({ color: 0xd8dde6, roughness: 0.4, metalness: 0.5 })));
+  // lampu muatan di sisi kereta lif: menyala warna venture bila membawa report ke CEO
+  const cargo = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.14, 1.37), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  cargo.position.y = 0.75; cargo.visible = false; car.add(cargo);
   lift.add(car);
-  const span = top;
-  bobbers.push({ type: "lift", update: t => {
-    const k = (Math.sin(t * 0.18) + 1) / 2;                      // naik turun perlahan
-    car.position.y = -GROUND_Y + 0.95 + k * span;
-  } });
+  const carY = floor => floor * FLOOR_H - GROUND_Y + 0.95;
+  car.position.y = carY(0);
+  // Pengawal lif: berhenti di tingkat yang diminta (giliran), atau merayau sendiri bila lapang
+  const floors = list.map(o => o.floor), topFloor = Math.max(...floors);
+  const queue = [];
+  let wait = 2, idle = 0;
+  const liftCtl = {
+    // pergi ke tingkat; then() dipanggil bila sampai. hold = saat menunggu di tingkat itu
+    go(floor, then, hold = 1.2) {
+      idle = 0;
+      // gabung dengan permintaan sedia ada ke tingkat sama (elak giliran panjang)
+      const same = queue.find(j => j.floor === floor);
+      if (same) { const prev = same.then; same.then = prev && then ? () => { prev(); then(); } : (then || prev); same.hold = Math.max(same.hold, hold); same.idleTrip = false; return; }
+      queue.push({ floor, then, hold });
+    },
+    carry(color) { cargo.visible = color != null; if (color != null) cargo.material.color.set(color); },
+    door(floor) { return new THREE.Vector3(W2 + 0.2, floor * FLOOR_H + 1.0, plan.backZ + 1.4); },
+    get busy() { return queue.length > 0; },
+    get load() { return queue.filter(j => !j.idleTrip).length; },
+    get debug() { return { queue: queue.map(j => j.floor), wait, y: car.position.y }; },
+    update(dt) {
+      if (wait > 0) { wait -= dt; return; }
+      const job = queue[0];
+      if (!job) {
+        idle += dt;
+        if (idle > 5) { idle = 0; queue.push({ floor: floors[Math.floor(Math.random() * floors.length)], hold: 2.5, idleTrip: true }); }
+        return;
+      }
+      const target = carY(job.floor), dy = target - car.position.y, step = 3.2 * dt;
+      if (Math.abs(dy) <= step) {
+        car.position.y = target; queue.shift(); wait = job.hold;
+        if (job.then) job.then();
+      } else car.position.y += Math.sign(dy) * Math.min(step, Math.abs(dy) * 2 + 0.4 * dt);
+    },
+    topFloor,
+  };
+  bobbers.push({ type: "liftCtl", ctl: liftCtl });
   g.add(lift);
   // jalur cahaya ROI di dua penjuru belakang menara (dari tanah ke bumbung)
   const strip = new THREE.MeshBasicMaterial({ color: 0x8E9BFF });
@@ -110,7 +148,7 @@ function tower(offices, building, bobbers) {
   const svg = building.logo && logoSvg(building.logo);
   if (svg) {
     const sign = signBoard(svg, null, "#8E9BFF", 2.0);
-    sign.position.set(0, top + WALL_H + 0.12, plan.backZ - 0.2);
+    sign.position.set(0, top + WALL_H + 0.32, plan.backZ - 0.2);   // atas slab taman bumbung
     g.add(sign);
   }
   return g;
@@ -128,6 +166,7 @@ function hub(o, bobbers, offices) {
   const suite = ceoSuite(plan, o.color, ventures);
   shell.add(suite.group);
   shell.add(facade(o, "ROI · CEO", liftZ(plan)));
+  const roof = roofGarden(plan, o.color); roof.position.y = WALL_H + 0.12; shell.add(roof);
   o.ceoSeat = suite.nadiSeat;
   grp.add(bakeStatic(shell));
 
@@ -141,7 +180,7 @@ function hub(o, bobbers, offices) {
   grp.add(ring); bobbers.push({ m: ring, type: "spin" });
 
   // antena + radar atas bumbung (penjuru belakang kiri)
-  const mast = new THREE.Group(); mast.position.set(-(W2 - 0.6), WALL_H + 0.12, plan.backZ - 0.1);
+  const mast = new THREE.Group(); mast.position.set(-(W2 - 0.6), WALL_H + 0.32, plan.backZ - 0.1);
   const metal = new THREE.MeshStandardMaterial({ color: 0x8a93a8, metalness: 0.6, roughness: 0.35 });
   mast.add(at(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 2.4, 8), metal), 0, 1.2, 0));
   const dish = new THREE.Group(); dish.position.y = 2.35; dish.scale.setScalar(0.6);

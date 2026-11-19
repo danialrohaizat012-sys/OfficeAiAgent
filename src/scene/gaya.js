@@ -675,3 +675,82 @@ export function ceoSuite(plan, color, ventures) {
   rug.rotation.x = -PI / 2; g.add(rug);
   return { group: g, nadiSeat: { x: 0, z: -0.9 - 0.62 } };
 }
+
+// ==================== TAMAN BUMBUNG (atas Pejabat CEO) ====================
+// Slab bumbung, dek kayu, pasu pokok di tepi, rumput, meja payung, bangku,
+// pagar kaca dengan LED ungu dan lampu tali yang menyala waktu malam.
+export function roofGarden(plan, color) {
+  const g = new THREE.Group(), W2 = plan.W / 2;
+  const z0 = plan.backZ - 0.3, z1 = plan.shift + plan.D / 2, D = z1 - z0, zc = (z0 + z1) / 2, y = 0.2;
+  g.add(mesh(box(plan.W, 0.2, D), std(0x59607a, { roughness: 0.9 }), 0, 0.1, zc));
+  const deck = mesh(new THREE.PlaneGeometry(plan.W - 0.7, D - 0.7), std(0x8a6a4c, { roughness: 0.8 }), 0, y + 0.005, zc);
+  deck.rotation.x = -PI / 2; g.add(deck);
+  const lines = [];
+  for (let x = -W2 + 0.35; x < W2 - 0.35; x += 0.3) lines.push(x, y + 0.01, z0 + 0.35, x, y + 0.01, z1 - 0.35);
+  const lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(lines, 3));
+  g.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0x5e4430, transparent: true, opacity: 0.5 })));
+  // pagar kaca + LED (depan, kiri, kanan)
+  const glass = new THREE.MeshStandardMaterial({ color: 0xcfe6ff, transparent: true, opacity: 0.2, roughness: 0.05, depthWrite: false });
+  const led = basic(color), rail = std(0x8a93a8, { metalness: 0.6, roughness: 0.3 });
+  g.add(mesh(box(plan.W, 0.55, 0.04), glass, 0, y + 0.28, z1 - 0.05));
+  g.add(mesh(box(plan.W, 0.04, 0.07), rail, 0, y + 0.57, z1 - 0.05));
+  g.add(mesh(box(plan.W, 0.025, 0.025), led, 0, y + 0.6, z1 - 0.02));
+  for (const sx of [-1, 1]) {
+    g.add(mesh(box(0.04, 0.55, D), glass, sx * (W2 - 0.03), y + 0.28, zc));
+    g.add(mesh(box(0.07, 0.04, D), rail, sx * (W2 - 0.03), y + 0.57, zc));
+    g.add(mesh(box(0.025, 0.025, D), led, sx * (W2 + 0.0), y + 0.6, zc));
+  }
+  // pasu panjang di tepi kiri & kanan dengan rumput dan pokok renek
+  const wood = std(0x6b5440, { roughness: 0.8 }), grass = std(0x4f9e5f, { roughness: 1 });
+  const leaf = [std(0x3f9e5a, { roughness: 0.8 }), std(0x58b86f, { roughness: 0.8 }), std(0x357a48, { roughness: 0.8 })];
+  for (const sx of [-1, 1]) {
+    const px = sx * (W2 - 0.5), len = D - 2.4, pz = z0 + 0.6 + len / 2;
+    g.add(mesh(box(0.6, 0.42, len), wood, px, y + 0.21, pz));
+    g.add(mesh(box(0.52, 0.02, len - 0.08), grass, px, y + 0.43, pz));
+    for (let i = 0; i < Math.floor(len / 0.55); i++) {
+      const s = 0.18 + ((i * 7) % 3) * 0.05;
+      g.add(mesh(new THREE.IcosahedronGeometry(s, 0), leaf[(i + (sx > 0 ? 1 : 0)) % 3], px + ((i % 2) - 0.5) * 0.15, y + 0.5 + s * 0.6, z0 + 0.85 + i * 0.55));
+    }
+  }
+  // dua pokok dalam pasu besar di penjuru depan
+  for (const sx of [-1, 1]) {
+    const t = grp(sx * (W2 - 0.6), y, z1 - 0.65);
+    t.add(mesh(cyl(0.28, 0.22, 0.5, 14), std(0xd9d4c7), 0, 0.25, 0));
+    t.add(mesh(cyl(0.05, 0.07, 0.9, 8), std(0x6b4a33), 0, 0.85, 0));
+    t.add(mesh(new THREE.IcosahedronGeometry(0.5, 1), leaf[0], 0, 1.45, 0));
+    t.add(mesh(new THREE.IcosahedronGeometry(0.35, 1), leaf[1], 0.22, 1.75, 0.08));
+    g.add(t);
+  }
+  // rumput tengah kiri
+  const lawn = mesh(new THREE.PlaneGeometry(2.4, 1.6), grass, -1.9, y + 0.012, zc + 0.3); lawn.rotation.x = -PI / 2; g.add(lawn);
+  // meja payung + bangku (tengah kanan)
+  const tx = 2.8, tz = zc + 1.1;
+  g.add(mesh(cyl(0.45, 0.45, 0.04, 20), std(0xeef1f6), tx, y + 0.6, tz));
+  g.add(mesh(cyl(0.03, 0.03, 1.7, 8), rail, tx, y + 0.85, tz));
+  g.add(mesh(new THREE.ConeGeometry(0.85, 0.35, 8, 1, true), std(color, { side: THREE.DoubleSide, roughness: 0.8 }), tx, y + 1.75, tz));
+  for (const sz of [-1, 1]) {
+    g.add(mesh(box(1.0, 0.06, 0.32), wood, tx, y + 0.42, tz + sz * 0.75));
+    for (const sx of [-1, 1]) g.add(mesh(box(0.06, 0.4, 0.28), rail, tx + sx * 0.4, y + 0.2, tz + sz * 0.75));
+  }
+  // kerusi malas dekat rumput
+  for (const k of [0, 1]) {
+    const c = grp(-2.4 + k * 1.0, y, zc + 0.3, PI);
+    c.add(mesh(box(0.5, 0.12, 1.1), std(0xeef1f6), 0, 0.2, 0));
+    const back = mesh(box(0.5, 0.08, 0.5), std(0xeef1f6), 0, 0.42, -0.45); back.rotation.x = 0.7; c.add(back);
+    c.add(mesh(box(0.46, 0.04, 0.6), std(color, { roughness: 0.9 }), 0, 0.28, 0.15));
+    g.add(c);
+  }
+  // lampu tali di atas dek (menyala waktu malam)
+  const bulb = nightGlow(std(0xfff1d0, { emissive: 0xffd98a, emissiveIntensity: 0.25 }), 1.6);
+  const posts = [[-W2 + 0.9, z1 - 1.3], [W2 - 0.9, z1 - 1.3], [W2 - 0.9, z0 + 1.0], [-W2 + 0.9, z0 + 1.0]];
+  posts.forEach(([x, z]) => g.add(mesh(cyl(0.025, 0.025, 1.9, 6), rail, x, y + 0.95, z)));
+  for (let i = 0; i < 4; i++) {
+    const [ax, az] = posts[i], [bx, bz] = posts[(i + 1) % 4];
+    const n = 9;
+    for (let k = 1; k < n; k++) {
+      const f = k / n, sag = Math.sin(f * PI) * 0.22;
+      g.add(mesh(new THREE.SphereGeometry(0.045, 8, 6), bulb, ax + (bx - ax) * f, y + 1.85 - sag, az + (bz - az) * f));
+    }
+  }
+  return g;
+}
