@@ -1,6 +1,6 @@
 # Riza V2 — OpenStreetMap + Overpass API (tanpa Google Cloud)
 
-**Status:** kod sudah dikemas kini dalam GitHub; **belum dipasang atau diaktifkan** dalam Google Apps Script milik Danial. Tiada Google Cloud, Google Places key, atau API model AI diperlukan. Public Overpass API disediakan komuniti dan tiada jaminan uptime. Kita hanya jalankan **1 carian ringan sehari, 20 carian sebulan** secara default.
+**Status:** kod sudah dikemas kini dalam GitHub; **belum dipasang atau diaktifkan** dalam Google Apps Script milik Danial. Tiada Google Cloud, Google Places key, atau API model AI diperlukan. Public Overpass API disediakan komuniti dan tiada jaminan uptime. Kita hanya jalankan **1 carian ringan sehari, 31 carian sebulan** secara default.
 
 ## Fungsi
 - Baca listing perniagaan OSM (kedai, restoran, kafe dan bengkel) di kawasan kecil Kelantan & Kuala Terengganu.
@@ -33,7 +33,7 @@ Apps Script → ikon ⚙ **Project Settings** → **Script Properties → Add sc
 | `PROSPECT_SHEET_ID` | ID sheet prospek yang disalin | Ya |
 | `RIZA_ENABLE` | `YES` | Ya, selepas bersedia |
 | `DAILY_LEAD_LIMIT` | `5` | Pilihan |
-| `MONTHLY_REQUEST_LIMIT` | `20` | Pilihan |
+| `MONTHLY_REQUEST_LIMIT` | `31` | Pilihan |
 | `MARKAS_URL` | `https://office-ai-agent-tawny.vercel.app` | Pilihan untuk status Markas |
 | `MARKAS_AGENT_KEY` | Nilai rahsia `MARKAS_AGENT_KEY` Vercel | Pilihan untuk status Markas |
 
@@ -69,7 +69,7 @@ Apps Script → ikon ⚙ **Project Settings** → **Script Properties → Add sc
 - Skor lead ialah heuristik berdasarkan kelengkapan maklumat, **bukan ukuran minat membeli atau kelayakan pelanggan**.
 - Jangan menghantar komunikasi pukal tanpa kelulusan Fakhri dan pematuhan komunikasi pemasaran.
 - Hari tanpa hasil tidak dipenuhi dengan data rekaan.
-- Jadual 1 query/hari, had 20 query/bulan ialah had dalaman Apps Script, bukan kuota rasmi Overpass. Penggunaan kecil sekalipun boleh gagal apabila server sibuk.
+- Jadual 1 query/hari, had 31 query/bulan ialah had dalaman Apps Script, bukan kuota rasmi Overpass. Penggunaan kecil sekalipun boleh gagal apabila server sibuk.
 
 ## Ujian penerimaan
 - [ ] `Code.gs` bermula dengan komen `RIZA V2`.
