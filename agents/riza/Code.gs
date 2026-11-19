@@ -1,7 +1,7 @@
 /**
  * RIZA V2 — OpenStreetMap / Overpass API research queue.
  * No Google Cloud, API key, paid model or automatic outreach.
- * One lightweight public Overpass query per day (20/month default).
+ * One lightweight public Overpass query per day (31/month default).
  *
  * Source: © OpenStreetMap contributors (ODbL 1.0).
  * https://www.openstreetmap.org/copyright
@@ -45,7 +45,7 @@ function rizaSettings_() {
   if(!p.PROSPECT_SHEET_ID) throw new Error('PROSPECT_SHEET_ID missing in Script Properties');
   if(p.RIZA_ENABLE!=='YES') throw new Error('Set RIZA_ENABLE=YES after review, or keep NO to stop');
   var daily=Math.max(1,Math.min(10,parseInt(p.DAILY_LEAD_LIMIT||'5',10)||5));
-  var monthly=Math.max(1,Math.min(31,parseInt(p.MONTHLY_REQUEST_LIMIT||'20',10)||20));
+  var monthly=Math.max(1,Math.min(31,parseInt(p.MONTHLY_REQUEST_LIMIT||'31',10)||20));
   return {properties:p,daily:daily,monthly:monthly};
 }
 function rizaDate_() {
