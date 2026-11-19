@@ -49,10 +49,8 @@ function rizaNormalize_(s) {
     .replace(/[^\\p{L}\\p{N}]/gu, '');
 }
 function rizaDomain_(url) {
-  try {
-    var u = new URL(url);
-    return u.hostname.toLowerCase().replace(/^www\\./, '');
-  } catch (e) { return ''; }
+  var match = String(url || '').match(/^https?:\\/\\/([^\\/:?#]+)/i);
+  return match ? match[1].toLowerCase().replace(/^www\\./, '') : '';
 }
 function rizaName_(p) {
   return (p.displayName && p.displayName.text) || '';
