@@ -11,7 +11,11 @@
 //    jenis  : "hab" untuk ROI Command Centre (tingkat atas, satu sahaja), "pejabat" untuk venture
 //    Susunan pejabat = susunan tingkat menara (pertama = aras jalan).
 //    warna  : warna jenama (bingkai platform, jambatan, skrin meja)
-//    tema   : (pilihan) hiasan dinding: "studio" (whiteboard, rak buku) atau "kedai" (rak game, TV)
+//    tema   : (pilihan) susun atur pejabat ikut venture:
+//             "kedai" (kedai gaming: rak game, kaunter, meja repair), "perisian" (studio app: kanban, mockup, rak server),
+//             "robotik" (makmal NURI), "media" (studio cerita: dinding manga, sudut podcast, meja lukis, merch),
+//             "pasaran" (edukasi pasaran: dinding carta, set rakaman, kelas mini, rak ebook),
+//             "seni" (studio mural: mural, kuda-kuda, rak cat, sinki berus) atau "studio" (pejabat biasa)
 //    papanPesan: (pilihan) teks di whiteboard (studio) atau papan promo luar pintu (kedai).
 //             Baris pertama = tajuk kalau guna "\n", contoh "PROMO\nTrade-in PS5 dapat lebih".
 //    logo   : (pilihan) papan tanda atas bumbung. "fail" = SVG atau PNG dalam folder logos/. "latar" = warna papan (lalai gelap).
@@ -38,32 +42,32 @@ export default {
   subtajuk: "ROI Resources · 6 anak syarikat",
 
   pejabat: [
-    { id: "command", nama: "ROI HQ", label: "ROI Command Centre", jenis: "hab", warna: "#8E9BFF" },   // tingkat paling atas
+    { id: "command", nama: "ROI HQ", label: "Pejabat CEO ROI Resources", jenis: "hab", warna: "#8E9BFF" },   // tingkat paling atas: Nadi, Virtual CEO
     // Venture di bawah: SUSUNAN = TINGKAT, dari bawah (aras jalan) ke atas.
     { id: "meney", nama: "Meney", label: "Pejabat Meney Gaming", jenis: "pejabat", tema: "kedai", warna: "#8DC63F",
       papanPesan: "Promo\nTrade-in PS5 anda di sini. Tanya di kaunter!",
       logo: { fail: "meney-logo-dark.svg" } },
-    { id: "binalab", nama: "BinaLab", label: "Pejabat BinaLab", jenis: "pejabat", tema: "studio", warna: "#4CC26C",
+    { id: "binalab", nama: "BinaLab", label: "Pejabat BinaLab", jenis: "pejabat", tema: "perisian", warna: "#4CC26C",
       papanPesan: "Fokus minggu ini\nFollow-up semua quotation & demo Bina Review",
       logo: { fail: "binalab-logo-dark.svg", ikon: "112 88 382 440", tulisan: "80 558 450 90" } },
     { id: "ciptarobo", nama: "Cipta Robo", label: "Makmal R&D Cipta Robo", jenis: "pejabat", tema: "robotik", warna: "#4FBF9F",
       papanPesan: "NURI LAB · SIMULASI\nMake NURI yours. Make NURI useful.",
       logo: { fail: "ciptarobo-logo.png", latar: "#F4F3EF" } },
-    { id: "ehnakama", nama: "Eh Nakama", label: "Studio EH NAKAMA", jenis: "pejabat", tema: "kedai", warna: "#D7252C",
+    { id: "ehnakama", nama: "Eh Nakama", label: "Studio EH NAKAMA", jenis: "pejabat", tema: "media", warna: "#D7252C",
       papanPesan: "EH NAKAMA\nDifferent stories. Same nakama.",
       logo: { fail: "ehnakama-logo.png" } },   // logo panjang (dijana dari logo bulat rasmi)
-    { id: "gilapips", nama: "GilaPips", label: "Pejabat GilaPips", jenis: "pejabat", tema: "studio", warna: "#D4B26A",
+    { id: "gilapips", nama: "GilaPips", label: "Pejabat GilaPips", jenis: "pejabat", tema: "pasaran", warna: "#D4B26A",
       papanPesan: "Ilmu Biasa.\nHasil Luar Biasa.",
       logo: { fail: "gilapips-logo.svg" } },
-    { id: "lakar", nama: "Lakar", label: "Studio LAKAR", jenis: "pejabat", tema: "studio", warna: "#C4513B",
+    { id: "lakar", nama: "Lakar", label: "Studio LAKAR", jenis: "pejabat", tema: "seni", warna: "#C4513B",
       papanPesan: "LAKAR\nMural custom untuk ruang yang ada cerita.",
       logo: { fail: "lakar-logo.png", latar: "#F9F4EC" } },
   ],
 
   agent: [
     // Command
-    { id: "nadi", nama: "Nadi", pejabat: "command", peranan: "Ketua Command: agih kerja dan rumus laporan", warna: "#9AA8FF", rambut: "kemas", warnaRambut: "#2A1B12",
-      tugas: ["Agih 6 tugasan pagi ini", "Semak siapa belum hantar report", "Rumus laporan harian", "Hantar ringkasan ke Danial"] },
+    { id: "nadi", nama: "Nadi", pejabat: "command", peranan: "Virtual CEO ROI Resources: agih kerja ke semua venture dan rumus laporan", warna: "#9AA8FF", rambut: "kemas", warnaRambut: "#2A1B12",
+      tugas: ["Semak dinding prestasi 6 anak syarikat", "Agih tugasan pagi ke setiap venture", "Semak siapa belum hantar report", "Rumus laporan harian untuk Danial"] },
 
     // BinaLab
     { id: "bina", nama: "Bina", pejabat: "binalab", peranan: "Pipeline dan prospek", warna: "#4CC26C", senyapSelepasJam: 26, rambut: "pendek",

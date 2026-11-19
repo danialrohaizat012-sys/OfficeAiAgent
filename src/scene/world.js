@@ -4,8 +4,9 @@ import { buildSite, GROUND_Y } from "./site.js";
 import { person } from "./person.js";
 import { officeSpots } from "./spots.js";
 import { buildNuriLab } from "./nuriLab.js";
+import { GAYA, ceoSuite } from "./gaya.js";
 import {
-  officeFloor, officeWalls, foundation, workstation, plant, wallDecor, commandDeck,
+  officeFloor, officeWalls, foundation, workstation, plant, wallDecor,
   counterZone, loungeZone, sideZone, sideRZone, bakeStatic, WALL_H, aFrameSign,
 } from "./decor.js";
 
@@ -24,7 +25,7 @@ export function buildWorld(scene, offices, agents, building = {}) {
   const site = buildSite(scene, offices);
 
   for (const [key, o] of Object.entries(offices)) {
-    const grp = o.kind === "hub" ? hub(o, bobbers) : office(o, bobbers);
+    const grp = o.kind === "hub" ? hub(o, bobbers, offices) : office(o, bobbers);
     grp.position.set(...o.pos);
     grp.userData.officeKey = key;
     scene.add(grp);
@@ -38,9 +39,10 @@ export function buildWorld(scene, offices, agents, building = {}) {
       accent: "#" + o.color.toString(16).padStart(6, "0") });
     const i = used[a.office] = (used[a.office] ?? -1) + 1;
     if (o.kind === "hub") {
-      const n = agents.filter(x => x.office === a.office).length;
-      r.position.set((i - (n - 1) / 2) * 1.4, 0, 0.6);
-      a.home = { x: r.position.x, z: 0.6, standing: true };
+      // Nadi (Virtual CEO) duduk di meja eksekutif; agent hab lain berdiri di sebelah
+      const seat = o.ceoSeat || { x: 0, z: -1.5 };
+      if (i === 0) { r.position.set(seat.x, 0, seat.z); a.home = { x: seat.x, z: seat.z, leader: true }; }
+      else { r.position.set(seat.x + (i % 2 ? 1.6 : -1.6), 0, seat.z + 0.4); a.home = { x: r.position.x, z: seat.z + 0.4, standing: true }; }
     } else {
       // pekerja duduk di kerusi di belakang meja, menghadap kamera
       const [x, z] = o.deskSpots[i];
@@ -105,27 +107,28 @@ function tower(offices, building, bobbers) {
   return g;
 }
 
-// Tingkat paling atas: ROI Command Centre (syarikat induk). Nadi di meja kawalan.
-function hub(o, bobbers) {
+// Tingkat paling atas: Pejabat CEO ROI Resources (Nadi, Virtual CEO).
+function hub(o, bobbers, offices) {
   const grp = new THREE.Group();
   const plan = o.plan, W2 = plan.W / 2;
+  const ventures = Object.values(offices).filter(v => v.kind === "office").sort((a, b) => a.floor - b.floor);
   const shell = new THREE.Group();
   shell.add(foundation(plan, o.color, -0.3, false));
-  shell.add(officeFloor(plan, o.color, "command"));
-  shell.add(officeWalls(plan, o.color, "command"));
-  shell.add(plant(-(W2 - 0.6), plan.lanes.back - 0.2, 1, 1)); shell.add(plant(W2 - 0.6, plan.lanes.back - 0.2, 1, 0));
-  shell.add(plant(-(W2 - 0.8), plan.lanes.front, 0.8, 0)); shell.add(plant(W2 - 0.8, plan.lanes.front, 0.8, 1));
+  shell.add(officeFloor(plan, o.color, "ceo"));
+  shell.add(officeWalls(plan, o.color, "ceo"));
+  const suite = ceoSuite(plan, o.color, ventures);
+  shell.add(suite.group);
+  o.ceoSeat = suite.nadiSeat;
   grp.add(bakeStatic(shell));
 
-  // cincin lantai berputar + meja kawalan + hologram
-  for (let i = 0; i < 3; i++) {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.8 + i * 0.35, 0.02, 8, 64), new THREE.MeshBasicMaterial({ color: 0x9fd4ff, transparent: true, opacity: 0.6 - i * 0.15 }));
-    ring.rotation.x = Math.PI / 2; ring.position.y = 0.08 + i * 0.02; ring.userData.spin = (i % 2 ? -1 : 1) * (0.4 + i * 0.2);
-    grp.add(ring); bobbers.push({ m: ring, type: "spin" });
-  }
-  const deck = commandDeck(o.color);
-  grp.add(deck.group);
-  deck.holos.forEach((h, i) => bobbers.push({ m: h, type: "bob", base: h.position.y, ph: i * 1.7, amp: 0.06 }));
+  // hologram kecil berputar atas meja CEO (globe ROI)
+  const globe = new THREE.Mesh(new THREE.IcosahedronGeometry(0.16, 1),
+    new THREE.MeshBasicMaterial({ color: o.color, wireframe: true, transparent: true, opacity: 0.85 }));
+  globe.position.set(0.75, 1.02, -0.75); globe.userData.dynamic = true;
+  grp.add(globe); bobbers.push({ m: globe, type: "spinY", speed: 0.8 });
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.01, 6, 32), new THREE.MeshBasicMaterial({ color: 0x9fd4ff, transparent: true, opacity: 0.6 }));
+  ring.rotation.x = Math.PI / 2; ring.position.set(0.75, 0.82, -0.75); ring.userData.spin = 0.6;
+  grp.add(ring); bobbers.push({ m: ring, type: "spin" });
 
   // antena + radar atas bumbung (penjuru belakang kiri)
   const mast = new THREE.Group(); mast.position.set(-(W2 - 0.6), WALL_H + 0.12, plan.backZ - 0.1);
@@ -145,6 +148,12 @@ function hub(o, bobbers) {
 
 // Papan logo venture di depan lantai tingkat atasnya (macam papan nama setiap tingkat)
 function fasciaSign(grp, o, accent) {
+  if (o.kind === "hub" && !o.logo) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="150" viewBox="0 0 900 150"><text x="450" y="98" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="68" letter-spacing="6" fill="#ffffff">PEJABAT CEO <tspan fill="${accent}">· NADI</tspan></text></svg>`;
+    const sign = signBoard(svg, null, accent, 0.62, "dinding");
+    sign.position.set(0, WALL_H + 0.08, o.plan.shift + o.plan.D / 2 + 0.14);
+    grp.add(sign); return;
+  }
   const svg = o.logo && logoSvg(o.logo.fail);
   if (o.logo && !svg) console.error(`[markas.config.js] Logo "${o.logo.fail}" tiada dalam folder logos/.`);
   if (!svg) return;
@@ -165,12 +174,14 @@ function office(o, bobbers) {
   furniture.add(foundation(plan, o.color, ground ? GROUND_Y : -0.3, ground));
   furniture.add(officeFloor(plan, o.color, theme));
   furniture.add(officeWalls(plan, o.color, theme));
-  furniture.add(wallDecor(plan, o.color, theme, theme !== "kedai" ? o.message : null));
+  const gaya = GAYA[theme] || {};
+  furniture.add(gaya.wall ? gaya.wall(plan, o.color, o.message) : wallDecor(plan, o.color, theme, theme !== "kedai" ? o.message : null));
+  if (gaya.floorDecor) furniture.add(gaya.floorDecor(plan, o.color));
   if (theme !== "robotik") o.deskSpots.forEach(([x, z], i) => { const d = workstation(o.color, x < 0 ? -1 : 1, theme, i); d.position.set(x, 0, z); furniture.add(d); });
-  furniture.add(counterZone(anchors.counter, o.color, theme));
-  furniture.add(loungeZone(anchors.lounge, o.color, theme));
-  furniture.add(sideZone(anchors.side, o.color, theme));
-  furniture.add(sideRZone(anchors.sideR, o.color, theme));
+  furniture.add((gaya.counter || counterZone)(anchors.counter, o.color, theme));
+  furniture.add((gaya.lounge || loungeZone)(anchors.lounge, o.color, theme));
+  furniture.add((gaya.side || sideZone)(anchors.side, o.color, theme));
+  furniture.add((gaya.sideR || sideRZone)(anchors.sideR, o.color, theme));
   const W2 = plan.W / 2;
   furniture.add(plant(-(W2 - 0.55), plan.lanes.back - 0.2, 1, 1));
   furniture.add(plant(W2 - 0.55, plan.lanes.back - 0.2, 1, 0));

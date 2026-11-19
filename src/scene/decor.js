@@ -46,27 +46,44 @@ function grp(x = 0, y = 0, z = 0, ry = 0) {
 }
 const nightGlow = (m, v) => { m.userData.nightGlow = v; return m; };
 const hexStr = c => "#" + c.toString(16).padStart(6, "0");
+export { std, basic, mesh, grp, box, cyl, M, nightGlow, hexStr, openShelf, chair };
+
+// Palet setiap gaya pejabat (lantai, dinding, jalur atas dinding belakang)
+const KEDAI = { floor: 0x1d2335, lines: "grid", wall: 0x1f2538, outer: 0x2a3146, trim: 0x12161f, band: "neon", neon: "GAME ON" };
+const STUDIO = { floor: 0x9b7656, lines: "kayu", lineC: 0x5e4430, wall: 0xe8e3da, outer: 0xd6d0c4, trim: 0x8a6a4c, light: true, band: "tingkap" };
+export const PAL = {
+  studio: STUDIO, robotik: STUDIO, kedai: KEDAI,
+  perisian: { ...STUDIO, floor: 0xa98462, wall: 0xeef0ec },
+  media: { floor: 0x1c1720, lines: "grid", wall: 0x241c2b, outer: 0x30263a, trim: 0x120d16, band: "neon", neon: "仲間" },
+  pasaran: { floor: 0x1b2232, lines: "jubin", lineC: 0x34405a, wall: 0x232a3a, outer: 0x2c3447, trim: 0x141925, band: "tingkap" },
+  seni: { floor: 0xbdb5a8, lines: "konkrit", lineC: 0xa0978a, wall: 0xf4ede2, outer: 0xe3d9c9, trim: 0x9c8a74, light: true, band: "tiada" },
+  ceo: { floor: 0x4a3426, lines: "kayu", lineC: 0x2f2018, wall: 0x262c3c, outer: 0x2e3546, trim: 0x15192a, band: "tingkap" },
+};
+const pal = t => PAL[t] || STUDIO;
+
 
 // ==================== LANTAI ====================
 export function officeFloor(plan, color, theme) {
-  const g = grp(0, 0, plan.shift);
-  const studio = theme !== "kedai" && theme !== "command";
+  const g = grp(0, 0, plan.shift), p = pal(theme);
+  const wood = p.lines === "kayu";
   const floor = new THREE.Mesh(new THREE.ShapeGeometry(roundedShape(plan.W - 0.5, plan.D - 0.5, 0.85), 10),
-    std(studio ? 0x9b7656 : 0x1d2335, { roughness: studio ? 0.75 : 0.5, metalness: studio ? 0.05 : 0.3 }));
+    std(p.floor, { roughness: wood ? 0.75 : p.lines === "konkrit" ? 0.6 : 0.5, metalness: wood || p.light ? 0.05 : 0.3 }));
   floor.rotation.x = -PI / 2; floor.position.y = 0.015; g.add(floor);
-  // garisan papan kayu (studio) atau grid neon (kedai)
+  // garisan papan kayu, grid neon, jubin besar atau konkrit
   const pts = [], hw = (plan.W - 1.3) / 2, hd = (plan.D - 1.3) / 2;
-  if (studio) {
+  if (wood) {
     for (let z = -hd, r = 0; z <= hd; z += 0.32, r++) {
       pts.push(-hw, 0.02, z, hw, 0.02, z);
       for (let x = -hw + (r % 3) * 0.55; x < hw; x += 1.65) pts.push(x, 0.02, z, x, 0.02, Math.min(z + 0.32, hd));
     }
   } else {
-    for (let x = -hw; x <= hw + 0.01; x += 0.9) pts.push(x, 0.02, -hd, x, 0.02, hd);
-    for (let z = -hd; z <= hd + 0.01; z += 0.9) pts.push(-hw, 0.02, z, hw, 0.02, z);
+    const step = p.lines === "grid" ? 0.9 : p.lines === "jubin" ? 1.2 : 2.2;
+    for (let x = -hw; x <= hw + 0.01; x += step) pts.push(x, 0.02, -hd, x, 0.02, hd);
+    for (let z = -hd; z <= hd + 0.01; z += step) pts.push(-hw, 0.02, z, hw, 0.02, z);
   }
   const lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
-  g.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: studio ? 0x5e4430 : color, transparent: true, opacity: studio ? 0.45 : 0.22 })));
+  const lc = p.lines === "grid" ? color : p.lineC;
+  g.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: lc, transparent: true, opacity: p.lines === "grid" ? 0.22 : 0.45 })));
   return g;
 }
 
@@ -89,31 +106,31 @@ export function foundation(plan, color, groundY, steps = true) {
 
 export function officeWalls(plan, color, theme) {
   const g = new THREE.Group();
-  const studio = theme !== "kedai" && theme !== "command";
+  const p = pal(theme);
   const h = WALL_H, z = plan.backZ, t = 0.2;
-  const wallM = std(studio ? 0xe8e3da : 0x1f2538, { roughness: 0.9 });
-  const outerM = std(studio ? 0xd6d0c4 : 0x2a3146, { roughness: 0.9 });
+  const wallM = std(p.wall, { roughness: 0.9 });
+  const outerM = std(p.outer, { roughness: 0.9 });
   const capM = std(0x3a4152, { roughness: 0.6 });
   const W2 = plan.W / 2, zBack = z - 0.1, zFront = plan.shift + plan.D / 2 - 0.1;
   // dinding belakang (penuh dari sisi ke sisi)
   g.add(mesh(box(plan.W, h, t), wallM, 0, h / 2, zBack - t / 2 + 0.08));
   g.add(mesh(box(plan.W + 0.1, 0.12, t + 0.1), capM, 0, h + 0.06, zBack - t / 2 + 0.08));
   // bingkai bawah + jalur lampu dalam
-  g.add(mesh(box(plan.W - 0.4, 0.1, 0.05), std(studio ? 0x8a6a4c : 0x12161f), 0, 0.05, z));
+  g.add(mesh(box(plan.W - 0.4, 0.1, 0.05), std(p.trim), 0, 0.05, z));
   g.add(mesh(box(plan.W - 0.4, 0.05, 0.05), basic(color), 0, h - 0.08, z));
-  if (studio) {
+  if (p.band === "tingkap") {
     const ww = plan.W - 1.6;
     g.add(mesh(new THREE.PlaneGeometry(ww, 0.62), new THREE.MeshBasicMaterial({ map: skylineTexture() }), 0, 2.08, z + 0.075));
     g.add(mesh(box(ww + 0.1, 0.05, 0.08), M.white(), 0, 1.75, z + 0.08));
     g.add(mesh(box(ww + 0.1, 0.05, 0.08), M.white(), 0, 2.41, z + 0.08));
     for (let i = 0; i <= 6; i++) g.add(mesh(box(0.05, 0.66, 0.08), M.white(), -ww / 2 + i * ww / 6, 2.08, z + 0.08));
-  } else {
-    g.add(mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: neonTexture(theme === "command" ? "ROI HQ" : "GAME ON", hexStr(color)), transparent: true }), 0, 2.08, z + 0.08));
+  } else if (p.band === "neon") {
+    g.add(mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: neonTexture(p.neon, hexStr(color)), transparent: true }), 0, 2.08, z + 0.08));
     g.add(mesh(box(plan.W - 1.4, 0.03, 0.03), basic(color), 0, 1.78, z + 0.08));
   }
   // dinding sisi: separuh bawah konkrit, separuh atas kaca dengan tiang tingkap
   const len = zFront - zBack, zc = (zFront + zBack) / 2, low = 0.85;
-  const glass = new THREE.MeshStandardMaterial({ color: studio ? 0xcfe6ff : color, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0.3, depthWrite: false, side: THREE.DoubleSide });
+  const glass = new THREE.MeshStandardMaterial({ color: p.light || p.band === "tingkap" ? 0xcfe6ff : color, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0.3, depthWrite: false, side: THREE.DoubleSide });
   for (const sx of [-1, 1]) {
     const x = sx * (W2 - t / 2);
     g.add(mesh(box(t, low, len), outerM, x, low / 2, zc));
@@ -162,13 +179,16 @@ function neonTexture(text, hex) {
 export function workstation(color, side, theme, i) {
   const g = new THREE.Group();
   const kedai = theme === "kedai";
-  const top = kedai ? M.deskTop() : M.deskWood();
+  const dark = kedai || theme === "media" || theme === "pasaran";
+  const top = kedai ? M.deskTop() : theme === "media" ? std(0x2c2433, { roughness: 0.5 }) : theme === "pasaran" ? std(0x1f2636, { roughness: 0.35, metalness: 0.2 })
+    : theme === "seni" ? std(0xd8c6a5) : theme === "perisian" ? std(0xf1f1ee, { roughness: 0.4 }) : M.deskWood();
   g.add(mesh(box(1.5, 0.06, 0.7), top, 0, 0.64, 0));
   g.add(mesh(box(1.5, 0.03, 0.02), basic(color), 0, 0.64, 0.355));
   for (const x of [-0.68, 0.68]) for (const z of [-0.3, 0.3]) g.add(mesh(cyl(0.02, 0.02, 0.62, 6), M.metal(), x, 0.31, z));
-  g.add(mesh(box(1.36, 0.36, 0.03), kedai ? M.dark() : std(0x8f7254), 0, 0.42, 0.3));
+  g.add(mesh(box(1.36, 0.36, 0.03), dark ? M.dark() : theme === "perisian" ? std(color) : std(0x8f7254), 0, 0.42, 0.3));
   // laci kecil di sisi
-  g.add(mesh(box(0.38, 0.5, 0.55), kedai ? M.dark() : std(0xe8e3da), 0.5 * side, 0.27, 0));
+  g.add(mesh(box(0.38, 0.5, 0.55), dark ? M.dark() : std(0xe8e3da), 0.5 * side, 0.27, 0));
+  deskExtras(g, color, side, theme);
   if (kedai) {
     // cahaya RGB di lantai bawah meja
     const glow = mesh(new THREE.PlaneGeometry(1.7, 0.9), basic(color, { transparent: true, opacity: 0.22, depthWrite: false }), 0, 0.025, 0);
@@ -223,6 +243,45 @@ export function workstation(color, side, theme, i) {
 
   g.add(kedai ? gamingChair(color, 0, -0.62) : chair(color, 0, -0.62));
   return g;
+}
+
+// Barang khas atas meja ikut venture (nampak dari kamera)
+function deskExtras(g, color, side, theme) {
+  if (theme === "pasaran") {
+    // 3 skrin dagangan: dua monitor tambahan
+    for (const dx of [-0.1, -0.62]) {
+      const mon = grp(dx * side, 0.68, -0.2, side * (dx < -0.3 ? 0.5 : 0));
+      mon.add(mesh(cyl(0.015, 0.015, 0.3, 6), M.metal(), 0, 0.15, 0));
+      mon.add(mesh(box(0.55, 0.33, 0.03), M.dark(), 0, 0.42, 0));
+      mon.add(mesh(box(0.55, 0.02, 0.035), std(0xd4b26a, { metalness: 0.6, roughness: 0.3 }), 0, 0.255, 0));
+      g.add(mon);
+    }
+  } else if (theme === "media") {
+    // tablet lukisan + timbunan manga
+    const tab = grp(0.18 * side, 0.68, 0.18); tab.rotation.x = -0.25;
+    tab.add(mesh(box(0.34, 0.02, 0.24), M.dark(), 0, 0.02, 0));
+    tab.add(mesh(box(0.3, 0.005, 0.2), basic(0xf4ecec), 0, 0.032, 0));
+    g.add(tab);
+    [0xd7252c, 0xf4f1e6, 0x2a2230, 0xf2c14e].forEach((c, k) => g.add(mesh(box(0.15, 0.03, 0.21), std(c), -0.38 * side, 0.685 + k * 0.03, 0.22)));
+  } else if (theme === "seni") {
+    // papan lakaran condong + bekas berus
+    const bd = grp(0.15 * side, 0.67, 0.12); bd.rotation.x = -0.5;
+    bd.add(mesh(box(0.55, 0.4, 0.02), std(0xf9f4ec), 0, 0.2, 0));
+    bd.add(mesh(box(0.2, 0.12, 0.005), std(0xc4513b), -0.1, 0.24, 0.012));
+    bd.add(mesh(box(0.14, 0.18, 0.005), std(0x176b63), 0.13, 0.18, 0.012));
+    g.add(bd);
+    const cup = grp(-0.42 * side, 0.67, 0.22);
+    cup.add(mesh(cyl(0.05, 0.045, 0.12, 10), std(0x176b63), 0, 0.06, 0));
+    [0xc4513b, 0xf2c14e, 0x6b5440].forEach((c, k) => { const b = mesh(cyl(0.008, 0.008, 0.22, 5), std(c), (k - 1) * 0.02, 0.17, 0); b.rotation.z = (k - 1) * 0.2; cup.add(b); });
+    g.add(cup);
+  } else if (theme === "perisian") {
+    // telefon uji atas dirian + nota lekat
+    const ph = grp(0.15 * side, 0.67, 0.22); ph.rotation.x = -0.3;
+    ph.add(mesh(box(0.08, 0.15, 0.01), M.dark(), 0, 0.08, 0));
+    ph.add(mesh(box(0.068, 0.13, 0.002), basic(color), 0, 0.08, 0.006));
+    g.add(ph);
+    [0xf2c14e, 0xff9fb2, 0x8fd3ff].forEach((c, k) => g.add(mesh(box(0.07, 0.07, 0.005), basic(c), (-0.2 + k * 0.1) * side, 0.5, 0.32)));
+  }
 }
 
 function chair(color, x, z) {

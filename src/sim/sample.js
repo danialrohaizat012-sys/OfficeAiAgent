@@ -15,7 +15,7 @@ export function startSample(agents, ui, { onShow, onReport, onDecision } = {}) {
     ui.refresh(a);
     if (onShow) onShow(a);
     // tugas terakhir dalam senarai selesai = report dihantar ke Command
-    if (!a.home.standing && ((a.step === 0 && prev !== 0) || Math.random() < 0.12)) {
+    if (!a.home.leader && !a.home.standing && ((a.step === 0 && prev !== 0) || Math.random() < 0.12)) {
       const done = a.tasks[prev];
       a.sampleReport = { report: `Report contoh: "${done}" selesai. Tiada isu besar.`, reportPada: new Date().toISOString() };
       log(a, { report: a.sampleReport.report });

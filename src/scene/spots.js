@@ -5,6 +5,8 @@
 // face: arah pekerja menghadap (0 = ke depan/kamera, PI = ke dinding belakang,
 // PI/2 = ke kanan, -PI/2 = ke kiri). pose: "stand" atau "sit".
 
+import { GAYA } from "./gaya.js";
+
 const PI = Math.PI;
 
 export function officeSpots(plan, theme) {
@@ -35,5 +37,11 @@ export function officeSpots(plan, theme) {
     { id: "shelf", x: kedai ? 1.7 : 1.8, z: back, face: PI, pose: "stand", lane: back,
       label: kedai ? "🎮 Semak rak game" : "📚 Cari rujukan" },
   ];
+  // label & ketinggian kerusi khas ikut venture (src/scene/gaya.js)
+  const g = GAYA[theme];
+  if (g) for (const s of spots) {
+    if (g.labels[s.id]) s.label = g.labels[s.id];
+    if (s.pose === "sit" && g.loungeSeatY) s.seatY = g.loungeSeatY;
+  }
   return { anchors, spots };
 }

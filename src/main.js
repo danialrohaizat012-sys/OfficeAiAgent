@@ -69,7 +69,7 @@ const quality = createQuality({ renderer, scene, key, button: document.getElemen
 // Sampul report terbang ke Nadi + pelanggan masuk kedai
 const envelopes = createEnvelopes(scene);
 const customers = createCustomers(OFFICES, world.officeGroups, world.site);
-const leader = AGENTS.find(a => a.home.standing);
+const leader = AGENTS.find(a => a.home.leader);
 
 function select(id, fromChip) {
   const a = AGENTS.find(x => x.id === id); if (!a) return;
