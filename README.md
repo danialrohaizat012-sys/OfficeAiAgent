@@ -13,9 +13,12 @@ Dashboard 3D berbentuk **menara ROI Resources** (syarikat induk). Setiap venture
 |---|---|
 | **Data contoh / ● Hidup** (kanan atas) | Tukar antara simulasi dan status sebenar. Mod Hidup minta **kod akses** sekali (`MARKAS_VIEW_CODE`). |
 | **✨ Cantik / ⚡ Laju** | Kualiti grafik. Laju = tanpa bayang-bayang, untuk phone yang berat (bertukar sendiri kalau perlu). |
-| Tab **Semua / tingkat venture / ROI HQ** | Zum ke pejabat. Boleh juga tekan terus bangunan atau papan tanda. |
-| Tekan pekerja / chip di bawah | Panel detail: sedang buat, report terakhir, aktiviti terkini, perlu keputusan. |
+| **📋 Laporan** | Laporan hari ini dari Nadi. Mod Hidup: butang ↻ Rumus sekarang, 📨 Hantar ke Telegram, ⚙️ Sambung Telegram. |
+| Panel tingkat di kiri (**HQ, 6…1, Semua**) | Zum ke tingkat. Titik merah = ada perlu keputusan. Boleh juga tekan terus bangunan atau papan tanda. |
+| Avatar staf (bawah) / **👥 Semua staf** | Panel detail: sedang buat, report terakhir, aktiviti terkini, perlu keputusan. |
 | **✓ Tandakan selesai** | Padam "perlu keputusan" (disimpan di server dalam mod Hidup). |
+
+**Pasang sebagai app di iPhone:** buka laman dalam Safari → butang Kongsi → **Add to Home Screen**. Markas buka skrin penuh dengan ikon ROI sendiri.
 
 Jam dan cuaca ikut **waktu Malaysia** dan **cuaca sebenar Pasir Tumboh**. Untuk uji, tambah pada URL:
 `?jam=21` (malam), `?jam=19` (senja), `?cuaca=hujan`, `?cuaca=ribut`, `?cuaca=mendung`.
@@ -116,9 +119,11 @@ Jawapan `{"ok":true,...}` = berjaya. Dashboard mod Hidup kemas kini dalam ~20 sa
 |---|---|---|---|
 | **Bina** | Google Apps Script (akaun Danial) | Setiap hari 8:00 pagi: ringkasan tracker prospek MY + Global | `agents/bina/CARA-PASANG.md` |
 | **Lina + Faris** | Google Apps Script "Meney – Markas" | Setiap jam 9 pagi–11 malam: jualan, untung, tunai, repair (Firebase POS, baca sahaja) | `agents/meney/CARA-PASANG.md` |
-| **Nadi** | Vercel Cron (`api/nadi.js`, `vercel.json`) | Setiap pagi ~8:30: rumus report semua agent + senarai perlu keputusan + agent senyap. Butang "↻ Rumus laporan sekarang" dalam panel Nadi | perlu `CRON_SECRET` di Vercel |
+| **Nadi** | Vercel Cron (`api/nadi.js`, `vercel.json`) | Setiap pagi ~8:30: rumus report semua agent + senarai perlu keputusan + agent senyap; dihantar ke Telegram Danial | perlu `CRON_SECRET` di Vercel |
+| **Syafiq** (GilaPips) | Google Apps Script "GilaPips – Markas" | Setiap 3 jam: jumlah ahli, ahli baru, permintaan pengesahan menunggu (Firestore `gilapips`, kiraan sahaja) | `agents/gilapips/CARA-PASANG.md` |
+| **Telegram Bot** | `api/telegram.js` + Apps Script | Nadi → Danial (laporan pagi, keputusan dengan butang Setuju/Tolak), Faris → Amirul (follow-up repair + WhatsApp), Bina → Fakhri (5 prospek + WhatsApp) | `agents/TELEGRAM.md` |
 
-Agent lain masih guna data contoh sehingga disambung.
+Agent lain masih guna data contoh sehingga disambung. Agent boleh hantar `angka` (maks 8 nombor ringkas) bersama status: dipapar di dinding skrin Pejabat CEO; `transaksiHari` Lina cetus pelanggan 3D masuk Meney.
 
 ---
 
@@ -129,6 +134,7 @@ Agent lain masih guna data contoh sehingga disambung.
   - `MARKAS_VIEW_CODE`: kod akses dashboard
   - `CRON_SECRET`: supaya hanya Vercel Cron boleh cetus Nadi
   - `KV_REST_API_URL`, `KV_REST_API_TOKEN`: diisi automatik oleh Upstash
+  - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_DANIAL` (pilihan): Telegram Bot (lihat `agents/TELEGRAM.md`)
 - Tukar kunci: buka `/api/health`, salin `cadanganKunciRawak`, Edit di Vercel, kemudian **Redeploy**. Ingat kemas kini kunci dalam Script Properties agent juga.
 - Jangan commit ID Sheet, data prospek, data pelanggan atau kunci. **Repo ini public.**
 - Agent hanya hantar **ringkasan**. Data mentah kekal di sumbernya (Google Sheet, Firebase POS).

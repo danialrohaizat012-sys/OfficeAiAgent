@@ -582,15 +582,35 @@ export const GAYA = { perisian, media, pasaran, seni };
 
 // ==================== PEJABAT CEO (Nadi) di tingkat atas ====================
 // Meja eksekutif, dinding portfolio venture, bilik mesyuarat lembaga dan sudut rehat.
-function ventureCard(name, hex) {
-  return tex("vc" + name + hex, 200, 120, (c, w, h) => {
-    c.fillStyle = "#0e1422"; c.fillRect(0, 0, w, h);
-    c.fillStyle = hex; c.fillRect(0, 0, w, 8);
-    c.font = "900 22px sans-serif"; c.fillText(name.toUpperCase(), 12, 38);
-    seed = name.length * 7;
+// Kad skrin venture di dinding Pejabat CEO. info = { lines: [..maks 3], alert, sample } atau null (carta hiasan)
+function drawVentureCard(c, w, h, name, hex, info) {
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = info && info.alert ? "#2a0f14" : "#0e1422"; c.fillRect(0, 0, w, h);
+  c.fillStyle = info && info.alert ? "#e5484d" : hex; c.fillRect(0, 0, w, 8);
+  c.fillStyle = hex; c.font = "900 20px sans-serif"; c.textAlign = "left"; c.fillText(name.toUpperCase(), 12, 36);
+  if (info && info.lines && info.lines.length) {
+    c.font = "700 15px sans-serif";
+    info.lines.slice(0, 3).forEach((t, i) => { c.fillStyle = i === 0 ? "#ffffff" : "#b9c3d6"; c.fillText(String(t).slice(0, 22), 12, 62 + i * 21); });
+    if (info.sample) { c.fillStyle = "#6b7790"; c.font = "600 10px sans-serif"; c.fillText("DATA CONTOH", w - 78, h - 8); }
+  } else {
+    seed = name.length * 7; c.fillStyle = hex;
     for (let i = 0; i < 7; i++) { const bh = 14 + rnd() * 44; c.globalAlpha = i === 6 ? 1 : 0.55; c.fillRect(12 + i * 22, h - 12 - bh, 14, bh); }
-    c.globalAlpha = 1; c.fillStyle = "#46d37a"; c.beginPath(); c.arc(w - 18, 28, 6, 0, PI * 2); c.fill();
-  });
+    c.globalAlpha = 1;
+  }
+  c.fillStyle = info && info.alert ? "#e5484d" : "#46d37a"; c.beginPath(); c.arc(w - 18, 28, 6, 0, PI * 2); c.fill();
+  if (info && info.alert) { c.fillStyle = "#fff"; c.font = "900 11px sans-serif"; c.textAlign = "center"; c.fillText("!", w - 18, 32); c.textAlign = "left"; }
+}
+function ventureCard(name, hex) {
+  return tex("vc" + name + hex, 200, 120, (c, w, h) => drawVentureCard(c, w, h, name, hex, null));
+}
+// Kemas kini kad dari dashboard (mod Hidup: angka sebenar; mod contoh: ringkasan simulasi)
+export function updateVentureCard(name, hex, info) {
+  const t = texCache.get("vc" + name + hex); if (!t) return;
+  const cv = t.image, key = JSON.stringify(info);
+  if (t.userData.key === key) return;
+  t.userData.key = key;
+  drawVentureCard(cv.getContext("2d"), cv.width, cv.height, name, hex, info);
+  t.needsUpdate = true;
 }
 function namePlate(hex) {
   return tex("plate" + hex, 512, 96, (c, w, h) => {

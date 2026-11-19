@@ -105,7 +105,7 @@ export default {
     // GilaPips (edukasi pasaran & emas, komuniti; status contoh — bukan nasihat pelaburan)
     { id: "amin", nama: "Amin", pejabat: "gilapips", ketua: true, peranan: "Kandungan edukasi pasaran & emas", warna: "#D4B26A", rambut: "kemas", warnaRambut: "#1E1410",
       tugas: ["Tulis nota asas: apa itu pips", "Ringkasan mingguan pergerakan emas (edukasi)", "Draf infografik pengurusan risiko"] },
-    { id: "syafiq", nama: "Syafiq", pejabat: "gilapips", peranan: "Komuniti & Telegram", warna: "#3A6DF0", rambut: "pendek",
+    { id: "syafiq", nama: "Syafiq", pejabat: "gilapips", peranan: "Komuniti & Telegram", senyapSelepasJam: 8, warna: "#3A6DF0", rambut: "pendek",
       tugas: ["Sambut ahli baru komuniti", "Jawab soalan lazim ahli", "Jadual sesi belajar mingguan"] },
     { id: "wani", nama: "Wani", pejabat: "gilapips", peranan: "Ebook & produk digital", warna: "#2FA86A", rambut: "tudung", warnaRambut: "#C9B6E8",
       tugas: ["Susun bab ebook asas pasaran", "Semak fakta & penafian risiko", "Sediakan halaman jualan ebook"] },

@@ -19,8 +19,8 @@ export function createCustomers(offices, officeGroups, site) {
   let timer = 4;
   const api = { enabled: true };
 
-  function spawn() {
-    if (!shops.length || people.length >= 2) return;
+  function spawn(force) {
+    if (!shops.length || people.length >= (force ? 4 : 2)) return;
     const [key, o] = pick(shops);
     const plan = o.plan, W2 = plan.W / 2;
     const sideZ = site.roadZ - site.roadW / 2 - 0.5 - o.pos[2];   // kaki lima (koordinat pejabat)
@@ -68,5 +68,10 @@ export function createCustomers(offices, officeGroups, site) {
     }
   }
 
-  return Object.assign(api, { update, get count() { return people.length; } });
+  // Mod Hidup: pelanggan masuk ikut jualan POS sebenar (n jualan baru sejak semakan lepas)
+  function visit(n) { for (let i = 0; i < Math.min(n, 4); i++) setTimeout(() => spawn(true), i * 2500); }
+
+  Object.assign(api, { update, visit });
+  Object.defineProperty(api, "count", { get: () => people.length });
+  return api;
 }

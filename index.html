@@ -6,6 +6,12 @@
 <meta name="theme-color" content="#0F1B2D">
 <title>Markas Agent</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Markas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
@@ -13,7 +19,14 @@
 <body>
 <canvas id="stage" aria-label="Pemandangan 3D markas agent"></canvas>
 <div id="bubbles"></div>
-<div class="loading" id="loading">Menyusun markas…</div>
+<div class="loading" id="loading">
+  <div class="splash">
+    <svg viewBox="0 0 72 72" width="64" height="64" aria-hidden="true"><rect width="72" height="72" rx="16" fill="#F4F1E8"/><g transform="translate(6 6) scale(.84)"><path fill="#091411" fill-rule="evenodd" d="M8 64V8h28c17.1 0 28 9.8 28 25 0 10.4-5.2 18.5-14.4 22.6L64 64H46.7L33.2 47H22v17H8Zm14-43v14h14c8.2 0 14-4.7 14-12s-5.8-12-14-12H22v10Z"/><path fill="#B58A4A" d="M44 8h20v20h-8V18.7L43.8 31 38 25.2 50.3 13H44V8Z"/></g></svg>
+    <b>Markas Agent</b>
+    <span>ROI Resources · menyusun menara…</span>
+    <i class="bar"><i></i></i>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <header>
@@ -24,6 +37,7 @@
   <div class="hud">
     <button class="sample" id="mode" title="Tukar antara data contoh dan data hidup">Data contoh</button>
     <div class="hud-row">
+      <button class="chipx" id="reportBtn" title="Laporan hari ini (Nadi)">📋<span> Laporan</span></button>
       <span class="chipx" id="clock" title="Waktu Malaysia">☀️ --:--</span>
       <button class="chipx" id="quality" title="Tukar kualiti grafik">✨ Cantik</button>
     </div>
@@ -87,6 +101,22 @@
       <button type="submit" id="codeOk">Masuk</button>
     </div>
   </form>
+</div>
+
+<div class="modal" id="reportModal" hidden>
+  <div class="modal-card report-card">
+    <div class="report-top">
+      <div><h2>📋 Laporan hari ini</h2><p class="when" id="reportWhen"></p></div>
+      <button type="button" class="close" id="reportClose">Tutup</button>
+    </div>
+    <div class="report-body" id="reportBody"></div>
+    <div class="row report-actions">
+      <button type="button" id="reportRun" hidden>↻ Rumus sekarang</button>
+      <button type="button" id="reportTg" hidden>📨 Hantar ke Telegram</button>
+      <button type="button" id="reportTgSetup" hidden>⚙️ Sambung Telegram</button>
+    </div>
+    <p class="note" id="reportNote"></p>
+  </div>
 </div>
 
 <script type="module" src="/src/main.js"></script>

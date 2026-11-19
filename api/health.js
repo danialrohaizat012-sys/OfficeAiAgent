@@ -9,6 +9,8 @@ export default async function handler(req, res) {
     upstash: hasRedis() ? "disambung" : "BELUM: sambung Upstash di Vercel → Storage",
     MARKAS_AGENT_KEY: process.env.MARKAS_AGENT_KEY ? "ada" : "BELUM: tambah di Settings → Environment Variables",
     MARKAS_VIEW_CODE: process.env.MARKAS_VIEW_CODE ? "ada" : "BELUM: tambah di Settings → Environment Variables",
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN ? "ada" : "belum (pilihan): token dari @BotFather",
+    TELEGRAM_CHAT_DANIAL: process.env.TELEGRAM_CHAT_DANIAL ? "ada" : "belum (pilihan): tekan Start pada bot untuk dapat Chat ID",
   };
   if (hasRedis()) {
     try { const [p] = await redis([["PING"]]); semak.upstashPing = p === "PONG" ? "ok" : String(p); }

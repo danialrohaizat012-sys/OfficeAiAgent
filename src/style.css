@@ -149,6 +149,7 @@ header p{margin:3px 0 0;font-size:12px;color:#E3E9F2;font-weight:600}
   .floors button{min-width:0;padding:4px 7px 4px 4px;gap:6px}
   .floors .lv{flex-basis:24px;height:24px;font-size:10px;border-radius:8px}
   .floors .nm{font-size:10.5px}
+  #reportBtn span{display:none}
   .floors .lv{flex-basis:26px;height:26px;font-size:10.5px}
 }
 .sheet{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
@@ -169,7 +170,34 @@ header p{margin:3px 0 0;font-size:12px;color:#E3E9F2;font-weight:600}
 .sheet li::before{content:"";flex:0 0 6px;height:6px;margin-top:7px;border-radius:50%;background:var(--acc,#888)}
 .sheet .office{display:inline-block;margin-top:12px;font-size:11.5px;color:var(--ink-soft)}
 button:focus-visible{outline:2px solid #8E9BFF;outline-offset:2px}
-.loading{position:fixed;inset:0;display:grid;place-items:center;color:#AEB8CA;font-size:13px}
+/* ---- skrin pembukaan ---- */
+.loading{position:fixed;inset:0;display:grid;place-items:center;color:#AEB8CA;font-size:13px;z-index:30;
+  background:radial-gradient(circle at 50% 40%,#16263f 0%,#0F1B2D 60%);transition:opacity .6s ease}
+.loading.done{opacity:0;pointer-events:none}
+.splash{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.splash svg{border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.45);animation:float 2.4s ease-in-out infinite}
+.splash b{margin-top:8px;font-size:20px;color:#EEF2F7;letter-spacing:-.01em}
+.splash span{font-size:12px;color:#9AA5B8}
+.splash .bar{display:block;width:150px;height:4px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:8px}
+.splash .bar i{display:block;width:40%;height:100%;border-radius:4px;background:linear-gradient(90deg,#0E624D,#B58A4A);animation:load 1.3s ease-in-out infinite}
+@keyframes load{0%{transform:translateX(-110%)}100%{transform:translateX(280%)}}
+@keyframes float{50%{transform:translateY(-6px)}}
+
+/* ---- kad laporan hari ini ---- */
+.modal-card.report-card{max-width:520px;max-height:min(84vh,760px);display:flex;flex-direction:column;padding:16px}
+.report-top{display:flex;align-items:flex-start;gap:10px}
+.report-top h2{margin:0}
+.report-top .when{margin:2px 0 0;font-size:12px}
+.report-top .close{margin-left:auto;font-size:13px;padding:7px 12px}
+.report-body{overflow-y:auto;margin:10px -4px 0;padding:0 4px;font-size:13px;line-height:1.5}
+.report-body h4{margin:12px 0 4px;font-size:11.5px;letter-spacing:.05em;color:var(--ink-soft);text-transform:uppercase}
+.report-body h4.warn{color:#e5484d}
+.report-body p{margin:2px 0}
+.report-body p.sub{padding-left:14px;color:var(--ink-soft);font-size:12px}
+.report-body .title{font-weight:700;font-size:13.5px}
+.report-actions{flex-wrap:wrap;justify-content:flex-start !important}
+.report-actions button{font-size:13px !important;padding:8px 12px !important}
+.report-card .note{margin:8px 0 0;font-size:11.5px}
 @media (min-width:900px){
   header h1{font-size:24px}
 }

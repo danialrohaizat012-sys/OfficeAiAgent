@@ -9,11 +9,20 @@
 //   MARKAS_AGENT_KEY  (kunci agent dari Vercel; JANGAN tulis dalam kod)
 //   SHEET_MY          ID Google Sheet tracker Malaysia (dari URL .../d/<ID>/edit)
 //   SHEET_GLOBAL      ID Google Sheet tracker BinaLab Global (pilihan)
+//   TELEGRAM_BOT_TOKEN   (pilihan) token bot Markas dari @BotFather
+//   TELEGRAM_CHAT_FAKHRI (pilihan) Chat ID Fakhri (bot beri bila Fakhri tekan Start)
+//
+// Bina → Fakhri (Telegram, pilihan): setiap pagi Bina hantar 5 prospek untuk dihubungi
+// hari ini, dengan butang WhatsApp (draf mesej; Fakhri semak & tekan Send). Nama & telefon
+// prospek pergi TERUS dari Google ke Telegram Fakhri sahaja; TIDAK dihantar ke Markas.
+// Pilihan prospek: lajur "Next Follow-up" ≤ hari ini dahulu; kalau tiada lajur itu,
+// lead yang belum dihubungi (Lead Status kosong/NEW dan "Last Contact" kosong).
 //
 // Fungsi untuk dijalankan:
 //   ujiBina()        sekali, untuk uji (lihat Execution log)
 //   pasangJadual()   sekali, untuk Bina jalan setiap pagi 8:00
 //   jalankanBina()   kerja harian (dipanggil oleh jadual)
+//   ujiTelegramBina() hantar 5 prospek ke Fakhri sekarang (uji Telegram)
 
 var AGENT_ID = "bina";
 
@@ -24,14 +33,92 @@ function jalankanBina() {
   }
   hantar_(p, { sedang: "Membaca tracker prospek…", sibuk: true });
 
-  var my = ringkasanMY_(bacaSemuaTab_(p.SHEET_MY, /prospect/i));
+  var tabsMY = bacaSemuaTab_(p.SHEET_MY, /prospect/i);
+  var my = ringkasanMY_(tabsMY);
   var gl = p.SHEET_GLOBAL ? ringkasanGlobal_(bacaSemuaTab_(p.SHEET_GLOBAL, /./), new Date()) : null;
   var report = tulisReport_(my, gl);
 
   var ringkas = "Pipeline MY " + my.jumlah + " lead" + (gl ? " · Global " + gl.jumlah : "") +
     (gl && gl.lewat ? " · " + gl.lewat + " follow-up lewat" : "");
-  hantar_(p, { sedang: ringkas, sibuk: false, report: report });
+  var angka = { leadMY: my.jumlah };
+  if (gl) { angka.prospekGlobal = gl.jumlah; angka.followupLewat = gl.lewat; angka.followupHariIni = gl.hariIniFollowup; }
+  hantar_(p, { sedang: ringkas, sibuk: false, report: report, angka: angka });
+
+  if (p.TELEGRAM_BOT_TOKEN && p.TELEGRAM_CHAT_FAKHRI) binaTelegram_(p, pilihHubungi_(tabsMY, new Date(), 5));
   return report;
+}
+
+function ujiTelegramBina() {
+  var p = PropertiesService.getScriptProperties().getProperties();
+  if (!p.TELEGRAM_BOT_TOKEN || !p.TELEGRAM_CHAT_FAKHRI || !p.SHEET_MY) throw new Error("Isi TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_FAKHRI dan SHEET_MY dalam Script Properties.");
+  binaTelegram_(p, pilihHubungi_(bacaSemuaTab_(p.SHEET_MY, /prospect/i), new Date(), 5));
+  Logger.log("Dihantar ke Telegram Fakhri.");
+}
+
+// ---------------------------------------------------------------- Telegram (Bina → Fakhri)
+
+// Pilih N prospek untuk dihubungi hari ini (tiada panggilan Google; boleh diuji)
+function pilihHubungi_(tabs, hariIni, n) {
+  var d0 = new Date(hariIni.getFullYear(), hariIni.getMonth(), hariIni.getDate());
+  var ikutTarikh = [], belumHubungi = [], adaLajurFU = false;
+  tabs.forEach(function (t) {
+    var h = t.header;
+    var c = { nama: kol_(h, "Business Name"), kat: kol_(h, "Category"), tel: kol_(h, "Phone"), st: kol_(h, "Lead Status"),
+      fu: kol_(h, "Next Follow-up"), lc: kol_(h, "Last Contact"), akt: kol_(h, "Active Check") };
+    if (c.nama < 0) return;
+    if (c.fu >= 0) adaLajurFU = true;
+    var negeri = t.tab.replace(/prospect/i, "").trim() || t.tab;
+    t.rows.forEach(function (row) {
+      var nama = teks_(row[c.nama]); if (!nama) return;
+      var x = { nama: nama, kat: c.kat >= 0 ? teks_(row[c.kat]) : "", tel: c.tel >= 0 ? teks_(row[c.tel]) : "", negeri: negeri,
+        status: c.st >= 0 ? teks_(row[c.st]) : "" };
+      if (c.akt >= 0 && /tutup|closed|inactive|tidak aktif/i.test(teks_(row[c.akt]))) return;
+      if (/won|lost|menang|kalah|tolak|reject|closed/i.test(x.status)) return;
+      var fu = c.fu >= 0 ? tarikh_(row[c.fu]) : null;
+      if (fu && fu <= d0) { x.fu = fu; ikutTarikh.push(x); return; }
+      var lc = c.lc >= 0 ? teks_(row[c.lc]) : "";
+      if (!fu && !lc && (!x.status || /^new$|baru|belum/i.test(x.status))) belumHubungi.push(x);
+    });
+  });
+  ikutTarikh.sort(function (a, b) { return a.fu - b.fu; });
+  var pilih = ikutTarikh.concat(belumHubungi.filter(function (x) { return x.tel; }), belumHubungi.filter(function (x) { return !x.tel; })).slice(0, n);
+  return { senarai: pilih, adaLajurFU: adaLajurFU, lewat: ikutTarikh.length };
+}
+
+function noWa_(tel) {
+  var d = String(tel || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d.indexOf("60") === 0) return d;
+  if (d.charAt(0) === "0") return "6" + d;
+  if (d.charAt(0) === "1") return "60" + d;
+  return d;
+}
+
+function binaTelegram_(p, h) {
+  if (!h.senarai.length) { tg_(p, p.TELEGRAM_CHAT_FAKHRI, "📞 Bina: tiada prospek perlu dihubungi hari ini. 👍"); return; }
+  var L = ["📞 BINA · " + h.senarai.length + " prospek untuk dihubungi hari ini", ""];
+  var butang = [];
+  h.senarai.forEach(function (x, i) {
+    var bila = x.fu ? "follow-up " + Utilities.formatDate(x.fu, "Asia/Kuala_Lumpur", "d/M") : "belum pernah dihubungi";
+    L.push((i + 1) + ". " + x.nama + (x.kat ? " · " + x.kat : "") + " · " + x.negeri + " · " + bila);
+    var no = noWa_(x.tel);
+    if (!no) { L.push("   (tiada nombor telefon dalam tracker)"); return; }
+    var mesej = "Salam " + x.nama + ", saya dari BinaLab 👋 Kami bantu bisnes bina sistem ringkas seperti tempahan, stok dan review pelanggan. Boleh saya kongsi contoh yang sesuai untuk bisnes anda?";
+    butang.push([{ text: "📲 WhatsApp " + x.nama.slice(0, 40), url: "https://wa.me/" + no + "?text=" + encodeURIComponent(mesej) }]);
+  });
+  L.push("");
+  if (!h.adaLajurFU) L.push("ℹ️ Tracker MY belum ada lajur \"Next Follow-up\" dan \"Last Contact\". Tambah 2 lajur ini supaya Bina boleh susun ikut tarikh follow-up.");
+  L.push("Tekan butang → WhatsApp buka dengan draf. Semak & ubah dulu, kemudian tekan Send. Lepas hubungi, kemas kini tracker (Last Contact / Next Follow-up).");
+  tg_(p, p.TELEGRAM_CHAT_FAKHRI, L.join("\n"), butang);
+}
+
+function tg_(p, chat, teks, butang) {
+  var payload = { chat_id: chat, text: teks.slice(0, 4000), disable_web_page_preview: true };
+  if (butang && butang.length) payload.reply_markup = { inline_keyboard: butang };
+  var res = UrlFetchApp.fetch("https://api.telegram.org/bot" + p.TELEGRAM_BOT_TOKEN + "/sendMessage", {
+    method: "post", contentType: "application/json", payload: JSON.stringify(payload), muteHttpExceptions: true,
+  });
+  if (res.getResponseCode() !== 200) Logger.log("Telegram gagal (" + res.getResponseCode() + "): " + res.getContentText());
 }
 
 function ujiBina() {
@@ -191,4 +278,4 @@ function hantar_(p, data) {
 }
 
 // untuk ujian Node (diabaikan oleh Apps Script)
-if (typeof module !== "undefined") module.exports = { ringkasanMY_: ringkasanMY_, ringkasanGlobal_: ringkasanGlobal_, tulisReport_: tulisReport_, segmen_: segmen_ };
+if (typeof module !== "undefined") module.exports = { pilihHubungi_: pilihHubungi_, ringkasanMY_: ringkasanMY_, ringkasanGlobal_: ringkasanGlobal_, tulisReport_: tulisReport_, segmen_: segmen_ };

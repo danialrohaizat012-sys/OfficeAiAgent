@@ -2,7 +2,7 @@
 // Danial tandakan perkara "perlu keputusan" sebagai selesai dari dashboard.
 // header: x-markas-code: <MARKAS_VIEW_CODE>
 
-import { AGENT_IDS, K, LOG_MAX, redis, isViewer, body, send, fail } from "./_lib.js";
+import { AGENT_IDS, K, LOG_MAX, JAWAB_TTL, redis, isViewer, body, send, fail } from "./_lib.js";
 
 export default async function handler(req, res) {
   try {
@@ -19,6 +19,7 @@ export default async function handler(req, res) {
     const now = new Date().toISOString();
     await redis([
       ["SET", K.status(id), JSON.stringify(s)],
+      ...(was ? [["SET", K.jawab(id), was, "EX", JAWAB_TTL]] : []),
       ["LPUSH", K.log(id), JSON.stringify({ masa: now, selesai: was || "keputusan", oleh: "Danial" })],
       ["LTRIM", K.log(id), 0, LOG_MAX - 1],
     ]);

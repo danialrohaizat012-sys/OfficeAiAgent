@@ -7,11 +7,14 @@
 //     "sibuk": true,                         true = sibuk, false = sedia
 //     "report": "Ringkasan pipeline: ...",   pilihan: report terakhir (maks 4000 aksara)
 //     "keputusan": "Setuju diskaun 15%?"     pilihan: perkara perlu keputusan Danial (null = tiada)
+//     "angka": { "jualanHari": 1234.5 }      pilihan: angka ringkas untuk dashboard (maks 8, tiada data peribadi)
 //   }
+// Keputusan BARU juga dihantar ke Telegram Danial dengan butang Setuju / Tolak (kalau Telegram disambung).
 //
 // GET (dashboard baca status semua agent), header: x-markas-code: <MARKAS_VIEW_CODE>
 
-import { AGENT_IDS, isAgent, isViewer, body, send, fail, saveStatus, readAll } from "./_lib.js";
+import { AGENT_IDS, CONFIG, isAgent, isViewer, body, send, fail, saveStatus, readAll } from "./_lib.js";
+import { sendDanial, decisionButtons, tgReady } from "./_telegram.js";
 
 export default async function handler(req, res) {
   try {
@@ -32,6 +35,13 @@ async function post(req, res) {
   if (!AGENT_IDS.has(id)) return send(res, 400, { ok: false, ralat: `Agent "${id}" tiada dalam markas.config.js` });
 
   const status = await saveStatus(id, b);
+  if (status.keputusan && status.keputusan !== status.keputusanLama && tgReady()) {
+    try {
+      const a = (CONFIG.agent || []).find(x => x.id === id) || {};
+      const o = (CONFIG.pejabat || []).find(x => x.id === a.pejabat) || {};
+      await sendDanial(`⚠️ PERLU KEPUTUSAN DANIAL\n${a.nama || id} · ${o.nama || ""}\n\n${status.keputusan}\n\n— Nadi`, decisionButtons(id));
+    } catch { /* Telegram gagal: status tetap disimpan */ }
+  }
   return send(res, 200, { ok: true, status });
 }
 

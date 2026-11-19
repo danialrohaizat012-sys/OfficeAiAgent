@@ -46,3 +46,7 @@ Masa: lebih kurang 10 minit, sekali sahaja. Buat di komputer (lebih senang darip
 | `Markas tolak (401)` | `MARKAS_AGENT_KEY` tak sama dengan di Vercel |
 | `Markas tolak (400)` | Agent `bina` tiada dalam `markas.config.js` |
 | `You do not have permission` / `not found` | ID Sheet salah, atau akaun ini tiada akses ke Sheet itu |
+
+
+## Telegram: Bina → Fakhri (pilihan)
+Lihat `agents/TELEGRAM.md`. Tambah Script Properties `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_CHAT_FAKHRI`, kemudian Run **`ujiTelegramBina`**. Selepas itu setiap pagi Bina hantar 5 prospek untuk dihubungi kepada Fakhri, dengan butang WhatsApp (draf mesej). Untuk susunan ikut tarikh, tambah lajur **Last Contact** dan **Next Follow-up** dalam tracker Malaysia.

@@ -15,7 +15,9 @@ export const LOG_MAX = 50;
 export const K = {
   status: id => `markas:status:${id}`,
   log: id => `markas:log:${id}`,
+  jawab: id => `markas:jawab:${id}`,     // keputusan yang Danial dah jawab (elak dihantar semula oleh agent)
 };
+export const JAWAB_TTL = 3 * 24 * 3600;   // 3 hari
 
 function redisEnv() {
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
@@ -77,7 +79,9 @@ export const clip = (v, n) => (v == null ? null : String(v).slice(0, n));
 // Simpan status satu agent (gabung dengan status lama) + tambah ke log aktiviti.
 export async function saveStatus(id, b) {
   const now = new Date().toISOString();
-  const [prevRaw] = await redis([["GET", K.status(id)]]);
+  const [prevRaw, dijawab] = await redis([["GET", K.status(id)], ["GET", K.jawab(id)]]);
+  // agent hantar semula perkara yang Danial dah jawab: abaikan (sehingga 3 hari)
+  if (b.keputusan && dijawab && clip(b.keputusan, 300) === dijawab) b = { ...b, keputusan: null };
   const prev = prevRaw ? JSON.parse(prevRaw) : {};
   const status = {
     agent: id,
@@ -86,6 +90,7 @@ export async function saveStatus(id, b) {
     report: b.report !== undefined ? clip(b.report, 4000) : (prev.report ?? null),
     reportPada: b.report ? now : (prev.reportPada ?? null),
     keputusan: b.keputusan !== undefined ? clip(b.keputusan, 300) : (prev.keputusan ?? null),
+    angka: b.angka !== undefined ? angka(b.angka) : (prev.angka ?? null),
     dikemaskini: now,
   };
   const entry = { masa: now, sedang: status.sedang, sibuk: status.sibuk };
@@ -96,7 +101,21 @@ export async function saveStatus(id, b) {
     ["LPUSH", K.log(id), JSON.stringify(entry)],
     ["LTRIM", K.log(id), 0, LOG_MAX - 1],
   ]);
+  Object.defineProperty(status, "keputusanLama", { value: prev.keputusan ?? null, enumerable: false });
   return status;
+}
+
+// Angka ringkas untuk dashboard (dinding skrin CEO, pelanggan POS): maks 8 medan,
+// nama huruf sahaja, nilai nombor atau teks pendek. Tiada data peribadi.
+export function angka(v) {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const out = {};
+  for (const [k, x] of Object.entries(v).slice(0, 8)) {
+    if (!/^[a-zA-Z]{1,24}$/.test(k)) continue;
+    if (typeof x === "number" && isFinite(x)) out[k] = Math.round(x * 100) / 100;
+    else if (typeof x === "string") out[k] = x.slice(0, 40);
+  }
+  return Object.keys(out).length ? out : null;
 }
 
 // Baca status semua agent: { id: status }

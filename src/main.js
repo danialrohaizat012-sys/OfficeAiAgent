@@ -15,7 +15,11 @@ import { createEnvelopes } from "./scene/effects.js";
 import { createCustomers } from "./sim/customers.js";
 import { createQuality } from "./scene/quality.js";
 import { createWeather } from "./scene/weather.js";
-import { savedMode, saveMode, savedCode, saveCode, fetchStatus, fetchLog, startPolling, markDecisionDone, runNadi } from "./live/live.js";
+import { savedMode, saveMode, savedCode, saveCode, fetchStatus, fetchLog, startPolling, markDecisionDone, runNadi, nadiTelegram, setupTelegram } from "./live/live.js";
+import { timeAgo } from "./ui/ui.js";
+import { updateVentureCard } from "./scene/gaya.js";
+import { rumus } from "../api/_rumus.js";
+import rawConfig from "../markas.config.js";
 import { log as sampleLog } from "./sim/sample.js";
 
 const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors, building, shift: SHIFT, meeting: MEETING } = loadConfig();
@@ -136,7 +140,34 @@ const sampleHooks = {
 
 // ===== Suis mod: "Data contoh" (simulasi) atau "Hidup" (status sebenar dari server) =====
 const modeBtn = document.getElementById("mode");
-let mode = "contoh", stopSample = null, stopPoll = null;
+let mode = "contoh", stopSample = null, stopPoll = null, lastTx = null;
+
+// ===== Dinding skrin CEO: satu skrin bagi setiap venture =====
+const rm = n => "RM " + Math.round(n).toLocaleString("en-US");
+const VENTURE_KEYS = Object.keys(OFFICES).filter(k => OFFICES[k].kind === "office");
+function wallInfo(key) {
+  const list = AGENTS.filter(a => a.office === key), alert = list.some(a => a.decision);
+  if (mode !== "hidup") return { lines: [`${list.filter(a => !a.away).length}/${list.length} di pejabat`, `${list.filter(a => a.busy).length} sedang sibuk`], alert, sample: true };
+  const ang = id => { const a = AGENTS.find(x => x.id === id); return a && a.live && a.live.angka; };
+  const lines = [];
+  if (key === "meney") {
+    const l = ang("lina"), f = ang("faris");
+    if (l) lines.push(`Hari ini ${rm(l.jualanHari || 0)}`, `Bulan ${l.peratusSasaran ?? "-"}% sasaran`);
+    if (f) lines.push(`Repair ${f.repairTerbuka ?? 0} terbuka`);
+  } else if (key === "gilapips") {
+    const g = ang("syafiq");
+    if (g) { lines.push(`${g.ahli ?? 0} ahli`, `${g.ahliBaru7 ?? 0} baru minggu ini`); if (g.menunggu) lines.push(`${g.menunggu} tunggu pengesahan`); }
+  } else if (key === "binalab") {
+    const b = ang("bina");
+    if (b) { lines.push(`Lead MY ${b.leadMY ?? 0}`); if (b.prospekGlobal != null) lines.push(`Global ${b.prospekGlobal}`); if (b.followupLewat) lines.push(`${b.followupLewat} follow-up lewat`); }
+  }
+  if (!lines.length) { const hidup = list.filter(a => a.live).length; lines.push(hidup ? `${hidup}/${list.length} agent hidup` : "Belum ada agent hidup"); }
+  return { lines, alert, sample: false };
+}
+function updateWall() {
+  for (const k of VENTURE_KEYS) updateVentureCard(OFFICES[k].short, "#" + OFFICES[k].color.toString(16).padStart(6, "0"), wallInfo(k));
+}
+setInterval(() => { if (mode !== "hidup") updateWall(); }, 4000);
 
 function applyLive(data) {
   for (const a of AGENTS) {
@@ -149,7 +180,16 @@ function applyLive(data) {
     if (s && (!prev || prev.dikemaskini !== s.dikemaskini)) { showBubble(a); if (ui.selected === a) loadLog(a, false); }
     if (s && s.reportPada && (!prev || prev.reportPada !== s.reportPada)) flyReport(a);
     if (s && s.keputusan && (!prev || prev.keputusan !== s.keputusan)) { a.bubble.querySelector("span").textContent = "⚠ Perlu keputusan Danial"; showBubble(a); decisionMeeting(a); }
+    // Danial jawab dari Telegram (atau dashboard): Danial di bumbung beri reaksi
+    if (prev && prev.keputusan && s && !s.keputusan && danialP) danialP.say(s.jawapanDanial ? `${s.jawapanDanial.jawapan} · ${a.name}` : "✅ Keputusan dibuat. Teruskan!");
   }
+  // Pelanggan masuk Meney ikut jualan POS sebenar (Lina hantar transaksiHari setiap jam)
+  const lina = data.agents.lina, tx = lina && lina.angka ? lina.angka.transaksiHari : null;
+  if (typeof tx === "number") {
+    if (lastTx != null && tx > lastTx) customers.visit(tx - lastTx);
+    lastTx = tx;
+  }
+  updateWall();
   const n = Object.keys(data.agents).length;
   modeBtn.title = `Mod Hidup · ${n}/${AGENTS.length} agent pernah hantar status`;
 }
@@ -157,7 +197,7 @@ function applyLive(data) {
 function setMode(m) {
   if (stopSample) { stopSample(); stopSample = null; }
   if (stopPoll) { stopPoll(); stopPoll = null; }
-  mode = m; saveMode(m);
+  mode = m; saveMode(m); lastTx = null;
   modeBtn.classList.toggle("live", m === "hidup");
   modeBtn.textContent = m === "hidup" ? "Hidup" : "Data contoh";
   if (m === "hidup") {
@@ -280,13 +320,71 @@ setMode(savedMode() === "hidup" && savedCode() ? "hidup" : "contoh");
 
 if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather, camera, controls, lift: world.lift, meetings, danial: danialP };
 
+// ===== Kad "Laporan hari ini" (Nadi) =====
+const $id = id => document.getElementById(id);
+const reportModal = $id("reportModal");
+function renderReport(text) {
+  const body = $id("reportBody"); body.innerHTML = "";
+  for (const raw of String(text || "").split("\n")) {
+    const line = raw.replace(/\s+$/, "");
+    if (!line.trim()) continue;
+    let el;
+    if (/^LAPORAN HARIAN/.test(line)) { el = document.createElement("p"); el.className = "title"; }
+    else if (!/^\s*[•–-]/.test(line) && line === line.toUpperCase() && /[A-Z]/.test(line)) { el = document.createElement("h4"); if (/^⚠/.test(line)) el.className = "warn"; }
+    else { el = document.createElement("p"); if (/^\s{2,}/.test(raw)) el.className = "sub"; }
+    el.textContent = line.trim(); body.appendChild(el);
+  }
+}
+function openReport() {
+  const live = mode === "hidup", s = leader && leader.live;
+  if (live) {
+    renderReport(s && s.report ? s.report : "Nadi belum rumus laporan. Tekan \"Rumus sekarang\".");
+    $id("reportWhen").textContent = s && s.reportPada ? `Dirumus ${timeAgo(s.reportPada)} · data sebenar` : "Data sebenar";
+    $id("reportNote").textContent = "Laporan pagi juga dihantar ke Telegram Danial (8:30 pagi) bila Telegram disambung.";
+  } else {
+    const now = new Date().toISOString(), st = {};
+    AGENTS.forEach(a => { st[a.id] = { sedang: nowText(a), sibuk: a.busy, report: a.sampleReport ? a.sampleReport.report : null, keputusan: a.decision, dikemaskini: now }; });
+    renderReport(rumus(st, rawConfig, new Date()).report);
+    $id("reportWhen").textContent = "Data contoh · dirumus sekarang";
+    $id("reportNote").textContent = "Mod Data contoh: laporan simulasi. Tukar ke Hidup untuk laporan sebenar dan butang Telegram.";
+  }
+  ["reportRun", "reportTg", "reportTgSetup"].forEach(id => { $id(id).hidden = !live; });
+  reportModal.hidden = false;
+}
+$id("reportBtn").onclick = openReport;
+$id("reportClose").onclick = () => { reportModal.hidden = true; };
+reportModal.addEventListener("click", e => { if (e.target === reportModal) reportModal.hidden = true; });
+async function busy(btn, label, fn) {
+  const old = btn.textContent; btn.disabled = true; btn.textContent = label;
+  try { await fn(); } catch (e) { ui.toast("⚠ " + e.message); } finally { btn.disabled = false; btn.textContent = old; }
+}
+$id("reportRun").onclick = e => busy(e.target, "Nadi sedang merumus…", async () => {
+  const j = await runNadi(savedCode());
+  if (j.status) { renderReport(j.status.report); $id("reportWhen").textContent = "Dirumus baru sahaja · data sebenar"; }
+  document.dispatchEvent(new Event("visibilitychange"));
+});
+$id("reportTg").onclick = e => busy(e.target, "Menghantar…", async () => {
+  const j = await nadiTelegram(savedCode());
+  ui.toast(j.telegram ? "📨 Laporan dihantar ke Telegram Danial" : "Telegram belum disambung: tambah TELEGRAM_BOT_TOKEN & TELEGRAM_CHAT_DANIAL di Vercel");
+});
+$id("reportTgSetup").onclick = e => busy(e.target, "Menyambung…", async () => {
+  const j = await setupTelegram(savedCode());
+  ui.toast(`✓ Bot ${j.bot || ""} disambung` + (j.danial ? "" : " · tekan Start pada bot untuk dapat Chat ID"));
+});
+
+// ===== PWA: pasang ke skrin utama iPhone (cache fail statik sahaja, bukan /api) =====
+if ("serviceWorker" in navigator && location.protocol === "https:" && !location.search.includes("debug")) {
+  addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}
+
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
 }
 addEventListener("resize", () => { resize(); if (!ui.selected && ui.filter === "all" && !rig.moving) camera.position.copy(rig.homePos()); });
 resize(); rig.goHome(); rig.intro();
-document.getElementById("loading").remove();
+{ const ld = document.getElementById("loading"); ld.classList.add("done"); setTimeout(() => ld.remove(), 700); }
+updateWall();
 
 // Tingkat di luar pandangan kamera tidak dilukis (termasuk bayang-bayang), tetapi tingkat
 // jiran kekal supaya bayang-bayang antara tingkat betul. Lampu dipindah ke scene supaya

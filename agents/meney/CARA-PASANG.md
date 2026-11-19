@@ -39,6 +39,9 @@ Di ⚙ **Project Settings**, pergi ke **Script Properties** dan tambah:
 ## 5. Jadual
 Pilih **`pasangJadual`** dan tekan **▶ Run** sekali. Lina dan Faris akan dikemas kini **setiap jam**, dari 9 pagi hingga 11 malam.
 
+## 6. Telegram: Faris → Amirul (pilihan)
+Lihat `agents/TELEGRAM.md`. Tambah Script Properties `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_CHAT_AMIRUL`, kemudian Run **`ujiTelegramFaris`**. Selepas itu Faris hantar senarai follow-up repair kepada Amirul sekali sehari (selepas 10 pagi) dengan butang WhatsApp.
+
 ## Kalau ada ralat
 | Mesej | Maksud |
 |---|---|

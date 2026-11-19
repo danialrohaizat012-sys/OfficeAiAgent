@@ -1,7 +1,12 @@
 // MENEY: agent Lina (jualan, margin, tunai) + Faris (repair) — Google Apps Script
 // -----------------------------------------------------------------
 // Baca Firestore POS Meney (BACA SAHAJA), kira RINGKASAN, hantar ke Markas.
-// Tiada nama atau telefon pelanggan dihantar. Tiada apa-apa ditulis ke Firestore.
+// Tiada nama atau telefon pelanggan dihantar ke Markas. Tiada apa-apa ditulis ke Firestore.
+//
+// Faris → Amirul (Telegram, pilihan): sekali sehari (selepas 10 pagi) Faris hantar senarai
+// repair siap belum diambil ≥3 hari + tunggu kelulusan, dengan butang "WhatsApp" (wa.me,
+// klik-untuk-hantar dari telefon Meney; Amirul semak & tekan Send). Nombor pelanggan pergi
+// TERUS dari Apps Script ke Telegram Amirul sahaja; TIDAK disimpan di Markas.
 //
 // Akses Firestore guna akaun Google Danial sendiri (pemilik projek Firebase),
 // jadi tiada kunci akaun servis perlu disimpan.
@@ -11,11 +16,14 @@
 //   MARKAS_AGENT_KEY  (kunci agent dari Vercel)
 //   FIREBASE_PROJECT  meney-daily-mission
 //   SASARAN_BULAN     30000   (sasaran jualan sebulan, RM)
+//   TELEGRAM_BOT_TOKEN   (pilihan) token bot Markas dari @BotFather
+//   TELEGRAM_CHAT_AMIRUL (pilihan) Chat ID Amirul (bot beri bila Amirul tekan Start)
 //
 // Fungsi untuk dijalankan:
 //   ujiMeney()        sekali, untuk uji (lihat Execution log)
 //   pasangJadual()    sekali: jalan setiap jam (hanya 9 pagi – 11 malam)
 //   jalankanMeney()   kerja berkala (dipanggil oleh jadual)
+//   ujiTelegramFaris() hantar senarai follow-up repair ke Amirul sekarang (uji Telegram)
 
 var STATUS_REPAIR_TERBUKA = ["Received", "Diagnosing", "Waiting Approval", "Waiting Parts", "In Progress", "Ready"];
 
@@ -51,16 +59,78 @@ function kerja_(p) {
   var siapBulan = cari_(p, "repairs", [f_("completedTransactionDate", "GREATER_THAN_OR_EQUAL", mulaHariUTC_(bulan))]);
   var shifts = cari_(p, "shifts", [], { field: "openedAt", direction: "DESCENDING" }, 3);
   var lina = ringkasanLina_(jualan, siapBulan, shifts, hari, sasaran, now);
-  hantar_(p, { agent: "lina", sedang: lina.ringkas, sibuk: false, report: lina.report, keputusan: lina.keputusan });
+  hantar_(p, { agent: "lina", sedang: lina.ringkas, sibuk: false, report: lina.report, keputusan: lina.keputusan, angka: lina.angka });
 
   // ---------- Faris: repair terbuka
   hantar_(p, { agent: "faris", sedang: "Menyemak tiket repair…", sibuk: true });
   var terbuka = cari_(p, "repairs", [{ fieldFilter: { field: { fieldPath: "status" }, op: "IN",
     value: { arrayValue: { values: STATUS_REPAIR_TERBUKA.map(function (s) { return { stringValue: s }; }) } } } }]);
   var faris = ringkasanFaris_(terbuka, now);
-  hantar_(p, { agent: "faris", sedang: faris.ringkas, sibuk: false, report: faris.report, keputusan: faris.keputusan });
+  hantar_(p, { agent: "faris", sedang: faris.ringkas, sibuk: false, report: faris.report, keputusan: faris.keputusan, angka: faris.angka });
+
+  // ---------- Faris → Amirul: follow-up repair (Telegram, sekali sehari selepas 10 pagi)
+  var jam = +Utilities.formatDate(now, "Asia/Kuala_Lumpur", "H");
+  var props = PropertiesService.getScriptProperties();
+  if (p.TELEGRAM_BOT_TOKEN && p.TELEGRAM_CHAT_AMIRUL && jam >= 10 && props.getProperty("FARIS_TG_HARI") !== hari) {
+    farisTelegram_(p, faris);
+    props.setProperty("FARIS_TG_HARI", hari);
+  }
 
   return lina.report + "\n\n" + faris.report;
+}
+
+// Uji Telegram Faris → Amirul (hantar sekarang, tanpa tunggu jadual)
+function ujiTelegramFaris() {
+  var p = tetapan_();
+  if (!p.TELEGRAM_BOT_TOKEN || !p.TELEGRAM_CHAT_AMIRUL) throw new Error("Isi TELEGRAM_BOT_TOKEN dan TELEGRAM_CHAT_AMIRUL dalam Script Properties.");
+  var terbuka = cari_(p, "repairs", [{ fieldFilter: { field: { fieldPath: "status" }, op: "IN",
+    value: { arrayValue: { values: STATUS_REPAIR_TERBUKA.map(function (s) { return { stringValue: s }; }) } } } }]);
+  farisTelegram_(p, ringkasanFaris_(terbuka, new Date()));
+  Logger.log("Dihantar ke Telegram Amirul.");
+}
+
+// ---------------------------------------------------------------- Telegram (Faris → Amirul)
+
+// Nombor Malaysia → format wa.me (60xxxxxxxxx). Pulang "" kalau tiada.
+function noWa_(tel) {
+  var d = String(tel || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d.indexOf("60") === 0) return d;
+  if (d.charAt(0) === "0") return "6" + d;
+  if (d.charAt(0) === "1") return "60" + d;
+  return d;
+}
+
+function farisTelegram_(p, faris) {
+  var senarai = faris.belumAmbil.map(function (r) { return { r: r, jenis: "siap" }; })
+    .concat(faris.tungguLulus.map(function (r) { return { r: r, jenis: "lulus" }; })).slice(0, 12);
+  if (!senarai.length) {
+    tg_(p, p.TELEGRAM_CHAT_AMIRUL, "🔧 Faris: tiada repair perlu follow-up hari ini. 👍");
+    return;
+  }
+  var L = ["🔧 FARIS · Follow-up repair hari ini (" + senarai.length + ")", ""];
+  var butang = [];
+  senarai.forEach(function (x, i) {
+    var r = x.r, nama = String(r.customer || "Pelanggan").slice(0, 30), alat = String(r.device || "peranti").slice(0, 40);
+    L.push((i + 1) + ". " + (r.ticketNo || "?") + " · " + nama + " · " + alat + " · " + (x.jenis === "siap" ? "SIAP, belum diambil " + x.r._hari + " hari" : "TUNGGU KELULUSAN"));
+    var no = noWa_(r.phone);
+    if (!no) { L.push("   (tiada nombor telefon dalam POS)"); return; }
+    var mesej = x.jenis === "siap"
+      ? "Salam " + nama + ", ini Meney Gaming 👋 Repair " + alat + " anda (tiket " + (r.ticketNo || "") + ") dah siap dan boleh diambil di kedai. Terima kasih!"
+      : "Salam " + nama + ", ini Meney Gaming 👋 Untuk repair " + alat + " (tiket " + (r.ticketNo || "") + "), kami perlukan kelulusan anda sebelum teruskan. Boleh balas mesej ini? Terima kasih!";
+    butang.push([{ text: "📲 WhatsApp " + (r.ticketNo || nama), url: "https://wa.me/" + no + "?text=" + encodeURIComponent(mesej) }]);
+  });
+  L.push("", "Tekan butang → WhatsApp buka dengan draf mesej. Semak dulu, kemudian tekan Send dari telefon Meney.");
+  tg_(p, p.TELEGRAM_CHAT_AMIRUL, L.join("\n"), butang);
+}
+
+function tg_(p, chat, teks, butang) {
+  var payload = { chat_id: chat, text: teks.slice(0, 4000), disable_web_page_preview: true };
+  if (butang && butang.length) payload.reply_markup = { inline_keyboard: butang };
+  var res = UrlFetchApp.fetch("https://api.telegram.org/bot" + p.TELEGRAM_BOT_TOKEN + "/sendMessage", {
+    method: "post", contentType: "application/json", payload: JSON.stringify(payload), muteHttpExceptions: true,
+  });
+  if (res.getResponseCode() !== 200) Logger.log("Telegram gagal (" + res.getResponseCode() + "): " + res.getContentText());
 }
 
 function pasangJadual() {
@@ -189,7 +259,9 @@ function ringkasanLina_(jualan, repairSiap, shifts, hari, sasaran, now) {
   L.push("Nota: margin = jualan tolak kos barang dalam POS (belum tolak belanja operasi). Refund belum dikira.");
 
   var ringkas = "Hari ini " + rm_(jHari + repHari) + " · bulan " + Math.round(jBulan / sasaran * 100) + "% sasaran";
-  return { ringkas: ringkas, report: L.join("\n"), keputusan: keputusan };
+  // angka ringkas untuk dashboard (dinding skrin CEO + pelanggan 3D ikut jualan)
+  var angka = { jualanHari: jHari + repHari, transaksiHari: hariIni.length + rHariIni.length, jualanBulan: jBulan, peratusSasaran: Math.round(jBulan / sasaran * 100) };
+  return { ringkas: ringkas, report: L.join("\n"), keputusan: keputusan, angka: angka };
 }
 
 function ringkasanFaris_(repairs, now) {
@@ -202,6 +274,7 @@ function ringkasanFaris_(repairs, now) {
   repairs.forEach(function (r) { (ikutStatus[r.status] = ikutStatus[r.status] || []).push(r); });
   var label = function (r) { return (r.ticketNo || "?") + " " + String(r.device || "").slice(0, 30) + " (" + hariSejak(r) + " hari)"; };
 
+  repairs.forEach(function (r) { r._hari = hariSejak(r); });
   var lama = repairs.filter(function (r) { return r.status !== "Ready" && hariSejak(r) >= 7; });
   var belumAmbil = (ikutStatus["Ready"] || []).filter(function (r) { return hariSejak(r) >= 3; });
   var tungguLulus = ikutStatus["Waiting Approval"] || [];
@@ -220,7 +293,9 @@ function ringkasanFaris_(repairs, now) {
 
   var keputusan = lama.length >= 3 ? lama.length + " tiket repair terbuka ≥7 hari. Perlu tindakan (tambah alat ganti / hubungi pelanggan / pertimbang refund)?" : null;
   var ringkas = repairs.length + " repair terbuka" + (belumAmbil.length ? " · " + belumAmbil.length + " siap belum diambil" : "") + (lama.length ? " · " + lama.length + " lama" : "");
-  return { ringkas: ringkas, report: L.join("\n"), keputusan: keputusan };
+  return { ringkas: ringkas, report: L.join("\n"), keputusan: keputusan,
+    angka: { repairTerbuka: repairs.length, belumAmbil: belumAmbil.length, repairLama: lama.length },
+    belumAmbil: belumAmbil, tungguLulus: tungguLulus };   // dua senarai ini untuk Telegram Amirul SAHAJA (tidak dihantar ke Markas)
 }
 
 // ---------------------------------------------------------------- hantar ke Markas
