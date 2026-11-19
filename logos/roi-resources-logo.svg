@@ -1,9 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="300" viewBox="0 0 700 150" role="img" aria-label="ROI Resources">
-  <!-- Papan tanda bumbung menara (logo tulisan; ganti dengan logo rasmi ROI Resources bila ada) -->
-  <g transform="translate(14 23)">
-    <rect width="104" height="104" rx="20" fill="#8E9BFF"/>
-    <path d="M24 78V50M42 78V38M60 78V28M78 78V18" stroke="#0b1222" stroke-width="11" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="180" viewBox="0 0 780 180" role="img" aria-labelledby="title desc">
+  <title id="title">ROI Resources</title>
+  <desc id="desc">ROI Resources wordmark with geometric R monogram.</desc>
+  <g transform="translate(12 18) scale(2)">
+    <path fill="#091411" fill-rule="evenodd" d="M8 64V8h28c17.1 0 28 9.8 28 25 0 10.4-5.2 18.5-14.4 22.6L64 64H46.7L33.2 47H22v17H8Zm14-43v14h14c8.2 0 14-4.7 14-12s-5.8-12-14-12H22v10Z"/>
+    <path fill="#B58A4A" d="M44 8h20v20h-8V18.7L43.8 31 38 25.2 50.3 13H44V8Z"/>
   </g>
-  <text x="140" y="88" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="800" letter-spacing="2" fill="#ffffff">ROI RESOURCES</text>
-  <text x="143" y="124" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="7.5" fill="#D4B26A">HOLDING · 6 VENTURES</text>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#091411">
+    <text x="180" y="94" font-size="76" font-weight="800" letter-spacing="-3">ROI</text>
+    <text x="325" y="94" font-size="45" font-weight="600" letter-spacing="7">RESOURCES</text>
+    <line x1="183" y1="119" x2="735" y2="119" stroke="#B58A4A" stroke-width="3"/>
+    <text x="183" y="151" font-size="17" font-weight="600" letter-spacing="6" fill="#53635D">FORGING VENTURES THAT MATTER</text>
+  </g>
 </svg>

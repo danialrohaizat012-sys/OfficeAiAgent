@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" role="img" aria-labelledby="title desc">
+  <title id="title">ROI Resources monogram</title>
+  <desc id="desc">A geometric R monogram with a forward brass path.</desc>
+  <path fill="#091411" fill-rule="evenodd" d="M8 64V8h28c17.1 0 28 9.8 28 25 0 10.4-5.2 18.5-14.4 22.6L64 64H46.7L33.2 47H22v17H8Zm14-43v14h14c8.2 0 14-4.7 14-12s-5.8-12-14-12H22v10Z"/>
+  <path fill="#B58A4A" d="M44 8h20v20h-8V18.7L43.8 31 38 25.2 50.3 13H44V8Z"/>
+</svg>

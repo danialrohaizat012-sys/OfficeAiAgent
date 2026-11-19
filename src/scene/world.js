@@ -40,7 +40,7 @@ export function buildWorld(scene, offices, agents, building = {}) {
   for (const a of agents) {
     const o = offices[a.office];
     const r = person({ shirt: a.color, skin: a.look.kulit, pants: a.look.seluar, hairStyle: a.look.rambut, hairColor: a.look.warnaRambut,
-      accent: "#" + o.color.toString(16).padStart(6, "0") });
+      accent: "#" + o.color.toString(16).padStart(6, "0"), lead: a.lead });
     const i = used[a.office] = (used[a.office] ?? -1) + 1;
     if (o.kind === "hub") {
       // Nadi (Virtual CEO) duduk di meja eksekutif; agent hab lain berdiri di sebelah
@@ -145,9 +145,10 @@ function tower(offices, building, bobbers) {
     g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.04, H, 0.04), strip), sx * (W2 + 0.13), GROUND_Y + H / 2, plan.backZ - 0.4));
   }
   // papan tanda syarikat induk atas bumbung
-  const svg = building.logo && logoSvg(building.logo);
+  const bl = typeof building.logo === "string" ? { fail: building.logo } : building.logo;
+  const svg = bl && logoSvg(bl.fail);
   if (svg) {
-    const sign = signBoard(svg, null, "#8E9BFF", 2.0);
+    const sign = signBoard(svg, bl, "#B58A4A", 2.0);   // bingkai Legacy Brass (jenama ROI)
     sign.position.set(0, top + WALL_H + 0.32, plan.backZ - 0.2);   // atas slab taman bumbung
     g.add(sign);
   }
@@ -167,7 +168,7 @@ function hub(o, bobbers, offices) {
   shell.add(suite.group);
   shell.add(facade(o, "ROI · CEO", liftZ(plan)));
   const roof = roofGarden(plan, o.color); roof.position.y = WALL_H + 0.12; shell.add(roof);
-  o.ceoSeat = suite.nadiSeat;
+  o.ceoSeat = suite.nadiSeat; o.meet = suite.meet;
   grp.add(bakeStatic(shell));
 
   // hologram kecil berputar atas meja CEO (globe ROI)

@@ -45,7 +45,7 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     b.style.setProperty("--sel", a.color);
     b.innerHTML = `<span class="av"></span><span class="t"><span class="n"></span><span class="s"></span></span>`;
     const av = b.querySelector(".av"); av.style.background = a.color; av.textContent = a.name[0];
-    b.querySelector(".n").textContent = a.name;
+    b.querySelector(".n").textContent = a.lead ? a.name + " ★" : a.name;
     b.querySelector(".s").textContent = nowText(a);
     b.onclick = () => onSelect(a.id, true);
     roster.appendChild(b); a.chip = b;
@@ -60,7 +60,7 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     const tag = document.createElement("div"); tag.className = "tag";
     tag.innerHTML = `<i></i><span></span>`;
     tag.querySelector("i").style.background = a.color;
-    tag.querySelector("span").textContent = a.name;
+    tag.querySelector("span").textContent = a.lead ? "★ " + a.name : a.name;
     bubbles.appendChild(tag); a.tag = tag;
   }
 
@@ -71,7 +71,7 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     agents.forEach(x => x.chip.classList.toggle("on", x === a));
     $("sAv").textContent = a.name[0]; $("sAv").style.background = a.color;
     $("sName").textContent = a.name;
-    $("sRole").textContent = a.role;
+    $("sRole").textContent = (a.lead ? `★ Ketua ${offices[a.office].short} · ` : "") + a.role;
     $("sNow").textContent = nowText(a);
     $("sTasksWrap").hidden = a.live !== undefined;
     const ul = $("sTasks"); ul.innerHTML = ""; ul.style.setProperty("--acc", a.color);
@@ -80,6 +80,8 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     showDecision(a);
     showReport(a);
     $("sAction").hidden = !(a.live !== undefined && a.home && a.home.leader);
+    $("sMeet").hidden = !(a.home && (a.home.leader || a.lead));
+    $("sMeet").textContent = a.home && a.home.leader ? "🗓️ Panggil mesyuarat semua ketua" : `🗓️ Panggil ${a.name} ke mesyuarat dengan Nadi`;
     if (a.live === undefined) showLog(a, a.sampleLog || []);
     sheet.classList.add("open"); sheet.scrollTop = 0; dock.style.visibility = "hidden";
     if (fromChip) a.chip.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", inline: "center", block: "nearest" });
@@ -145,7 +147,7 @@ export function createUI({ offices, agents, reduceMotion, onSelect, onFilter, on
     }
   }
 
-  const visible = a => filter === "all" || a.office === filter;
+  const visible = a => filter === "all" || a.office === filter || a.at === filter;
 
   let toastT = 0;
   function toast(msg) {

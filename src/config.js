@@ -34,11 +34,17 @@ export function loadConfig() {
     seen.add(a.id);
     agents.push({
       id: a.id, name: a.nama, office: a.pejabat, role: a.peranan || "",
-      color: a.warna || "#cccccc",
+      color: a.warna || "#cccccc", lead: !!a.ketua,
       tasks: a.tugas && a.tugas.length ? a.tugas : ["Menunggu tugasan"],
       sampleDecisions: a.contohKeputusan || [],
       look: { rambut: a.rambut || "pendek", warnaRambut: a.warnaRambut || "#3B2618", kulit: a.kulit || "#F6C944", seluar: a.seluar || "#2B3550" },
     });
+  }
+
+  // Satu ketua sahaja bagi setiap pejabat
+  for (const id of ids) {
+    const leads = agents.filter(a => a.office === id && a.lead);
+    if (leads.length > 1) { errors.push(fail(`Pejabat "${id}" ada ${leads.length} ketua. Hanya "${leads[0].id}" dikira ketua.`)); leads.slice(1).forEach(a => { a.lead = false; }); }
   }
 
   // MENARA: setiap venture satu tingkat (ikut susunan dalam config, bawah → atas).
@@ -61,7 +67,8 @@ export function loadConfig() {
 
   const wk = raw.waktuKerja || {};
   const shift = { masuk: wk.masuk ?? 8.5, balik: wk.balik ?? 18 };
-  return { title: raw.tajuk || "Markas Agent", subtitle: raw.subtajuk || "", offices, agents, errors, building, shift, view: viewFit(offices) };
+  const meeting = { harian: (raw.mesyuarat || {}).harian ?? 9.25 };
+  return { title: raw.tajuk || "Markas Agent", subtitle: raw.subtajuk || "", offices, agents, errors, building, shift, meeting, view: viewFit(offices) };
 }
 
 // Pelan pejabat: meja dalam grid 2 lajur, laluan pejalan kaki, dan tempat

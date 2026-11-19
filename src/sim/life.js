@@ -10,7 +10,7 @@ const rand = (a, b) => a + Math.random() * (b - a);
 
 // Waktu kerja: pekerja datang ikut lif dan berjalan ke meja, petang balik ke lif.
 // Nadi (Virtual CEO, AI) sentiasa ada. Agent yang sedang sibuk (mod Hidup) kekal walaupun lewat.
-export function createLife(offices, agents, { onErrand, hour = () => 12, shift = { masuk: 8.5, balik: 18 }, lift = null } = {}) {
+export function createLife(offices, agents, { onErrand, hour = () => 12, shift = { masuk: 8.5, balik: 18 }, lift = null, groups = {}, onMeetSeat } = {}) {
   const spotsByOffice = {};
   for (const [k, o] of Object.entries(offices)) if (o.kind === "office") spotsByOffice[k] = officeSpots(o.plan, o.theme).spots;
   const taken = new Set();
@@ -74,7 +74,9 @@ export function createLife(offices, agents, { onErrand, hour = () => 12, shift =
     L.path = path; L.then = then; L.mode = "rising"; L.sitTarget = 0;
   }
 
+  let clock = 0, exitSlot = 0;
   function update(dt) {
+    clock += dt;
     for (const a of agents) {
       const L = a.life;
       if (L.mode === "fixed") continue;
@@ -98,6 +100,19 @@ export function createLife(offices, agents, { onErrand, hour = () => 12, shift =
         continue;
       }
       if (L.mode === "lift") continue;
+      if (L.mode === "lobbyWait") { L.timer -= dt; if (L.timer <= 0) L.onExit(); continue; }
+      // dipanggil mesyuarat: ketua naik lif ke Pejabat CEO; Nadi jalan ke kepala meja
+      if (L.summon && L.mode === "seated" && L.sit > 0.95) {
+        const P = L.summon; L.summon = null; L.meet = P;
+        if (P.viaLift && lift) startWalk(a, toLobby(a), "meetLift");
+        else { startWalk(a, P.pathIn.slice(P.viaLift ? 1 : 0), "meetSeat"); if (P.viaLift) teleport(a, P.hubKey, P.pathIn[0]); }
+        continue;
+      }
+      if (L.mode === "meeting") {
+        if (L.dismiss && (L.dismissAt ?? 0) <= clock) { L.dismiss = false; startWalk(a, L.meet.pathOut.slice(), L.meet.viaLift ? "meetBack" : "home"); }
+        else { let diff = L.face - m.rotation.y; diff = Math.atan2(Math.sin(diff), Math.cos(diff)); m.rotation.y += diff * Math.min(1, dt * 8); }
+        continue;
+      }
       if (L.mode === "seated" && !onDuty(a) && L.sit > 0.95) {
         if (onErrand) onErrand(a, "🏠 Balik dulu. Jumpa esok!");
         startWalk(a, toLobby(a), "gone");
@@ -145,14 +160,47 @@ export function createLife(offices, agents, { onErrand, hour = () => 12, shift =
     }
   }
 
+  // pindah figura ke tingkat lain (anak kumpulan tingkat itu), koordinat tempatan sama
+  function teleport(a, key, p) {
+    groups[key].add(a.mesh); a.mesh.position.set(p.x, 0, p.z); a.mesh.visible = true;
+    a.at = key === a.office ? null : key;
+  }
+
   function arrive(a) {
-    const L = a.life;
+    const L = a.life, m = a.mesh;
     L.walk = null;
+    if (L.then === "meetLift") {
+      const P = L.meet, o = offices[a.office];
+      m.visible = false; L.mode = "lift";
+      lift.go(o.floor, () => lift.go(lift.topFloor, () => {
+        // keluar lif seorang demi seorang
+        L.mode = "lobbyWait"; L.timer = (exitSlot = Math.max(exitSlot, clock) + 1.3) - clock;
+        L.onExit = () => { teleport(a, P.hubKey, P.pathIn[0]); L.mode = "walking"; L.walk = 0; L.then = "meetSeat"; L.path = P.pathIn.slice(1); };
+      }, 0.5), 0.5);
+      return;
+    }
+    if (L.then === "meetSeat") {
+      const st = L.meet.seat;
+      L.mode = "meeting"; L.face = st.face; L.sitTarget = 1; L.seatY = 0.5; a.inMeeting = true;
+      if (onMeetSeat) onMeetSeat(a);
+      return;
+    }
+    if (L.then === "meetBack") {
+      const o = offices[a.office];
+      m.visible = false; L.mode = "lift"; a.inMeeting = false;
+      lift.go(lift.topFloor, () => lift.go(o.floor, () => {
+        const P = lobbyOf(o); teleport(a, a.office, P);
+        L.mode = "walking"; L.walk = 0; L.then = "home";
+        L.path = [{ x: P.x, z: backLane(o) }, { x: 0, z: backLane(o) }, { x: 0, z: a.home.z }, { x: a.home.x, z: a.home.z }];
+      }, 0.5), 0.5);
+      return;
+    }
     if (L.then === "gone") {
       if (lift) lift.go(offices[a.office].floor, null, 0.6);
       goAway(a); return;
     }
     if (L.then === "home") {
+      a.inMeeting = false;
       L.mode = "seated"; L.face = 0; L.sitTarget = 1; L.seatY = 0.5; L.timer = rand(12, 35);
     } else {
       const s = L.spot;
@@ -169,5 +217,8 @@ export function createLife(offices, agents, { onErrand, hour = () => 12, shift =
     return { sit: L.sit, seatY: L.seatY, walk: L.walk, typing: atDesk && a.busy };
   }
 
-  return { update, pose };
+  // Mesyuarat: plan = { hubKey, seat, pathIn, pathOut, viaLift }
+  const summon = (a, plan) => { a.life.summon = plan; a.life.dismiss = false; };
+  const dismiss = (a, delay = 0) => { if (a.life.summon) a.life.summon = null; else { a.life.dismiss = true; a.life.dismissAt = clock + delay; } };
+  return { update, pose, summon, dismiss };
 }

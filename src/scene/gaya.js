@@ -650,10 +650,18 @@ export function ceoSuite(plan, color, ventures) {
   for (const sz of [-0.7, 0.7]) tbl.add(mesh(box(0.12, 0.66, 0.5), M.dark(), 0, 0.33, sz));
   tbl.add(mesh(cyl(0.12, 0.14, 0.04, 3), M.dark(), 0, 0.75, 0));
   g.add(tbl);
+  // tempat duduk mesyuarat: kerusi ke-i = venture tingkat i (warna jenama); kepala meja = Nadi
+  const seats = [];
   ventures.slice(0, 6).forEach((v, i) => {
     const side = i % 2 ? 1 : -1, row = Math.floor(i / 2);
-    g.add(chair(v.color, bx + side * 0.78, bz - 0.7 + row * 0.7).rotateY(-side * PI / 2));
+    const x = bx + side * 0.78, z = bz - 0.7 + row * 0.7;
+    g.add(chair(v.color, x, z).rotateY(-side * PI / 2));
+    seats.push({ x, z, face: side < 0 ? PI / 2 : -PI / 2, lane: side < 0 ? bx - 1.3 : bx + 1.4 });
   });
+  const head = { x: bx, z: bz - 1.55, face: 0 };
+  const hc = chair(color, head.x, head.z);
+  hc.add(mesh(box(0.52, 0.4, 0.07), M.chair(), 0, 1.28, -0.28));
+  g.add(hc);
   // sudut rehat (depan kanan)
   const lx = W2 - 1.3, lz = 1.4;
   const sofa = grp(lx + 0.35, 0, lz, -PI / 2);
@@ -673,7 +681,8 @@ export function ceoSuite(plan, color, ventures) {
   // permaidani di bawah meja CEO
   const rug = mesh(new THREE.PlaneGeometry(3.2, 2.3), std(0x2b3046, { roughness: 1 }), 0, 0.022, -1.0);
   rug.rotation.x = -PI / 2; g.add(rug);
-  return { group: g, nadiSeat: { x: 0, z: -0.9 - 0.62 } };
+  const lobby = { x: W2 - 0.9, z: plan.backZ + 1.4 };
+  return { group: g, nadiSeat: { x: 0, z: -0.9 - 0.62 }, meet: { seats, head, lobby, aisleX: 1.6, frontZ: bz + 1.55 } };
 }
 
 // ==================== TAMAN BUMBUNG (atas Pejabat CEO) ====================

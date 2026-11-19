@@ -116,7 +116,7 @@ function toVertexColor(root) {
 const HIP_STAND = 0.62;
 
 export function person(opts) {
-  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt, npc = false } = opts;
+  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt, npc = false, lead = false } = opts;
   const g = new THREE.Group();
   const body = new THREE.Group(); g.add(body);           // dinaik/turunkan bila duduk
   const skinM = std(skin), shirtM = std(shirt), pantsM = std(pants);
@@ -139,6 +139,13 @@ export function person(opts) {
   body.add(mesh(torsoGeo(), shirtM, 0, torsoY, 0));
   body.add(mesh(new THREE.BoxGeometry(0.06, 0.2, 0.01), std(0x1a2238), 0, torsoY + 0.06, 0.132));
   body.add(mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.05, 12), skinM, 0, torsoY + 0.235, 0));
+  if (lead) {
+    // lencana ketua: bintang emas di dada kiri
+    const sh = new THREE.Shape();
+    for (let i = 0; i < 10; i++) { const r = i % 2 ? 0.026 : 0.06, a = i / 10 * Math.PI * 2 + Math.PI / 2; i ? sh.lineTo(Math.cos(a) * r, Math.sin(a) * r) : sh.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
+    const star = mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.015, bevelEnabled: false }), new THREE.MeshBasicMaterial({ color: 0xF2C14E }), 0.12, torsoY + 0.06, 0.128);
+    body.add(star);
+  }
 
   // --- lengan + tangan "C"
   const arms = [];

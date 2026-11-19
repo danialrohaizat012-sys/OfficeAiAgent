@@ -1,6 +1,6 @@
 # Markas Agent: ROI Resources (BinaLab · Meney Gaming · Cipta Robo · EHNAKAMA · GilaPips · LAKAR)
 
-Dashboard 3D berbentuk **menara ROI Resources** (syarikat induk). Setiap venture (anak syarikat) satu tingkat: Meney Gaming (aras jalan), BinaLab, Cipta Robo, EHNAKAMA, GilaPips, LAKAR, dan **Pejabat CEO** di tingkat paling atas, tempat Nadi (Virtual CEO ROI Resources) duduk. Setiap tingkat ada susun atur sendiri ikut jenis venture (medan `tema` dalam `markas.config.js`). Setiap agent dipaparkan sebagai pekerja di pejabat. Mereka menaip bila sibuk, berjalan bila senggang, dan "!" merah muncul bila perlu keputusan Danial.
+Dashboard 3D berbentuk **menara ROI Resources** (syarikat induk). Setiap venture (anak syarikat) satu tingkat: Meney Gaming (aras jalan), BinaLab, Cipta Robo, EHNAKAMA, GilaPips, LAKAR, dan **Pejabat CEO** di tingkat paling atas, tempat Nadi (Virtual CEO ROI Resources) duduk. Setiap tingkat ada susun atur sendiri ikut jenis venture (medan `tema` dalam `markas.config.js`). Setiap venture ada seorang ketua (`ketua: true`) yang naik lif ke Pejabat CEO untuk mesyuarat dengan Nadi bila perlu. Setiap agent dipaparkan sebagai pekerja di pejabat. Mereka menaip bila sibuk, berjalan bila senggang, dan "!" merah muncul bila perlu keputusan Danial.
 
 **Live:** https://office-ai-agent-tawny.vercel.app
 **Semakan backend:** https://office-ai-agent-tawny.vercel.app/api/health

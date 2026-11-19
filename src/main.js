@@ -7,6 +7,8 @@ import { createCameraRig } from "./scene/camera.js";
 import { createUI } from "./ui/ui.js";
 import { initSample, startSample } from "./sim/sample.js";
 import { createLife } from "./sim/life.js";
+import { createMeetings } from "./sim/meeting.js";
+import { nowText } from "./ui/ui.js";
 import { createDaylight } from "./scene/daylight.js";
 import { createEnvelopes } from "./scene/effects.js";
 import { createCustomers } from "./sim/customers.js";
@@ -15,7 +17,7 @@ import { createWeather } from "./scene/weather.js";
 import { savedMode, saveMode, savedCode, saveCode, fetchStatus, fetchLog, startPolling, markDecisionDone, runNadi } from "./live/live.js";
 import { log as sampleLog } from "./sim/sample.js";
 
-const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors, building, shift: SHIFT } = loadConfig();
+const { title, subtitle, offices: OFFICES, agents: AGENTS, view, errors, building, shift: SHIFT, meeting: MEETING } = loadConfig();
 document.title = subtitle ? `${title}: ${subtitle}` : title;
 document.querySelector("header h1").textContent = title;
 document.querySelector("header p").textContent = subtitle + (errors.length ? " · ⚠ semak markas.config.js" : "");
@@ -76,7 +78,7 @@ function select(id, fromChip) {
   ui.openSheet(a, fromChip);
   if (a.live !== undefined) loadLog(a, true);
   const wp = new THREE.Vector3(); a.mesh.getWorldPosition(wp);
-  rig.focus(a.office, wp);
+  rig.focus(a.at || a.office, wp);
 }
 
 // Tekan robot untuk buka detail (abaikan kalau jari sedang seret)
@@ -126,7 +128,7 @@ function flyReport(a) {
 const sampleHooks = {
   onShow: showBubble,
   onReport: flyReport,
-  onDecision: a => { a.bubble.querySelector("span").textContent = "⚠ Perlu keputusan Danial"; showBubble(a); },
+  onDecision: a => { a.bubble.querySelector("span").textContent = "⚠ Perlu keputusan Danial"; showBubble(a); decisionMeeting(a); },
 };
 
 // ===== Suis mod: "Data contoh" (simulasi) atau "Hidup" (status sebenar dari server) =====
@@ -143,7 +145,7 @@ function applyLive(data) {
     if (prev === undefined) continue;                     // muatan pertama: jangan cetus kesan
     if (s && (!prev || prev.dikemaskini !== s.dikemaskini)) { showBubble(a); if (ui.selected === a) loadLog(a, false); }
     if (s && s.reportPada && (!prev || prev.reportPada !== s.reportPada)) flyReport(a);
-    if (s && s.keputusan && (!prev || prev.keputusan !== s.keputusan)) { a.bubble.querySelector("span").textContent = "⚠ Perlu keputusan Danial"; showBubble(a); }
+    if (s && s.keputusan && (!prev || prev.keputusan !== s.keputusan)) { a.bubble.querySelector("span").textContent = "⚠ Perlu keputusan Danial"; showBubble(a); decisionMeeting(a); }
   }
   const n = Object.keys(data.agents).length;
   modeBtn.title = `Mod Hidup · ${n}/${AGENTS.length} agent pernah hantar status`;
@@ -222,8 +224,42 @@ modeBtn.onclick = () => {
 
 const life = createLife(OFFICES, AGENTS, {
   onErrand: (a, label) => { ui.refresh(a); a.bubble.querySelector("span").textContent = label; showBubble(a); },
-  hour: () => daylight.hour, shift: SHIFT, lift: world.lift,
+  hour: () => daylight.hour, shift: SHIFT, lift: world.lift, groups: world.officeGroups,
 });
+
+// ===== Mesyuarat ketua venture dengan Nadi di Pejabat CEO =====
+const say = (a, text) => { a.bubble.querySelector("span").textContent = text; showBubble(a); };
+const meetings = createMeetings({
+  offices: OFFICES, agents: AGENTS, life, say, toast: ui.toast, reduce,
+  current: a => nowText(a),
+  onLog: (a, text) => { if (a.live === undefined) { sampleLog(a, { sedang: "🗓️ " + text }); ui.refresh(a); } },
+});
+// perkara perlu keputusan: Nadi panggil ketua venture itu untuk sediakan cadangan kepada Danial
+function decisionMeeting(a) {
+  if (a.home.leader) return;
+  meetings.call([a.office], `Sediakan cadangan untuk Danial: ${a.decision}`);
+}
+// mesyuarat pagi harian (sekali sehari, ikut waktu Malaysia)
+let dailyDone = null;
+function checkDaily() {
+  const h = daylight.hour, today = new Date().toDateString();
+  if (dailyDone !== today && h >= MEETING.harian && h < MEETING.harian + 1.5 && meetings.call([], "Mesyuarat pagi: semak sasaran & agih kerja hari ini")) dailyDone = today;
+}
+setInterval(checkDaily, 30000); setTimeout(checkDaily, 9000);
+// mod Data contoh: sekali-sekala Nadi panggil 2–3 ketua untuk semakan
+const SAMPLE_REASONS = ["Semakan prestasi minggu ini", "Selaras promosi bersama antara venture", "Semak bajet & keutamaan bulan ini", "Kongsi pelanggan & peluang kerjasama"];
+setInterval(() => {
+  if (mode !== "contoh" || meetings.active || meetings.idleFor < 150 || Math.random() > 0.4) return;
+  const keys = Object.keys(OFFICES).filter(k => OFFICES[k].kind === "office").sort(() => Math.random() - 0.5).slice(0, 2 + Math.floor(Math.random() * 2));
+  meetings.call(keys, SAMPLE_REASONS[Math.floor(Math.random() * SAMPLE_REASONS.length)]);
+}, 45000);
+document.getElementById("sMeet").onclick = () => {
+  const a = ui.selected; if (!a) return;
+  const ok = a.home.leader ? meetings.call([], "Mesyuarat dipanggil oleh Danial: kemas kini semua venture")
+    : meetings.call([a.office], `Danial minta kemas kini ${OFFICES[a.office].short}`);
+  if (!ok) ui.toast("Ketua belum masuk kerja atau sedang balik. Cuba lagi waktu pejabat.");
+  if (ok) { ui.closeSheet(); ui.setFilter(Object.keys(OFFICES).find(k => OFFICES[k].kind === "hub")); }
+};
 
 setMode(savedMode() === "hidup" && savedCode() ? "hidup" : "contoh");
 
@@ -270,6 +306,7 @@ function loop() {
   } else {
     AGENTS.forEach(a => a.mesh.userData.animate(0, { busy: a.busy, decision: !!a.decision, ...life.pose(a) }));
   }
+  meetings.update(dt);
   controls.update();
   if (++cullTick % 6 === 0) { camera.updateMatrixWorld(); cullFloors(); }
   renderer.render(scene, camera);
@@ -277,7 +314,9 @@ function loop() {
 
   const now = performance.now();
   AGENTS.forEach(a => {
-    const inView = ui.visible(a) && !a.chip.hidden && a.mesh.visible;
+    const vis0 = ui.visible(a);
+    if (a.chip.hidden === vis0) a.chip.hidden = !vis0;          // ketua dalam mesyuarat muncul di tab ROI HQ
+    const inView = vis0 && a.mesh.visible;
     a.mesh.getWorldPosition(v); v.y += 2.05; v.project(camera);
     const onScreen = v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
     const sx = (v.x * 0.5 + 0.5) * innerWidth, sy = (-v.y * 0.5 + 0.5) * innerHeight;
