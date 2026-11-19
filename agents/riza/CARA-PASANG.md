@@ -1,42 +1,49 @@
-# Riza V1 — Autonomous Prospecting (BinaLab)
+# Riza V1.1 — Free-First / Places ID-Only (BinaLab)
 
-Riza ialah staf **Riset Pasaran** dalam BinaLab Virtual Office (agent ID: `riza`). Ia boleh mencari prospek **Google Places awam**, mengelakkan pendua, mengisi Google Sheets dan menghantar ringkasan kepada Markas. Ia **tidak** menghantar email, WhatsApp atau DM.
+**Kod tersedia di GitHub, belum diaktifkan di akaun Google.** Laluan ini direka untuk menggunakan hanya Google Places **Text Search Essentials (IDs Only)**: medan `places.id` sahaja, tanpa telefon, nama, alamat atau laman web daripada API. Mengikut harga Google semasa, SKU **IDs Only** ialah *unlimited no-cost*, tetapi mengaktifkan Places API lazimnya memerlukan projek Google Cloud dan billing. **Tiada jaminan kos keseluruhan RM0 jika perkhidmatan lain diaktifkan.**
 
-> Status: **Kod disediakan, belum diaktifkan** sehingga API key, Spreadsheet ID, keizinan Apps Script dan trigger berjadual disediakan. Google Places API (New) memerlukan akaun Google Cloud, billing dan kuota. Kos penggunaan mungkin dikenakan.
+Sumber rasmi:
+- [Text Search field masks dan SKU](https://developers.google.com/maps/documentation/places/web-service/text-search)
+- [Google Maps pricing](https://developers.google.com/maps/billing-and-pricing/overview)
+- [Places storage/caching policies](https://developers.google.com/maps/documentation/places/web-service/policies)
 
-## Setup 1 kali
-1. Buka [Google Apps Script](https://script.google.com) menggunakan akaun yang boleh edit sheet prospek BinaLab. Cipta projek **Riza – Prospecting**.
-2. Tampalkan seluruh fail [Code.gs](./Code.gs) ke editor.
-3. **Project Settings → Script Properties**. Tambah:
-   - `GOOGLE_PLACES_API_KEY`: Google Cloud API key yang hanya membenarkan Places API (New). Hadkan API key dan kuota/belanjawan di Google Cloud.
-   - `PROSPECT_SHEET_ID`: ID Google Sheet prospek BinaLab (bukan URL penuh).
-   - `DAILY_LEAD_LIMIT`: `10` (pilihan, maksimum automatik 10).
-   - `MARKAS_URL`: `https://office-ai-agent-tawny.vercel.app` (pilihan untuk status).
-   - `MARKAS_AGENT_KEY`: nilai rahsia yang sama seperti Vercel (pilihan jika mahu status).
-4. Aktifkan **Places API (New)** dalam projek Google Cloud yang mempunyai billing. Fahami billing, ToS dan kuota. Google Places data tertakluk pada terma penggunaan Google Maps Platform; semak hak penyimpanan, penggunaan ulang data dan tempoh retensi sebelum digunakan sebagai pangkalan data kekal. Jika terma tidak membenarkan retensi, ubah kepada sumber yang membenarkannya.
-5. Pilih fungsi `ujiRiza` lalu **Run**. Benarkan akses Spreadsheet/UrlFetch. Ia mencipta tab berasingan **Riza Leads**. Semak output, sumber, format dan kos API.
-6. Jika ujian memuaskan, jalankan `pasangJadual` sekali. Trigger harian sekitar **9:00 pagi MYT**. Untuk hentikan: jalankan `hentikanJadual`.
+## Had Free-First
+- **Hanya** meminta `places.id`. Jangan tambah `displayName`, `formattedAddress`, `nationalPhoneNumber`, `websiteUri` atau medan lain tanpa audit kos.
+- 1 permintaan carian setiap hari dijadualkan. Default maksimum **5 kandidat** sehari, boleh set `DAILY_LEAD_LIMIT=10`.
+- Default maksimum **20 permintaan sebulan** (`MONTHLY_REQUEST_LIMIT=20`). Bilangan ini bukan hard budget dari Google Cloud, cuma kawalan tambahan dalam Apps Script. Letakkan juga kuota dan amaran bil di Cloud Console.
+- Skrip menggunakan 7 query bergilir-gilir, tidak menjalankan crawling besar-besaran.
+- Tempat masuk sebagai **Place ID + pautan review**, tidak secara automatik memasukkan nama/telefon dari data Google. Google membenarkan menyimpan Place ID, tetapi mengehadkan penyimpanan content tempat lain. Sumber data perniagaan lain mesti mempunyai hak simpan sendiri.
+- Tiada model GPT/Claude berbayar. Tiada outreach automatik.
 
-## Workflow
-Google Places Search → tapisan perniagaan aktif → dedup (Place ID, nama, nombor perniagaan awam, domain) → penilaian heuristic → tambah tab Riza Leads → status `riza` di Markas → Fakhri semak → **manusia** buat outreach.
+## Setup (diperlukan untuk mengaktifkan)
+1. Cipta Google Apps Script **Riza – Prospecting** di [script.google.com](https://script.google.com) menggunakan akaun yang boleh mengedit spreadsheet prospek BinaLab.
+2. Tampalkan **seluruh** [Code.gs](Code.gs) dalam projek itu. **Jangan** guna versi Riza V1 lama yang meminta medan Enterprise.
+3. Dalam Google Cloud, aktifkan **Places API (New)**. Konfigurasikan API key yang dihadkan kepada Places API (New), kuota rendah dan amaran bil. Semak keperluan billing di Console.
+4. Apps Script → Project Settings → Script Properties:
+   - `PROSPECT_SHEET_ID`: ID spreadsheet prospek BinaLab (bukan URL penuh).
+   - `GOOGLE_PLACES_API_KEY`: API key Places API (New). **Jangan** masukkan ke GitHub.
+   - `RIZA_ENABLE`: `YES` selepas semak kos dan akses.
+   - `RIZA_ALLOW_PAID`: `NO` (opsyen pilihan, mesti NO jika ada).
+   - `DAILY_LEAD_LIMIT`: `5` (pilihan, maks 10).
+   - `MONTHLY_REQUEST_LIMIT`: `20` (pilihan, maksimum 31).
+   - `MARKAS_URL`: `https://office-ai-agent-tawny.vercel.app` (pilihan).
+   - `MARKAS_AGENT_KEY`: kunci rahsia agent Markas dari Vercel (pilihan).
+5. Run `ujiRiza` dan benarkan akses apabila diminta. Skrip mencipta tab **Riza Leads** dan menambah kandidat ID. Jika tab lama dengan schema lain ada, skrip berhenti dan tidak memadamnya. Sediakan tab baru atau migrasi dengan kelulusan.
+6. Semak hasil dengan Fakhri. Setiap baris hanya **candidate ID**; Fakhri buka Review Link, sahkan maklumat perniagaan dari sumber yang boleh digunakan dan lengkapkan medan manual hanya dengan kebenaran data yang sesuai.
+7. Bila berjaya, run `pasangJadual`. Seterusnya sekitar 9:00 pagi MYT setiap hari. Untuk berhenti, run `hentikanJadual` dan set `RIZA_ENABLE=NO`.
 
-- Nama dan telefon prospek **tidak dihantar ke Markas**, hanya ringkasan jumlah.
-- Lead Score bukan bukti niat membeli. Sumber + URL penting untuk pengesahan manusia.
-- Hasil mungkin **kurang daripada 10** pada sesetengah hari. Tidak mencipta nama atau data palsu untuk capai target.
-- Tidak mengubah tab prospek Fakhri sedia ada. Nama yang sudah terdapat dalam tab lain pada spreadsheet yang sama digunakan untuk dedup.
-- Untuk dedup antara fail Google Sheets berbeza, tambah semakan terpisah selepas audit schema dan akses. Jangan menganggap dedup sedia ada merangkumi fail lain.
-- Bila API tidak tersedia, job gagal dengan jelas, bukannya menulis prospek rekaan.
-- Pastikan hanya fakta perniagaan awam yang sesuai untuk business prospecting disimpan. Jangan kutip data peribadi individu.
-- Data Google Places tertakluk pada polisi Google Maps Platform. **Jangan aktifkan penyimpanan kekal/eksport secara komersial tanpa menyemak terma berkaitan.**
+## Cara sahkan
+- [ ] Tiada caj luar jangka di Google Cloud billing/usage.
+- [ ] Kod `X-Goog-FieldMask: places.id` sahaja.
+- [ ] Rekod baru terhad sehingga 5 kandidat/hari secara default.
+- [ ] Tiada kandidat direka jika carian pulangkan kurang daripada 5.
+- [ ] Run semula hari sama tidak membuat permintaan API lain.
+- [ ] Place ID dalam spreadsheet sama tidak dimasukkan dua kali.
+- [ ] Tiada nama, nombor telefon atau alamat Google disalin ke sheet secara automatik.
+- [ ] Status Riza muncul di Markas jika kunci diset.
+- [ ] Tiada WhatsApp/DM/email dihantar.
 
-## Ujian penerimaan
-- [ ] `ujiRiza` berjaya, API request boleh dibayar dan memberi data sah
-- [ ] Tab `Riza Leads` dibuat; lajur sama dengan definisi dalam kod
-- [ ] Run kedua tidak menambah Place ID/nama/domain/telefon pendua
-- [ ] Tiada outreach automatik
-- [ ] Markas mod Hidup memaparkan status `riza` selepas konfigurasi rahsia
-- [ ] Trigger harian disahkan dalam menu Triggers
-- [ ] Fakhri semak 10 rekod dan catat kualiti untuk iterasi berikutnya
+## Batasan
+ID-only ialah **research queue**, bukan autonomous CRM lengkap. Untuk membina CRM dengan nama, telefon dan bukti fit yang berkekalan, kita perlu sumber dengan lesen penyimpanan yang jelas atau input daripada penyelidik manusia. Jangan anggap adanya Places API key bermaksud semua medan API percuma.
 
-## Next iteration
-Sumber research yang membenarkan penyimpanan CRM jangka panjang; integrasi dengan tracker Fakhri melalui adapter schema; lead scoring berpandukan bukti masalah digital sebenar (bukan sekadar kategori), audit trail, monthly dashboard serta jadual berkala berasaskan kos/kuota.
+Perkhidmatan percuma/billing dan TOS berubah. Semak semula sumber rasmi sebelum mengaktifkan atau membesarkan skala.
