@@ -5,6 +5,9 @@ import { person } from "./person.js";
 import { officeSpots } from "./spots.js";
 import { buildNuriLab } from "./nuriLab.js";
 import { GAYA, ceoSuite } from "./gaya.js";
+import { facade } from "./facade.js";
+
+const liftZ = plan => [plan.backZ + 0.6, plan.backZ + 2.2];   // julat z lif kaca di sisi kanan
 import {
   officeFloor, officeWalls, foundation, workstation, plant, wallDecor,
   counterZone, loungeZone, sideZone, sideRZone, bakeStatic, WALL_H, aFrameSign,
@@ -97,6 +100,12 @@ function tower(offices, building, bobbers) {
     car.position.y = -GROUND_Y + 0.95 + k * span;
   } });
   g.add(lift);
+  // jalur cahaya ROI di dua penjuru belakang menara (dari tanah ke bumbung)
+  const strip = new THREE.MeshBasicMaterial({ color: 0x8E9BFF });
+  for (const sx of [-1, 1]) {
+    g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.12, H, 0.12), new THREE.MeshStandardMaterial({ color: 0x2b3142, roughness: 0.5, metalness: 0.3 })), sx * (W2 + 0.06), GROUND_Y + H / 2, plan.backZ - 0.32));
+    g.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.04, H, 0.04), strip), sx * (W2 + 0.13), GROUND_Y + H / 2, plan.backZ - 0.4));
+  }
   // papan tanda syarikat induk atas bumbung
   const svg = building.logo && logoSvg(building.logo);
   if (svg) {
@@ -118,6 +127,7 @@ function hub(o, bobbers, offices) {
   shell.add(officeWalls(plan, o.color, "ceo"));
   const suite = ceoSuite(plan, o.color, ventures);
   shell.add(suite.group);
+  shell.add(facade(o, "ROI · CEO", liftZ(plan)));
   o.ceoSeat = suite.nadiSeat;
   grp.add(bakeStatic(shell));
 
@@ -174,6 +184,7 @@ function office(o, bobbers) {
   furniture.add(foundation(plan, o.color, ground ? GROUND_Y : -0.3, ground));
   furniture.add(officeFloor(plan, o.color, theme));
   furniture.add(officeWalls(plan, o.color, theme));
+  furniture.add(facade(o, o.short.toUpperCase(), liftZ(plan)));
   const gaya = GAYA[theme] || {};
   furniture.add(gaya.wall ? gaya.wall(plan, o.color, o.message) : wallDecor(plan, o.color, theme, theme !== "kedai" ? o.message : null));
   if (gaya.floorDecor) furniture.add(gaya.floorDecor(plan, o.color));

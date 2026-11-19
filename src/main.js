@@ -212,7 +212,7 @@ const life = createLife(OFFICES, AGENTS, {
 
 setMode(savedMode() === "hidup" && savedCode() ? "hidup" : "contoh");
 
-if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather };
+if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather, camera, controls };
 
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
