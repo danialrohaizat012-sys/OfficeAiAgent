@@ -72,8 +72,20 @@ export function buildWorld(scene, offices, agents, building = {}) {
     officeGroups[key].add(lamp); nightLights.push(lamp);
   }
   scene.add(tower(offices, building, bobbers));
+
+  // Danial Rohaizat (CEO ROI Resources) di taman bumbung: kot kelabu gelap, kemeja biru, tali leher merah
+  const hubKey = Object.keys(offices).find(k => offices[k].kind === "hub");
+  let danial = null;
+  if (hubKey && offices[hubKey].roof) {
+    const R = offices[hubKey].roof;
+    const mesh = person({ shirt: "#3B4150", pants: "#2E3340", hairStyle: "pendek", hairColor: "#141414", accent: "#B58A4A", tie: 0xC8243B, collar: 0x8FB8E8, lead: false });
+    mesh.position.set(R.danial.x, R.y, R.danial.z); mesh.rotation.y = R.danial.face;
+    officeGroups[hubKey].add(mesh);
+    mesh.traverse(m => { if (m.isMesh) { m.userData.danial = true; pickables.push(m); } });
+    danial = { mesh, seat: R.danial, ph: 1.3 };
+  }
   const lift = bobbers.find(b => b.type === "liftCtl").ctl;
-  return { officeGroups, pickables, bobbers, nightLights, site, lift };
+  return { officeGroups, pickables, bobbers, nightLights, site, lift, danial };
 }
 
 // Struktur menara: lif kaca di sisi kanan (dengan kereta lif bergerak) dan
@@ -84,12 +96,16 @@ function tower(offices, building, bobbers) {
   const top = list.reduce((m, o) => Math.max(m, o.pos[1]), 0);
   const plan = list[0].plan, W2 = plan.W / 2;
   const H = top + WALL_H + 0.12 - GROUND_Y;
+  const roofUp = WALL_H + 0.32;                  // aras taman bumbung (atas slab) relatif tingkat CEO
+  const HL = H + 2.3;                            // lif naik sampai ke bumbung
   // lif kaca
   const lift = new THREE.Group(); lift.position.set(W2 + 0.72, GROUND_Y, plan.backZ + 1.4);
   const frame = new THREE.MeshStandardMaterial({ color: 0x3a4152, roughness: 0.5, metalness: 0.4 });
   const glass = new THREE.MeshStandardMaterial({ color: 0x9fd4ff, transparent: true, opacity: 0.18, roughness: 0.05, depthWrite: false });
-  lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(1.2, H, 1.6), glass), 0, H / 2, 0));
-  for (const [x, z] of [[-0.6, -0.8], [0.6, -0.8], [-0.6, 0.8], [0.6, 0.8]]) lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.08, H, 0.08), frame), x, H / 2, z));
+  lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(1.2, HL, 1.6), glass), 0, HL / 2, 0));
+  for (const [x, z] of [[-0.6, -0.8], [0.6, -0.8], [-0.6, 0.8], [0.6, 0.8]]) lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.08, HL, 0.08), frame), x, HL / 2, z));
+  lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.12, 1.7), frame), 0, HL + 0.06, 0));
+  lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 0.04), new THREE.MeshBasicMaterial({ color: 0xB58A4A })), 0, top + roofUp - GROUND_Y + 1.6, 0.82));
   for (const o of list) {
     // lampu nombor tingkat di depan lif, warna venture
     lift.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 0.04), new THREE.MeshBasicMaterial({ color: o.color })), 0, o.pos[1] - GROUND_Y + 2.2, 0.82));
@@ -104,6 +120,7 @@ function tower(offices, building, bobbers) {
   car.position.y = carY(0);
   // Pengawal lif: berhenti di tingkat yang diminta (giliran), atau merayau sendiri bila lapang
   const floors = list.map(o => o.floor), topFloor = Math.max(...floors);
+  const roofFloor = topFloor + roofUp / FLOOR_H;   // hentian bumbung (bilik Danial)
   const queue = [];
   let wait = 2, idle = 0;
   const liftCtl = {
@@ -134,7 +151,7 @@ function tower(offices, building, bobbers) {
         if (job.then) job.then();
       } else car.position.y += Math.sign(dy) * Math.min(step, Math.abs(dy) * 2 + 0.4 * dt);
     },
-    topFloor,
+    topFloor, roofFloor,
   };
   bobbers.push({ type: "liftCtl", ctl: liftCtl });
   g.add(lift);
@@ -168,6 +185,8 @@ function hub(o, bobbers, offices) {
   shell.add(suite.group);
   shell.add(facade(o, "ROI · CEO", liftZ(plan)));
   const roof = roofGarden(plan, o.color); roof.position.y = WALL_H + 0.12; shell.add(roof);
+  const R = roof.userData.roof, roofY = WALL_H + 0.12 + R.y;
+  o.roof = { ...R, y: roofY };
   o.ceoSeat = suite.nadiSeat; o.meet = suite.meet;
   grp.add(bakeStatic(shell));
 

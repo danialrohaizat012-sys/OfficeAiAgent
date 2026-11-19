@@ -161,8 +161,8 @@ export function createLife(offices, agents, { onErrand, hour = () => 12, shift =
   }
 
   // pindah figura ke tingkat lain (anak kumpulan tingkat itu), koordinat tempatan sama
-  function teleport(a, key, p) {
-    groups[key].add(a.mesh); a.mesh.position.set(p.x, 0, p.z); a.mesh.visible = true;
+  function teleport(a, key, p, y = 0) {
+    groups[key].add(a.mesh); a.mesh.position.set(p.x, y, p.z); a.mesh.visible = true;
     a.at = key === a.office ? null : key;
   }
 
@@ -172,23 +172,23 @@ export function createLife(offices, agents, { onErrand, hour = () => 12, shift =
     if (L.then === "meetLift") {
       const P = L.meet, o = offices[a.office];
       m.visible = false; L.mode = "lift";
-      lift.go(o.floor, () => lift.go(lift.topFloor, () => {
+      lift.go(o.floor, () => lift.go(P.liftTo ?? lift.topFloor, () => {
         // keluar lif seorang demi seorang
         L.mode = "lobbyWait"; L.timer = (exitSlot = Math.max(exitSlot, clock) + 1.3) - clock;
-        L.onExit = () => { teleport(a, P.hubKey, P.pathIn[0]); L.mode = "walking"; L.walk = 0; L.then = "meetSeat"; L.path = P.pathIn.slice(1); };
+        L.onExit = () => { teleport(a, P.hubKey, P.pathIn[0], P.y || 0); L.mode = "walking"; L.walk = 0; L.then = "meetSeat"; L.path = P.pathIn.slice(1); };
       }, 0.5), 0.5);
       return;
     }
     if (L.then === "meetSeat") {
       const st = L.meet.seat;
-      L.mode = "meeting"; L.face = st.face; L.sitTarget = 1; L.seatY = 0.5; a.inMeeting = true;
+      L.mode = "meeting"; L.face = st.face; L.sitTarget = st.stand ? 0 : 1; L.seatY = 0.5; a.inMeeting = true;
       if (onMeetSeat) onMeetSeat(a);
       return;
     }
     if (L.then === "meetBack") {
-      const o = offices[a.office];
+      const o = offices[a.office], P0 = L.meet;
       m.visible = false; L.mode = "lift"; a.inMeeting = false;
-      lift.go(lift.topFloor, () => lift.go(o.floor, () => {
+      lift.go(P0.liftTo ?? lift.topFloor, () => lift.go(o.floor, () => {
         const P = lobbyOf(o); teleport(a, a.office, P);
         L.mode = "walking"; L.walk = 0; L.then = "home";
         L.path = [{ x: P.x, z: backLane(o) }, { x: 0, z: backLane(o) }, { x: 0, z: a.home.z }, { x: a.home.x, z: a.home.z }];

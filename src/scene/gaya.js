@@ -735,6 +735,10 @@ export function roofGarden(plan, color) {
   // meja payung + bangku (tengah kanan)
   const tx = 2.8, tz = zc + 1.1;
   g.add(mesh(cyl(0.45, 0.45, 0.04, 20), std(0xeef1f6), tx, y + 0.6, tz));
+  // laptop & kopi Danial atas meja
+  g.add(mesh(box(0.36, 0.02, 0.25), M.laptop(), tx, y + 0.63, tz - 0.22));
+  const scr = mesh(box(0.36, 0.24, 0.015), M.laptop(), tx, y + 0.75, tz - 0.08); scr.rotation.x = 0.3; g.add(scr);
+  g.add(mesh(cyl(0.04, 0.035, 0.09, 10), M.white(), tx + 0.28, y + 0.665, tz - 0.1));
   g.add(mesh(cyl(0.03, 0.03, 1.7, 8), rail, tx, y + 0.85, tz));
   g.add(mesh(new THREE.ConeGeometry(0.85, 0.35, 8, 1, true), std(color, { side: THREE.DoubleSide, roughness: 0.8 }), tx, y + 1.75, tz));
   for (const sz of [-1, 1]) {
@@ -761,5 +765,11 @@ export function roofGarden(plan, color) {
       g.add(mesh(new THREE.SphereGeometry(0.045, 8, 6), bulb, ax + (bx - ax) * f, y + 1.85 - sag, az + (bz - az) * f));
     }
   }
+  // tempat Danial (bangku depan meja payung, menghadap meja) & tempat Nadi berdiri bila datang
+  g.userData.roof = {
+    y, danial: { x: tx, z: tz - 0.75, face: 0 },
+    nadi: { x: tx - 1.0, z: tz - 0.35, face: Math.atan2(1.0, -0.4) },
+    lobby: { x: W2 - 1.2, z: plan.backZ + 1.4 },
+  };
   return g;
 }

@@ -116,7 +116,7 @@ function toVertexColor(root) {
 const HIP_STAND = 0.62;
 
 export function person(opts) {
-  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt, npc = false, lead = false } = opts;
+  const { shirt, skin = SKIN_DEFAULT, pants = "#2B3550", hairStyle = "pendek", hairColor = "#3B2618", accent = shirt, npc = false, lead = false, tie = 0x1a2238, collar = null } = opts;
   const g = new THREE.Group();
   const body = new THREE.Group(); g.add(body);           // dinaik/turunkan bila duduk
   const skinM = std(skin), shirtM = std(shirt), pantsM = std(pants);
@@ -137,7 +137,12 @@ export function person(opts) {
   // --- badan + leher + tali leher
   const torsoY = HIP_STAND + 0.26;
   body.add(mesh(torsoGeo(), shirtM, 0, torsoY, 0));
-  body.add(mesh(new THREE.BoxGeometry(0.06, 0.2, 0.01), std(0x1a2238), 0, torsoY + 0.06, 0.132));
+  if (collar) {
+    // kemeja di bawah kot (bentuk V di dada)
+    const v = new THREE.Shape(); v.moveTo(-0.08, 0.2); v.lineTo(0.08, 0.2); v.lineTo(0, -0.02); v.closePath();
+    body.add(mesh(new THREE.ShapeGeometry(v), std(collar), 0, torsoY - 0.01, 0.131));
+  }
+  body.add(mesh(new THREE.BoxGeometry(0.06, 0.2, 0.01), std(tie), 0, torsoY + 0.06, 0.134));
   body.add(mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.05, 12), skinM, 0, torsoY + 0.235, 0));
   if (lead) {
     // lencana ketua: bintang emas di dada kiri

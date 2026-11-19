@@ -25,8 +25,10 @@ export function createCameraRig(camera, controls, offices, view, reduceMotion) {
       const o = offices[key];
       const base = new THREE.Vector3(o.pos[0], o.pos[1], o.pos[2]);
       // pandang dari depan, sedikit atas, supaya lantai tingkat atas tidak menghalang
-      tgt = agentPos ? agentPos.clone().setY(o.pos[1] + 1) : base.clone().add(new THREE.Vector3(0, 1.2, 0.3));
-      const d = (agentPos ? 7.5 : 12) * (portrait ? 1.45 : 1);
+      // tingkat CEO: naikkan sasaran supaya taman bumbung (Danial) turut nampak
+      const hub = o.kind === "hub" && !agentPos;
+      tgt = agentPos ? agentPos.clone().setY(agentPos.y + 1) : base.clone().add(new THREE.Vector3(0, hub ? 2.3 : 1.2, 0.3));
+      const d = (agentPos ? 7.5 : hub ? 14 : 12) * (portrait ? 1.45 : 1);
       pos = tgt.clone().add(new THREE.Vector3(d * 0.12, d * 0.24, d * 0.96));
     }
     tween = { t: 0, dur: reduceMotion ? 1 : 1.1, p0: camera.position.clone(), p1: pos, t0: controls.target.clone(), t1: tgt };

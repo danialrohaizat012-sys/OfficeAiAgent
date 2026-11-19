@@ -5,7 +5,7 @@
 
 export function startSample(agents, ui, { onShow, onReport, onDecision } = {}) {
   function tick() {
-    const pool = agents.filter(a => ui.visible(a) && !a.away);
+    const pool = agents.filter(a => ui.visible(a) && !a.away && !a.inMeeting);
     const a = pool[Math.floor(Math.random() * pool.length)];
     if (!a) return;
     const prev = a.step;

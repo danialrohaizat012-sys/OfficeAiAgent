@@ -45,6 +45,7 @@ const ui = createUI({
   onFilter: f => rig.focus(f === "all" ? null : f),
   onClose: f => rig.focus(f === "all" ? null : f),
   onDecisionDone: async (a, was) => {
+    if (danialP) { danialP.say("✅ Keputusan dibuat. Teruskan!"); }
     if (mode !== "hidup") { sampleLog(a, { selesai: was || "keputusan" }); ui.refresh(a); ui.toast(`✓ Keputusan untuk ${a.name} ditanda selesai`); return; }
     try { await markDecisionDone(savedCode(), a.id); ui.toast(`✓ Keputusan untuk ${a.name} disimpan sebagai selesai`); loadLog(a, false); }
     catch (e) { ui.toast("⚠ Tak dapat simpan: " + e.message); }
@@ -88,6 +89,7 @@ canvas.addEventListener("pointerup", e => {
   if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
   ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
   const hit = ray.intersectObjects(world.pickables, false)[0];
+  if (hit && hit.object.userData.danial) { danialP.say("👋 Danial Rohaizat · CEO ROI Resources"); ui.toast("Danial Rohaizat · CEO ROI Resources (taman bumbung)"); return; }
   if (hit) { select(hit.object.userData.agent, true); return; }
   // tekan bangunan / papan tanda: zum ke pejabat itu
   const b = ray.intersectObjects(Object.values(world.officeGroups), true)[0];
@@ -227,17 +229,28 @@ const life = createLife(OFFICES, AGENTS, {
   hour: () => daylight.hour, shift: SHIFT, lift: world.lift, groups: world.officeGroups,
 });
 
+// ===== Danial Rohaizat (CEO ROI Resources) di taman bumbung =====
+// Bukan agent: tiada status atau roster, cuma figura + tanda nama + gelembung.
+const danialP = world.danial ? (() => {
+  const bubbles = document.getElementById("bubbles");
+  const bubble = document.createElement("div"); bubble.className = "bubble"; bubble.innerHTML = "<b>Danial</b><span></span>"; bubbles.appendChild(bubble);
+  const tag = document.createElement("div"); tag.className = "tag"; tag.innerHTML = '<i style="background:#B58A4A"></i><span>👑 Danial · CEO</span>'; bubbles.appendChild(tag);
+  return { ...world.danial, bubble, tag, until: 0, say(text) { bubble.querySelector("span").textContent = text; this.until = performance.now() + 4200; } };
+})() : null;
+
 // ===== Mesyuarat ketua venture dengan Nadi di Pejabat CEO =====
-const say = (a, text) => { a.bubble.querySelector("span").textContent = text; showBubble(a); };
+const say = (a, text) => { if (a === danialP) { a.say(text); return; } a.bubble.querySelector("span").textContent = text; showBubble(a); };
 const meetings = createMeetings({
-  offices: OFFICES, agents: AGENTS, life, say, toast: ui.toast, reduce,
+  offices: OFFICES, agents: AGENTS, life, lift: world.lift, danial: danialP, say, toast: ui.toast, reduce,
   current: a => nowText(a),
   onLog: (a, text) => { if (a.live === undefined) { sampleLog(a, { sedang: "🗓️ " + text }); ui.refresh(a); } },
 });
 // perkara perlu keputusan: Nadi panggil ketua venture itu untuk sediakan cadangan kepada Danial
+// selepas mesyuarat, Nadi naik ke bumbung bawa cadangan kepada Danial
 function decisionMeeting(a) {
-  if (a.home.leader) return;
-  meetings.call([a.office], `Sediakan cadangan untuk Danial: ${a.decision}`);
+  const text = a.decision;
+  if (a.home.leader) { meetings.escalate(text); return; }
+  if (!meetings.call([a.office], `Sediakan cadangan untuk Danial: ${text}`, () => meetings.escalate(`${OFFICES[a.office].short}: ${text}`))) meetings.escalate(`${OFFICES[a.office].short}: ${text}`);
 }
 // mesyuarat pagi harian (sekali sehari, ikut waktu Malaysia)
 let dailyDone = null;
@@ -263,7 +276,7 @@ document.getElementById("sMeet").onclick = () => {
 
 setMode(savedMode() === "hidup" && savedCode() ? "hidup" : "contoh");
 
-if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather, camera, controls, lift: world.lift };
+if (location.search.includes("debug")) window.__markas = { renderer, AGENTS, customers, daylight, quality, weather, camera, controls, lift: world.lift, meetings };
 
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
@@ -303,7 +316,9 @@ function loop() {
     }
     customers.update(dt, t);
     AGENTS.forEach(a => a.mesh.userData.animate(t, { busy: a.busy, ph: a.ph, decision: !!a.decision, ...life.pose(a) }));
+    if (danialP) danialP.mesh.userData.animate(t, { ph: danialP.ph, sit: 1, seatY: 0.48, typing: !meetings.danialTalking, look: meetings.danialTalking ? -0.9 : 0 });
   } else {
+    if (danialP) danialP.mesh.userData.animate(0, { sit: 1, seatY: 0.48 });
     AGENTS.forEach(a => a.mesh.userData.animate(0, { busy: a.busy, decision: !!a.decision, ...life.pose(a) }));
   }
   meetings.update(dt);
@@ -329,6 +344,15 @@ function loop() {
     a.bubble.classList.toggle("show", vis && onScreen);
     if (!vis && a.until <= now) shown.delete(a);
   });
+  if (danialP) {
+    const d = danialP, show = d.mesh.parent.visible && (ui.filter === "all" || OFFICES[ui.filter].kind === "hub");
+    d.mesh.getWorldPosition(v); v.y += 1.6; v.project(camera);
+    const on = v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
+    const sx = (v.x * 0.5 + 0.5) * innerWidth, sy = (-v.y * 0.5 + 0.5) * innerHeight;
+    if (on) { d.tag.style.left = d.bubble.style.left = sx + "px"; d.tag.style.top = sy + "px"; d.bubble.style.top = (sy - 20) + "px"; }
+    d.tag.classList.toggle("show", show && on && !ui.selected);
+    d.bubble.classList.toggle("show", show && on && d.until > now);
+  }
   requestAnimationFrame(loop);
 }
 loop();
