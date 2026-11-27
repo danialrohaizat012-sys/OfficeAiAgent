@@ -76,9 +76,9 @@ export default {
     { id: "nadi", nama: "Nadi", pejabat: "command", peranan: "Virtual CEO ROI Resources: agih kerja ke semua venture dan rumus laporan", warna: "#9AA8FF", rambut: "kemas", warnaRambut: "#2A1B12",
       tugas: ["Semak dinding prestasi 6 anak syarikat", "Agih tugasan pagi ke setiap venture", "Semak siapa belum hantar report", "Rumus laporan harian untuk Danial"] },
 
-    { id: "kront", nama: "Kront", pejabat: "command", peranan: "Strategic Advisor kepada Nadi: strategi, bisnes, riset dan perancangan", warna: "#38BDF8", rambut: "kemas", warnaRambut: "#202A38",
+    { id: "kront", nama: "Kront", pejabat: "command", jantina: "lelaki", pronoun: "he/him", peranan: "Strategic Advisor kepada Nadi: strategi, bisnes, riset dan perancangan", warna: "#38BDF8", rambut: "kemas", warnaRambut: "#202A38",
       tugas: ["Semak strategi kumpulan", "Analisis peluang bisnes", "Cadang keutamaan kepada Nadi"] },
-    { id: "reka-hq", nama: "Reka", pejabat: "command", peranan: "Technical Advisor kepada Nadi: teknologi, coding dan pembangunan sistem", warna: "#C28CFF", rambut: "panjang", warnaRambut: "#50366B",
+    { id: "reka-hq", nama: "Reka", pejabat: "command", jantina: "perempuan", pronoun: "she/her", peranan: "Technical Advisor kepada Nadi: teknologi, coding dan pembangunan sistem", warna: "#C28CFF", rambut: "panjang", warnaRambut: "#50366B",
       tugas: ["Semak roadmap teknologi", "Nilai risiko teknikal", "Cadang penyelesaian sistem kepada Nadi"] },
 
     // BinaLab
